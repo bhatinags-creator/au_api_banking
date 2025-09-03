@@ -1,0 +1,154 @@
+{
+  "id": "0",
+  "name": "Landing Page",
+  "type": "FRAME",
+  "absoluteBoundingBox": {
+    "x": 0,
+    "y": 0,
+    "width": 1440,
+    "height": 1024
+  },
+  "backgroundColor": { "r": 1, "g": 1, "b": 1, "a": 1 },
+  "children": [
+    {
+      "id": "1",
+      "name": "Header",
+      "type": "FRAME",
+      "absoluteBoundingBox": { "x": 0, "y": 0, "width": 1440, "height": 80 },
+      "backgroundColor": { "r": 0.1, "g": 0.1, "b": 0.2, "a": 1 },
+      "children": [
+        {
+          "id": "1.1",
+          "name": "Logo",
+          "type": "TEXT",
+          "characters": "API Banking Portal",
+          "style": { "fontSize": 24, "fontFamily": "Inter", "fontWeight": 600, "fill": "#FFFFFF" }
+        },
+        {
+          "id": "1.2",
+          "name": "Nav",
+          "type": "TEXT",
+          "characters": "APIs    Sandbox    My Apps    Analytics",
+          "style": { "fontSize": 16, "fontFamily": "Inter", "fontWeight": 400, "fill": "#FFFFFF" }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Hero Section",
+      "type": "FRAME",
+      "absoluteBoundingBox": { "x": 0, "y": 100, "width": 1440, "height": 400 },
+      "children": [
+        {
+          "id": "2.1",
+          "name": "Title",
+          "type": "TEXT",
+          "characters": "Build. Test. Innovate with Our APIs",
+          "style": { "fontSize": 48, "fontFamily": "Inter", "fontWeight": 700, "fill": "#1A73E8" }
+        },
+        {
+          "id": "2.2",
+          "name": "Subtitle",
+          "type": "TEXT",
+          "characters": "Access Payments, Accounts, KYC and more in a secure sandbox environment.",
+          "style": { "fontSize": 20, "fontFamily": "Inter", "fontWeight": 400, "fill": "#333333" }
+        },
+        {
+          "id": "2.3",
+          "name": "CTA Buttons",
+          "type": "FRAME",
+          "children": [
+            {
+              "id": "2.3.1",
+              "name": "Explore APIs",
+              "type": "RECTANGLE",
+              "absoluteBoundingBox": { "x": 100, "y": 300, "width": 200, "height": 50 },
+              "fills": [{ "type": "SOLID", "color": { "r": 0.1, "g": 0.45, "b": 0.9, "a": 1 } }],
+              "children": [
+                {
+                  "id": "2.3.1.1",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "characters": "Explore APIs",
+                  "style": { "fontSize": 18, "fontFamily": "Inter", "fontWeight": 600, "fill": "#FFFFFF" }
+                }
+              ]
+            },
+            {
+              "id": "2.3.2",
+              "name": "Get API Key",
+              "type": "RECTANGLE",
+              "absoluteBoundingBox": { "x": 320, "y": 300, "width": 200, "height": 50 },
+              "fills": [{ "type": "SOLID", "color": { "r": 0, "g": 0.75, "b": 0.6, "a": 1 } }],
+              "children": [
+                {
+                  "id": "2.3.2.1",
+                  "name": "Label",
+                  "type": "TEXT",
+                  "characters": "Get API Key",
+                  "style": { "fontSize": 18, "fontFamily": "Inter", "fontWeight": 600, "fill": "#FFFFFF" }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "name": "API Categories",
+      "type": "FRAME",
+      "absoluteBoundingBox": { "x": 0, "y": 520, "width": 1440, "height": 400 },
+      "children": [
+        {
+          "id": "3.1",
+          "name": "Card - Accounts",
+          "type": "RECTANGLE",
+          "absoluteBoundingBox": { "x": 100, "y": 540, "width": 280, "height": 180 },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.97, "b": 1, "a": 1 } }],
+          "children": [
+            {
+              "id": "3.1.1",
+              "name": "Text",
+              "type": "TEXT",
+              "characters": "Accounts API\nAccess balances & transactions",
+              "style": { "fontSize": 18, "fontFamily": "Inter", "fontWeight": 400, "fill": "#111827" }
+            }
+          ]
+        },
+        {
+          "id": "3.2",
+          "name": "Card - Payments",
+          "type": "RECTANGLE",
+          "absoluteBoundingBox": { "x": 420, "y": 540, "width": 280, "height": 180 },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.97, "b": 1, "a": 1 } }],
+          "children": [
+            {
+              "id": "3.2.1",
+              "name": "Text",
+              "type": "TEXT",
+              "characters": "Payments API\nSend & receive payments",
+              "style": { "fontSize": 18, "fontFamily": "Inter", "fontWeight": 400, "fill": "#111827" }
+            }
+          ]
+        },
+        {
+          "id": "3.3",
+          "name": "Card - KYC",
+          "type": "RECTANGLE",
+          "absoluteBoundingBox": { "x": 740, "y": 540, "width": 280, "height": 180 },
+          "fills": [{ "type": "SOLID", "color": { "r": 0.95, "g": 0.97, "b": 1, "a": 1 } }],
+          "children": [
+            {
+              "id": "3.3.1",
+              "name": "Text",
+              "type": "TEXT",
+              "characters": "KYC API\nVerify customer identity",
+              "style": { "fontSize": 18, "fontFamily": "Inter", "fontWeight": 400, "fill": "#111827" }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
