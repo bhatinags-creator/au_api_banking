@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Building2, CreditCard, Shield, Lock, Zap, FileText, Headphones } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,34 +23,30 @@ export default function Home() {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a 
-            href="#apis" 
+          <Link 
+            href="/apis" 
             className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-            data-testid="link-apis"
           >
-            APIs
-          </a>
-          <a 
-            href="#sandbox" 
+            <span data-testid="link-apis">APIs</span>
+          </Link>
+          <Link 
+            href="/sandbox" 
             className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-            data-testid="link-sandbox"
           >
-            Sandbox
-          </a>
-          <a 
-            href="#my-apps" 
+            <span data-testid="link-sandbox">Sandbox</span>
+          </Link>
+          <Link 
+            href="/dashboard" 
             className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-            data-testid="link-my-apps"
           >
-            My Apps
-          </a>
-          <a 
-            href="#analytics" 
+            <span data-testid="link-my-apps">My Apps</span>
+          </Link>
+          <Link 
+            href="/analytics" 
             className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-            data-testid="link-analytics"
           >
-            Analytics
-          </a>
+            <span data-testid="link-analytics">Analytics</span>
+          </Link>
         </nav>
         
         {/* Mobile Menu Button */}
@@ -71,18 +68,18 @@ export default function Home() {
       {mobileMenuOpen && (
         <div className="md:hidden header-bg" data-testid="mobile-menu">
           <nav className="px-6 py-4 space-y-4">
-            <a href="#apis" className="block text-white text-base font-normal" data-testid="mobile-link-apis">
+            <Link href="/apis" className="block text-white text-base font-normal" data-testid="mobile-link-apis">
               APIs
-            </a>
-            <a href="#sandbox" className="block text-white text-base font-normal" data-testid="mobile-link-sandbox">
+            </Link>
+            <Link href="/sandbox" className="block text-white text-base font-normal" data-testid="mobile-link-sandbox">
               Sandbox
-            </a>
-            <a href="#my-apps" className="block text-white text-base font-normal" data-testid="mobile-link-my-apps">
+            </Link>
+            <Link href="/dashboard" className="block text-white text-base font-normal" data-testid="mobile-link-my-apps">
               My Apps
-            </a>
-            <a href="#analytics" className="block text-white text-base font-normal" data-testid="mobile-link-analytics">
+            </Link>
+            <Link href="/analytics" className="block text-white text-base font-normal" data-testid="mobile-link-analytics">
               Analytics
-            </a>
+            </Link>
           </nav>
         </div>
       )}
@@ -103,18 +100,22 @@ export default function Home() {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-              <Button 
-                className="btn-primary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
-                data-testid="button-explore-apis"
-              >
-                Explore APIs
-              </Button>
-              <Button 
-                className="btn-secondary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
-                data-testid="button-get-api-key"
-              >
-                Get API Key
-              </Button>
+              <Link href="/apis">
+                <Button 
+                  className="btn-primary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
+                  data-testid="button-explore-apis"
+                >
+                  Explore APIs
+                </Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button 
+                  className="btn-secondary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
+                  data-testid="button-get-api-key"
+                >
+                  Get API Key
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -136,67 +137,73 @@ export default function Home() {
           {/* API Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Accounts API Card */}
-            <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100" data-testid="card-accounts-api">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-blue-600" />
+            <Link href="/apis">
+              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-accounts-api">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-darker text-xl font-semibold" data-testid="title-accounts-api">
+                    Accounts API
+                  </h3>
+                  <p className="text-dark text-base leading-relaxed" data-testid="description-accounts-api">
+                    Access balances & transactions
+                  </p>
+                  <span 
+                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
+                    data-testid="button-learn-more-accounts"
+                  >
+                    Learn More →
+                  </span>
                 </div>
-                <h3 className="text-darker text-xl font-semibold" data-testid="title-accounts-api">
-                  Accounts API
-                </h3>
-                <p className="text-dark text-base leading-relaxed" data-testid="description-accounts-api">
-                  Access balances & transactions
-                </p>
-                <button 
-                  className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
-                  data-testid="button-learn-more-accounts"
-                >
-                  Learn More →
-                </button>
               </div>
-            </div>
+            </Link>
             
             {/* Payments API Card */}
-            <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100" data-testid="card-payments-api">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CreditCard className="w-6 h-6 text-green-600" />
+            <Link href="/apis">
+              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-payments-api">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="text-darker text-xl font-semibold" data-testid="title-payments-api">
+                    Payments API
+                  </h3>
+                  <p className="text-dark text-base leading-relaxed" data-testid="description-payments-api">
+                    Send & receive payments
+                  </p>
+                  <span 
+                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
+                    data-testid="button-learn-more-payments"
+                  >
+                    Learn More →
+                  </span>
                 </div>
-                <h3 className="text-darker text-xl font-semibold" data-testid="title-payments-api">
-                  Payments API
-                </h3>
-                <p className="text-dark text-base leading-relaxed" data-testid="description-payments-api">
-                  Send & receive payments
-                </p>
-                <button 
-                  className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
-                  data-testid="button-learn-more-payments"
-                >
-                  Learn More →
-                </button>
               </div>
-            </div>
+            </Link>
             
             {/* KYC API Card */}
-            <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100" data-testid="card-kyc-api">
-              <div className="space-y-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-purple-600" />
+            <Link href="/apis">
+              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-kyc-api">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="text-darker text-xl font-semibold" data-testid="title-kyc-api">
+                    KYC API
+                  </h3>
+                  <p className="text-dark text-base leading-relaxed" data-testid="description-kyc-api">
+                    Verify customer identity
+                  </p>
+                  <span 
+                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
+                    data-testid="button-learn-more-kyc"
+                  >
+                    Learn More →
+                  </span>
                 </div>
-                <h3 className="text-darker text-xl font-semibold" data-testid="title-kyc-api">
-                  KYC API
-                </h3>
-                <p className="text-dark text-base leading-relaxed" data-testid="description-kyc-api">
-                  Verify customer identity
-                </p>
-                <button 
-                  className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
-                  data-testid="button-learn-more-kyc"
-                >
-                  Learn More →
-                </button>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
