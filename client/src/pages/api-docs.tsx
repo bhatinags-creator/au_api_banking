@@ -965,9 +965,150 @@ export default function APIDocs() {
                   <p className="text-neutrals-600 mb-4">
                     If you already have an account, then sign in and jump to <strong>step 2</strong>. Else follow the steps to create an account.
                   </p>
-                  <div className="bg-neutrals-50 p-4 rounded-lg">
+                  <div className="bg-neutrals-50 p-4 rounded-lg mb-6">
                     <p className="text-sm"><strong>Step 1:</strong> Go to our sign up page.</p>
                     <p className="text-sm"><strong>a)</strong> Enter your Credentials.</p>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">What happens after registration?</h3>
+                      <div className="space-y-3 text-sm text-neutrals-600">
+                        <p>Once you complete the registration process, our team will review your application within 2-3 business days. Here's what you can expect:</p>
+                        <ul className="space-y-2 ml-4">
+                          <li className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
+                            <span><strong>Application Review:</strong> Our team will verify your business details and documentation</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
+                            <span><strong>API Credentials:</strong> Upon approval, you'll receive your unique API keys and client credentials</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
+                            <span><strong>Sandbox Access:</strong> Test our APIs in a secure sandbox environment before going live</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
+                            <span><strong>Documentation Access:</strong> Complete API documentation with examples and integration guides</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
+                            <span><strong>Technical Support:</strong> Dedicated support team to help with integration and troubleshooting</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Required Documents</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <h4 className="font-medium text-blue-800 mb-2">Business Documents</h4>
+                          <ul className="text-sm text-blue-700 space-y-1">
+                            <li>• Company Registration Certificate</li>
+                            <li>• PAN Card</li>
+                            <li>• GST Registration Certificate</li>
+                            <li>• MOA & AOA</li>
+                          </ul>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <h4 className="font-medium text-green-800 mb-2">Banking Documents</h4>
+                          <ul className="text-sm text-green-700 space-y-1">
+                            <li>• Bank Account Statement (3 months)</li>
+                            <li>• Cancelled Cheque</li>
+                            <li>• Board Resolution</li>
+                            <li>• Authorized Signatory List</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">API Categories Available</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Shield className="w-5 h-5 text-primary" />
+                            <h4 className="font-medium">Security APIs</h4>
+                          </div>
+                          <p className="text-sm text-neutrals-600">Encryption, authentication, and security protocols</p>
+                        </div>
+                        <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CreditCard className="w-5 h-5 text-primary" />
+                            <h4 className="font-medium">Payment APIs</h4>
+                          </div>
+                          <p className="text-sm text-neutrals-600">UPI, NEFT, RTGS, and digital payment solutions</p>
+                        </div>
+                        <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Database className="w-5 h-5 text-primary" />
+                            <h4 className="font-medium">Account APIs</h4>
+                          </div>
+                          <p className="text-sm text-neutrals-600">Balance inquiry, transaction history, account management</p>
+                        </div>
+                        <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Building2 className="w-5 h-5 text-primary" />
+                            <h4 className="font-medium">Business Banking</h4>
+                          </div>
+                          <p className="text-sm text-neutrals-600">Corporate accounts, bulk transactions, reporting</p>
+                        </div>
+                        <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Users className="w-5 h-5 text-primary" />
+                            <h4 className="font-medium">Customer Auth</h4>
+                          </div>
+                          <p className="text-sm text-neutrals-600">OTP generation, KYC verification, user management</p>
+                        </div>
+                        <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-3 mb-2">
+                            <FileCheck className="w-5 h-5 text-primary" />
+                            <h4 className="font-medium">Document APIs</h4>
+                          </div>
+                          <p className="text-sm text-neutrals-600">Document upload, verification, processing</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Support & Resources</h3>
+                      <div className="bg-neutrals-50 p-6 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h4 className="font-medium mb-3">Technical Support</h4>
+                            <div className="space-y-2 text-sm text-neutrals-600">
+                              <p><strong>Email:</strong> developer-support@aubank.in</p>
+                              <p><strong>Phone:</strong> 1800-103-5454</p>
+                              <p><strong>Hours:</strong> Mon-Fri, 9:00 AM - 6:00 PM IST</p>
+                              <p><strong>Response Time:</strong> Within 24 hours</p>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="font-medium mb-3">Resources</h4>
+                            <div className="space-y-2 text-sm">
+                              <a href="#" className="flex items-center gap-2 text-primary hover:underline">
+                                <BookOpen className="w-4 h-4" />
+                                API Documentation
+                              </a>
+                              <a href="#" className="flex items-center gap-2 text-primary hover:underline">
+                                <Play className="w-4 h-4" />
+                                Interactive Sandbox
+                              </a>
+                              <a href="#" className="flex items-center gap-2 text-primary hover:underline">
+                                <Settings className="w-4 h-4" />
+                                Integration Guides
+                              </a>
+                              <a href="#" className="flex items-center gap-2 text-primary hover:underline">
+                                <Users className="w-4 h-4" />
+                                Developer Community
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
