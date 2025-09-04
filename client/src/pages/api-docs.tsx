@@ -697,7 +697,7 @@ export default function APIDocs() {
                   Back to Home
                 </Button>
               </Link>
-              <div className="h-6 w-px bg-neutrals-200 mx-2"></div>
+              <div className="h-6 w-px bg-neutrals-200 mx-4"></div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                   <Building2 className="w-5 h-5 text-white" />
