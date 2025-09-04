@@ -841,6 +841,127 @@ export default function APIDocs() {
                 </div>
 
                 <div className="mb-8">
+                  <h2 className="text-2xl font-semibold mb-6">Registration Process</h2>
+                  <p className="text-neutrals-600 mb-6">Follow these simple steps to get onboard with AU Bank's API Banking Portal</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Step 1 */}
+                    <Card className="relative">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-100">Step 1</Badge>
+                          <div className="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                        </div>
+                        <CardTitle className="text-lg">Let's get you Onboard</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
+                            <span className="text-sm">Full Name</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
+                            <span className="text-sm">Email Address</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
+                            <span className="text-sm">Company Name</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
+                            <span className="text-sm">Mobile Number</span>
+                          </div>
+                        </div>
+                        <Button className="w-full bg-pink-600 hover:bg-pink-700" size="sm">
+                          Get Started
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Step 2 */}
+                    <Card className="relative">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Step 2</Badge>
+                          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                        </div>
+                        <CardTitle className="text-lg">Let's get you Onboard</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            <span className="text-sm">Business Category</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            <span className="text-sm">Business Sub Category</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            <span className="text-sm">Company Registration Details</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            <span className="text-sm">Annual Turnover</span>
+                          </div>
+                        </div>
+                        <Button className="w-full bg-blue-600 hover:bg-blue-700" size="sm">
+                          Continue
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Step 3 */}
+                    <Card className="relative">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Step 3</Badge>
+                          <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                        </div>
+                        <CardTitle className="text-lg">Let's get you Onboard</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                            <span className="text-sm">Document Upload</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                            <span className="text-sm">Company Documents</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                            <span className="text-sm">Banking Documents</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                            <span className="text-sm">Final Review & Submit</span>
+                          </div>
+                        </div>
+                        <Button className="w-full bg-green-600 hover:bg-green-700" size="sm">
+                          Submit Application
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-blue-800 font-medium">Processing Time</p>
+                        <p className="text-sm text-blue-700">Your application will be reviewed within 2-3 business days. You'll receive an email notification once approved with your API credentials and access details.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-8">
                   <p className="text-neutrals-600 mb-4">
                     If you already have an account, then sign in and jump to <strong>step 2</strong>. Else follow the steps to create an account.
                   </p>
