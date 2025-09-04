@@ -697,10 +697,13 @@ export default function APIDocs() {
                   Back to Home
                 </Button>
               </Link>
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
+              <div className="h-6 w-px bg-neutrals-200"></div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-xl font-bold text-neutrals-900">AU Bank Developer Portal</h1>
               </div>
-              <h1 className="text-xl font-bold text-neutrals-900">AU Bank API Documentation</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm">Sign Up</Button>
