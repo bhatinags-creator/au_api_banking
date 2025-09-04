@@ -297,30 +297,52 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="flex justify-center items-center gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto relative">
+            {/* Step 1 */}
+            <div className="text-center relative">
+              <div className="w-16 h-16 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4 shadow-lg">
                 1
               </div>
-              <h3 className="text-lg font-semibold mb-2">Sign up for an AU Developer Account</h3>
+              <h3 className="text-lg font-semibold mb-3 text-neutrals-800">Sign up for an AU Developer Account</h3>
+              <p className="text-sm text-neutrals-600">Create your developer account to access our comprehensive API suite</p>
+              
+              {/* Arrow for desktop */}
+              <div className="hidden md:block absolute -right-4 top-8 transform -translate-y-1/2">
+                <ArrowRight className="w-6 h-6 text-neutrals-400" />
+              </div>
+              
+              {/* Arrow for mobile */}
+              <div className="md:hidden flex justify-center mt-6 mb-2">
+                <ArrowRight className="w-6 h-6 text-neutrals-400 rotate-90" />
+              </div>
             </div>
             
-            <ArrowRight className="w-6 h-6 text-neutrals-400 flex-shrink-0" />
-            
-            <div className="text-center">
-              <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
+            {/* Step 2 */}
+            <div className="text-center relative">
+              <div className="w-16 h-16 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4 shadow-lg">
                 2
               </div>
-              <h3 className="text-lg font-semibold mb-2">Select API</h3>
+              <h3 className="text-lg font-semibold mb-3 text-neutrals-800">Select API</h3>
+              <p className="text-sm text-neutrals-600">Choose from our extensive collection of banking APIs for your needs</p>
+              
+              {/* Arrow for desktop */}
+              <div className="hidden md:block absolute -right-4 top-8 transform -translate-y-1/2">
+                <ArrowRight className="w-6 h-6 text-neutrals-400" />
+              </div>
+              
+              {/* Arrow for mobile */}
+              <div className="md:hidden flex justify-center mt-6 mb-2">
+                <ArrowRight className="w-6 h-6 text-neutrals-400 rotate-90" />
+              </div>
             </div>
             
-            <ArrowRight className="w-6 h-6 text-neutrals-400 flex-shrink-0" />
-            
+            {/* Step 3 */}
             <div className="text-center">
-              <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
+              <div className="w-16 h-16 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4 shadow-lg">
                 3
               </div>
-              <h3 className="text-lg font-semibold mb-2">Test it Out</h3>
+              <h3 className="text-lg font-semibold mb-3 text-neutrals-800">Test it Out</h3>
+              <p className="text-sm text-neutrals-600">Use our sandbox environment to test and integrate seamlessly</p>
             </div>
           </div>
           
