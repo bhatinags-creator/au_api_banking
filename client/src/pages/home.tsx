@@ -297,26 +297,24 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="flex justify-center items-center gap-8 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 1
               </div>
               <h3 className="text-lg font-semibold mb-2">Sign up for an AU Developer Account</h3>
-              <div className="flex justify-center my-4">
-                <ArrowRight className="w-6 h-6 text-neutrals-400" />
-              </div>
             </div>
+            
+            <ArrowRight className="w-6 h-6 text-neutrals-400 flex-shrink-0" />
             
             <div className="text-center">
               <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 2
               </div>
               <h3 className="text-lg font-semibold mb-2">Select API</h3>
-              <div className="flex justify-center my-4">
-                <ArrowRight className="w-6 h-6 text-neutrals-400" />
-              </div>
             </div>
+            
+            <ArrowRight className="w-6 h-6 text-neutrals-400 flex-shrink-0" />
             
             <div className="text-center">
               <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
