@@ -1107,58 +1107,6 @@ export default function APIDocs() {
                   </div>
 
                   <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3">What happens after registration?</h3>
-                      <div className="space-y-3 text-sm text-neutrals-600">
-                        <p>Once you complete the registration process, our team will review your application within 2-3 business days. Here's what you can expect:</p>
-                        <ul className="space-y-2 ml-4">
-                          <li className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                            <span><strong>Application Review:</strong> Our team will verify your business details and documentation</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                            <span><strong>API Credentials:</strong> Upon approval, you'll receive your unique API keys and client credentials</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                            <span><strong>Sandbox Access:</strong> Test our APIs in a secure sandbox environment before going live</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                            <span><strong>Documentation Access:</strong> Complete API documentation with examples and integration guides</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                            <span><strong>Technical Support:</strong> Dedicated support team to help with integration and troubleshooting</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3">Required Documents</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                          <h4 className="font-medium text-blue-800 mb-2">Business Documents</h4>
-                          <ul className="text-sm text-blue-700 space-y-1">
-                            <li>• Company Registration Certificate</li>
-                            <li>• PAN Card</li>
-                            <li>• GST Registration Certificate</li>
-                            <li>• MOA & AOA</li>
-                          </ul>
-                        </div>
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                          <h4 className="font-medium text-green-800 mb-2">Banking Documents</h4>
-                          <ul className="text-sm text-green-700 space-y-1">
-                            <li>• Bank Account Statement (3 months)</li>
-                            <li>• Cancelled Cheque</li>
-                            <li>• Board Resolution</li>
-                            <li>• Authorized Signatory List</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
 
                   </div>
                 </div>
