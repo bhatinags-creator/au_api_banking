@@ -13,45 +13,38 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="header-bg w-full h-20 flex items-center justify-between px-6 lg:px-24">
-        {/* Logo */}
-        <div className="flex items-center">
-          <h1 className="text-white text-2xl font-semibold" data-testid="logo-text">
-            API Banking Portal
-          </h1>
+      <header className="au-nav w-full h-20 flex items-center justify-between px-6 lg:px-24">
+        {/* AU Bank Logo */}
+        <div className="au-logo" data-testid="au-bank-logo">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+              <div className="text-2xl font-bold" style={{background: 'linear-gradient(135deg, #662D91 0%, #FF6B35 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
+                AU
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white text-xl font-bold leading-none">AU SMALL FINANCE BANK</span>
+              <span className="text-white/80 text-sm font-medium">API Banking Portal</span>
+            </div>
+          </div>
         </div>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link 
-            href="/apis" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-apis">APIs</span>
+        <nav className="hidden md:flex items-center space-x-6">
+          <Link href="/apis" className="au-nav-link" data-testid="link-apis">
+            APIs
           </Link>
-          <Link 
-            href="/docs" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-docs">Documentation</span>
+          <Link href="/docs" className="au-nav-link" data-testid="link-docs">
+            Documentation
           </Link>
-          <Link 
-            href="/sandbox" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-sandbox">Sandbox</span>
+          <Link href="/sandbox" className="au-nav-link" data-testid="link-sandbox">
+            Sandbox
           </Link>
-          <Link 
-            href="/dashboard" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-my-apps">My Apps</span>
+          <Link href="/dashboard" className="au-nav-link" data-testid="link-my-apps">
+            My Apps
           </Link>
-          <Link 
-            href="/analytics" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-analytics">Analytics</span>
+          <Link href="/analytics" className="au-nav-link" data-testid="link-analytics">
+            Analytics
           </Link>
         </nav>
         
@@ -72,21 +65,21 @@ export default function Home() {
       
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden header-bg" data-testid="mobile-menu">
-          <nav className="px-6 py-4 space-y-4">
-            <Link href="/apis" className="block text-white text-base font-normal" data-testid="mobile-link-apis">
+        <div className="md:hidden au-nav" data-testid="mobile-menu">
+          <nav className="px-6 py-4 space-y-2">
+            <Link href="/apis" className="block px-4 py-2 text-white hover:bg-white/10 rounded transition-colors duration-200" data-testid="mobile-link-apis" onClick={() => setMobileMenuOpen(false)}>
               APIs
             </Link>
-            <Link href="/docs" className="block text-white text-base font-normal" data-testid="mobile-link-docs">
+            <Link href="/docs" className="block px-4 py-2 text-white hover:bg-white/10 rounded transition-colors duration-200" data-testid="mobile-link-docs" onClick={() => setMobileMenuOpen(false)}>
               Documentation
             </Link>
-            <Link href="/sandbox" className="block text-white text-base font-normal" data-testid="mobile-link-sandbox">
+            <Link href="/sandbox" className="block px-4 py-2 text-white hover:bg-white/10 rounded transition-colors duration-200" data-testid="mobile-link-sandbox" onClick={() => setMobileMenuOpen(false)}>
               Sandbox
             </Link>
-            <Link href="/dashboard" className="block text-white text-base font-normal" data-testid="mobile-link-my-apps">
+            <Link href="/dashboard" className="block px-4 py-2 text-white hover:bg-white/10 rounded transition-colors duration-200" data-testid="mobile-link-my-apps" onClick={() => setMobileMenuOpen(false)}>
               My Apps
             </Link>
-            <Link href="/analytics" className="block text-white text-base font-normal" data-testid="mobile-link-analytics">
+            <Link href="/analytics" className="block px-4 py-2 text-white hover:bg-white/10 rounded transition-colors duration-200" data-testid="mobile-link-analytics" onClick={() => setMobileMenuOpen(false)}>
               Analytics
             </Link>
           </nav>
@@ -94,36 +87,49 @@ export default function Home() {
       )}
 
       {/* Hero Section */}
-      <section className="w-full bg-white py-16 lg:py-24">
+      <section className="au-hero w-full py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-6 lg:px-24">
-          <div className="text-center space-y-8">
+          <div className="text-center space-y-10">
+            {/* AU Bank Logo in Hero */}
+            <div className="flex justify-center mb-8">
+              <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+                <div className="text-4xl font-bold" style={{background: 'linear-gradient(135deg, #662D91 0%, #FF6B35 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
+                  AU
+                </div>
+              </div>
+            </div>
+            
             {/* Hero Title */}
-            <h1 className="primary-blue text-4xl lg:text-6xl font-bold leading-tight" data-testid="hero-title">
-              Build. Test. Innovate with Our APIs
+            <h1 className="text-5xl lg:text-7xl font-bold leading-tight text-gray-900" data-testid="hero-title">
+              Welcome to
+              <span className="au-hero-text block mt-2">AU Small Finance Bank</span>
+              <span className="au-hero-text">API Banking Portal</span>
             </h1>
             
             {/* Hero Subtitle */}
-            <p className="text-dark text-lg lg:text-xl font-normal max-w-3xl mx-auto leading-relaxed" data-testid="hero-subtitle">
-              Access Payments, Accounts, KYC and more in a secure sandbox environment.
+            <p className="text-xl lg:text-2xl font-normal max-w-4xl mx-auto leading-relaxed text-gray-600" data-testid="hero-subtitle">
+              Transform your financial applications with our comprehensive suite of banking APIs. 
+              Experience seamless integration, enterprise-grade security, and developer-first design.
             </p>
             
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-              <Link href="/apis">
-                <Button 
-                  className="btn-primary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-12">
+              <Link href="/corporate-registration">
+                <button 
+                  className="au-button text-lg px-10 py-4 shadow-lg" 
+                  data-testid="button-get-started"
+                >
+                  Get Started
+                </button>
+              </Link>
+              <Link href="/docs">
+                <button 
+                  className="au-button-orange text-lg px-10 py-4 shadow-lg" 
                   data-testid="button-explore-apis"
                 >
+                  <FileText className="w-5 h-5 mr-2" />
                   Explore APIs
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button 
-                  className="btn-secondary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
-                  data-testid="button-get-api-key"
-                >
-                  Get API Key
-                </Button>
+                </button>
               </Link>
             </div>
           </div>
@@ -131,14 +137,14 @@ export default function Home() {
       </section>
 
       {/* API Categories Section */}
-      <section className="w-full bg-gray-50 py-16 lg:py-24" id="apis">
+      <section className="w-full bg-white py-20 lg:py-28" id="apis">
         <div className="max-w-7xl mx-auto px-6 lg:px-24">
           {/* Section Title */}
-          <div className="text-center mb-12">
-            <h2 className="text-darker text-3xl lg:text-4xl font-bold mb-4" data-testid="section-title-api-categories">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-900" data-testid="section-title-api-categories">
               API Categories
             </h2>
-            <p className="text-dark text-lg max-w-2xl mx-auto" data-testid="section-subtitle-api-categories">
+            <p className="text-xl max-w-3xl mx-auto text-gray-600 leading-relaxed" data-testid="section-subtitle-api-categories">
               Explore our comprehensive suite of banking APIs designed for modern financial applications
             </p>
           </div>
@@ -147,19 +153,19 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Accounts API Card */}
             <Link href="/apis">
-              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-accounts-api">
+              <div className="au-card p-8" data-testid="card-accounts-api">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-blue-600" />
+                  <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{background: 'linear-gradient(135deg, #F3E8FF 0%, #FFF7ED 100%)'}}>
+                    <Building2 className="w-8 h-8 text-purple-700" />
                   </div>
-                  <h3 className="text-darker text-xl font-semibold" data-testid="title-accounts-api">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4" data-testid="title-accounts-api">
                     Accounts API
                   </h3>
-                  <p className="text-dark text-base leading-relaxed" data-testid="description-accounts-api">
-                    Access balances & transactions
+                  <p className="text-gray-600 text-base leading-relaxed" data-testid="description-accounts-api">
+                    Access account balances, transaction history, and comprehensive account management features
                   </p>
                   <span 
-                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
+                    className="au-purple font-medium hover:text-purple-800 transition-colors duration-200"
                     data-testid="button-learn-more-accounts"
                   >
                     Learn More →
@@ -170,19 +176,19 @@ export default function Home() {
             
             {/* Payments API Card */}
             <Link href="/apis">
-              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-payments-api">
+              <div className="au-card p-8" data-testid="card-payments-api">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <CreditCard className="w-6 h-6 text-green-600" />
+                  <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{background: 'linear-gradient(135deg, #FFF7ED 0%, #F3E8FF 100%)'}}>
+                    <CreditCard className="w-8 h-8 text-orange-600" />
                   </div>
-                  <h3 className="text-darker text-xl font-semibold" data-testid="title-payments-api">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4" data-testid="title-payments-api">
                     Payments API
                   </h3>
-                  <p className="text-dark text-base leading-relaxed" data-testid="description-payments-api">
-                    Send & receive payments
+                  <p className="text-gray-600 text-base leading-relaxed" data-testid="description-payments-api">
+                    Secure payment processing with CNB payments, UPI, and real-time transaction tracking
                   </p>
                   <span 
-                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
+                    className="au-orange font-medium hover:text-orange-800 transition-colors duration-200"
                     data-testid="button-learn-more-payments"
                   >
                     Learn More →
@@ -193,19 +199,19 @@ export default function Home() {
             
             {/* KYC API Card */}
             <Link href="/apis">
-              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-kyc-api">
+              <div className="au-card p-8" data-testid="card-kyc-api">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-purple-600" />
+                  <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{background: 'linear-gradient(135deg, #F3E8FF 0%, #FFF7ED 100%)'}}>
+                    <Shield className="w-8 h-8 text-purple-700" />
                   </div>
-                  <h3 className="text-darker text-xl font-semibold" data-testid="title-kyc-api">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4" data-testid="title-kyc-api">
                     KYC API
                   </h3>
-                  <p className="text-dark text-base leading-relaxed" data-testid="description-kyc-api">
-                    Verify customer identity
+                  <p className="text-gray-600 text-base leading-relaxed" data-testid="description-kyc-api">
+                    Complete customer verification with identity validation and compliance management
                   </p>
                   <span 
-                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
+                    className="au-purple font-medium hover:text-purple-800 transition-colors duration-200"
                     data-testid="button-learn-more-kyc"
                   >
                     Learn More →
