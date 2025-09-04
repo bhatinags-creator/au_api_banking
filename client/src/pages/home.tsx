@@ -228,68 +228,49 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Hero Carousel */}
-      <section className="relative h-96 overflow-hidden">
-        {heroSlides.map((slide, index) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-transform duration-1000 ease-in-out ${
-              index === currentSlide ? 'translate-x-0' : index < currentSlide ? '-translate-x-full' : 'translate-x-full'
-            }`}
-          >
-            <div className={`h-full bg-gradient-to-r ${slide.bgColor} flex items-center`}>
-              <div className="container mx-auto px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                  <div className="text-white">
-                    <h1 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
-                      {slide.title}
-                    </h1>
-                    <p className="text-lg mb-6 opacity-90">
-                      {slide.subtitle}
-                    </p>
-                    <div className="space-y-3 mb-8">
-                      {slide.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <CheckCircle className="w-5 h-5 text-green-300" />
-                          <span className="text-base">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-white">
-                      {slide.cta}
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                  </div>
-                  <div className="hidden lg:flex justify-center">
-                    <div className="relative">
-                      <div className="w-64 h-64 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                        <div className="w-32 h-32 bg-secondary rounded-xl flex items-center justify-center">
-                          <Code className="w-16 h-16 text-white" />
-                        </div>
-                      </div>
-                      <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">API</span>
-                      </div>
-                    </div>
-                  </div>
+      {/* AU Hero Section */}
+      <section className="au-hero py-6">
+        <div className="container mx-auto px-4">
+          <div className="au-hero-panel grid grid-cols-1 lg:grid-cols-12 gap-7 p-8">
+            <div className="lg:col-span-7">
+              <h1 className="text-4xl lg:text-5xl font-bold mb-2 leading-tight">
+                Build powerful fintech solutions<br/>with our comprehensive APIs
+              </h1>
+              <p className="opacity-95 mb-4 text-lg">
+                Transform your business with digital banking integration
+              </p>
+              <ul className="list-none mb-4 p-0 opacity-95 space-y-1">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-300" />
+                  <span>Developer‑First Design</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-300" />
+                  <span>Complete Documentation</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-300" />
+                  <span>Sandbox Testing</span>
+                </li>
+              </ul>
+              <div className="flex items-center gap-3">
+                <button className="au-btn au-btn-accent">
+                  Explore All APIs
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </button>
+                <span className="badge bg-[var(--au-primary-900)] text-white px-3 py-1 rounded-full font-bold text-sm">
+                  API
+                </span>
+              </div>
+            </div>
+            <div className="lg:col-span-5 flex justify-center items-center">
+              <div className="bg-white/10 border border-white/25 rounded-3xl p-8 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-2xl bg-white flex items-center justify-center text-[var(--au-primary-700)] font-black text-3xl">
+                  &lt;&gt;
                 </div>
               </div>
             </div>
           </div>
-        ))}
-        
-        {/* Carousel Indicators */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {heroSlides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                index === currentSlide ? 'bg-white' : 'bg-white/50'
-              }`}
-              data-testid={`carousel-indicator-${index}`}
-            />
-          ))}
         </div>
       </section>
 
@@ -299,10 +280,10 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-neutrals-900 mb-4">
             Collaborate, Build, Unleash
           </h2>
-          <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-white">
+          <button className="au-btn au-btn-primary">
             BROWSE ALL APIs
             <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
+          </button>
         </div>
       </section>
 
@@ -318,7 +299,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="w-12 h-12 bg-pink-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
+              <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 1
               </div>
               <h3 className="text-lg font-semibold mb-2">Sign up for an AU Developer Account</h3>
@@ -328,7 +309,7 @@ export default function Home() {
             </div>
             
             <div className="text-center">
-              <div className="w-12 h-12 bg-pink-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
+              <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 2
               </div>
               <h3 className="text-lg font-semibold mb-2">Select API</h3>
@@ -338,7 +319,7 @@ export default function Home() {
             </div>
             
             <div className="text-center">
-              <div className="w-12 h-12 bg-pink-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
+              <div className="w-12 h-12 bg-[var(--au-primary)] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 3
               </div>
               <h3 className="text-lg font-semibold mb-2">Test it Out</h3>
@@ -346,9 +327,9 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-white">
+            <button className="au-btn au-btn-primary">
               SIGN UP
-            </Button>
+            </button>
           </div>
         </div>
       </section>
