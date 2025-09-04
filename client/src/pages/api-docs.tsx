@@ -939,120 +939,108 @@ export default function APIDocs() {
                   <h2 className="text-2xl font-semibold mb-6">Registration Process</h2>
                   <p className="text-neutrals-600 mb-6">Follow these simple steps to get onboard with AU Bank's API Banking Portal</p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Step 1 */}
-                    <Card className="relative">
+                  <div className="max-w-md mx-auto">
+                    <Card className="relative mb-6">
                       <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-100">Step 1</Badge>
-                          <div className="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                        </div>
                         <CardTitle className="text-lg">Let's get you Onboard</CardTitle>
+                        <CardDescription className="flex items-center gap-2">
+                          <span className="text-pink-600 font-medium">Basic Details</span>
+                          <span className="text-neutrals-300">•</span>
+                          <span className="text-neutrals-400">Mobile Number</span>
+                          <span className="text-neutrals-300">•</span>
+                          <span className="text-neutrals-400">Credentials</span>
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
-                            <span className="text-sm">Full Name</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
-                            <span className="text-sm">Email Address</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
-                            <span className="text-sm">Company Name</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
-                            <span className="text-sm">Mobile Number</span>
-                          </div>
+                        <div>
+                          <Label htmlFor="fullName">Full Name</Label>
+                          <Input id="fullName" placeholder="John Doe" />
                         </div>
-                        <Button className="w-full bg-pink-600 hover:bg-pink-700" size="sm">
-                          Get Started
+                        <div>
+                          <Label htmlFor="email">Email</Label>
+                          <Input id="email" type="email" placeholder="john@techfirm.com" />
+                        </div>
+                        <div>
+                          <Label htmlFor="companyName">Company Name</Label>
+                          <Input id="companyName" placeholder="Tech Firm" />
+                        </div>
+                        <Button className="w-full bg-pink-600 hover:bg-pink-700">
+                          NEXT
                         </Button>
                       </CardContent>
                     </Card>
 
-                    {/* Step 2 */}
-                    <Card className="relative">
+                    <Card className="relative mb-6">
                       <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Step 2</Badge>
-                          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                        </div>
                         <CardTitle className="text-lg">Let's get you Onboard</CardTitle>
+                        <CardDescription className="flex items-center gap-2">
+                          <span className="text-neutrals-400">Basic Details</span>
+                          <span className="text-neutrals-300">•</span>
+                          <span className="text-pink-600 font-medium">Mobile Number</span>
+                          <span className="text-neutrals-300">•</span>
+                          <span className="text-neutrals-400">Credentials</span>
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            <span className="text-sm">Business Category</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            <span className="text-sm">Business Sub Category</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            <span className="text-sm">Company Registration Details</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                            <span className="text-sm">Annual Turnover</span>
+                        <div>
+                          <Label htmlFor="mobileNumber">Please enter the Phone Number</Label>
+                          <div className="flex gap-2">
+                            <Input id="mobileNumber" placeholder="9999999999" className="flex-1" />
+                            <Button variant="outline" className="border-pink-600 text-pink-600 hover:bg-pink-50">
+                              SEND OTP
+                            </Button>
                           </div>
                         </div>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700" size="sm">
-                          Continue
+                        <div>
+                          <Label htmlFor="otp">Enter the OTP Received on your Phone Number</Label>
+                          <Input id="otp" placeholder="747004" />
+                        </div>
+                        <Button className="w-full bg-pink-600 hover:bg-pink-700">
+                          VERIFY
                         </Button>
                       </CardContent>
                     </Card>
 
-                    {/* Step 3 */}
-                    <Card className="relative">
+                    <Card className="relative mb-6">
                       <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Step 3</Badge>
-                          <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                        </div>
                         <CardTitle className="text-lg">Let's get you Onboard</CardTitle>
+                        <CardDescription className="flex items-center gap-2">
+                          <span className="text-neutrals-400">Basic Details</span>
+                          <span className="text-neutrals-300">•</span>
+                          <span className="text-neutrals-400">Mobile Number</span>
+                          <span className="text-neutrals-300">•</span>
+                          <span className="text-pink-600 font-medium">Credentials</span>
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                            <span className="text-sm">Document Upload</span>
+                        <div>
+                          <Label htmlFor="username">Username</Label>
+                          <Input id="username" placeholder="johndoe" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="password">Create Password</Label>
+                            <Input id="password" type="password" placeholder="••••••••" />
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                            <span className="text-sm">Company Documents</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                            <span className="text-sm">Banking Documents</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                            <span className="text-sm">Final Review & Submit</span>
+                          <div>
+                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Input id="confirmPassword" type="password" placeholder="••••••••" />
                           </div>
                         </div>
-                        <Button className="w-full bg-green-600 hover:bg-green-700" size="sm">
-                          Submit Application
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" className="rounded border-gray-300" />
+                          <label className="text-sm text-gray-600">I ACCEPT ALL TERMS & CONDITIONS</label>
+                        </div>
+                        <Button className="w-full bg-pink-600 hover:bg-pink-700">
+                          SUBMIT
                         </Button>
                       </CardContent>
                     </Card>
                   </div>
 
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-white text-xs font-bold">!</span>
-                      </div>
-                      <div>
-                        <p className="text-sm text-blue-800 font-medium">Processing Time</p>
-                        <p className="text-sm text-blue-700">Your application will be reviewed within 2-3 business days. You'll receive an email notification once approved with your API credentials and access details.</p>
-                      </div>
-                    </div>
+                  <div className="max-w-2xl mx-auto mt-8 space-y-4 text-sm text-neutrals-600">
+                    <p><strong>Step 2:</strong> Complete the registration by entering your details and create an account.</p>
+                    <p><strong>Step 3:</strong> When authorized, an email will be sent to your registered email-id with a link to activate your account by logging in. You now have access to your dashboard. From here you can create and configure your apps.</p>
                   </div>
                 </div>
 
