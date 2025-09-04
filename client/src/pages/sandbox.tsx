@@ -9,49 +9,60 @@ import { ArrowLeft, Play, Copy, Settings, Database, CreditCard, Shield } from "l
 import { Link } from "wouter";
 
 const sandboxEndpoints = [
-  { id: "1", name: "Create Account", method: "POST", path: "/api/sandbox/accounts", category: "accounts" },
-  { id: "2", name: "Get Balance", method: "GET", path: "/api/sandbox/accounts/{id}/balance", category: "accounts" },
-  { id: "3", name: "Send Payment", method: "POST", path: "/api/sandbox/payments", category: "payments" },
-  { id: "4", name: "Verify Identity", method: "POST", path: "/api/sandbox/kyc/verify", category: "kyc" },
+  // AU Bank OAuth
+  { id: "1", name: "Generate Access Token", method: "GET", path: "/api/sandbox/oauth/accesstoken", category: "auth" },
+  
+  // AU Bank Payment APIs
+  { id: "2", name: "CNB Payment Creation", method: "POST", path: "/api/sandbox/CNBPaymentService/paymentCreation", category: "payments" },
+  { id: "3", name: "Payment Enquiry", method: "POST", path: "/api/sandbox/paymentEnquiry", category: "payments" },
+  
+  // Standard Banking APIs
+  { id: "4", name: "Get Account Balance", method: "GET", path: "/api/sandbox/accounts/{id}/balance", category: "accounts" },
+  { id: "5", name: "Get Account Transactions", method: "GET", path: "/api/sandbox/accounts/{id}/transactions", category: "accounts" },
+  { id: "6", name: "Verify Identity", method: "POST", path: "/api/sandbox/kyc/verify", category: "kyc" },
 ];
 
 const sampleRequests = {
+  auth: {
+    GET: ""
+  },
   accounts: {
-    POST: JSON.stringify({
-      "accountType": "checking",
-      "initialBalance": 1000.00,
-      "currency": "USD"
-    }, null, 2),
+    GET: ""
   },
   payments: {
     POST: JSON.stringify({
-      "fromAccount": "acc_123456789",
-      "toAccount": "acc_987654321",
-      "amount": 250.00,
-      "currency": "USD",
-      "description": "Payment for services"
+      "uniqueRequestId": "REQ123456789",
+      "corporateCode": "CORP001",
+      "corporateProductCode": "PROD001",
+      "paymentMethodName": "NEFT",
+      "remitterAccountNo": "1234567890123",
+      "amount": "1000.00",
+      "ifscCode": "AUBL0002086",
+      "payableCurrency": "INR",
+      "beneAccNo": "9876543210987",
+      "beneName": "Test Beneficiary",
+      "valueDate": "20240115",
+      "remarks": "Payment for services",
+      "transactionRefNo": "TXN001",
+      "paymentInstruction": "NEFT Payment",
+      "email": "test@example.com",
+      "phoneNo": "9876543210"
     }, null, 2),
   },
   kyc: {
     POST: JSON.stringify({
-      "firstName": "John",
-      "lastName": "Doe",
-      "dateOfBirth": "1990-01-01",
-      "ssn": "123-45-6789",
-      "address": {
-        "street": "123 Main St",
-        "city": "San Francisco",
-        "state": "CA",
-        "zipCode": "94102"
-      }
+      "documentType": "PAN",
+      "documentNumber": "ABCDE1234F",
+      "name": "John Doe",
+      "dateOfBirth": "1990-01-15"
     }, null, 2),
   },
 };
 
 export default function Sandbox() {
   const [selectedEndpoint, setSelectedEndpoint] = useState(sandboxEndpoints[0]);
-  const [requestBody, setRequestBody] = useState(sampleRequests.accounts.POST);
-  const [apiKey, setApiKey] = useState("");
+  const [requestBody, setRequestBody] = useState("");
+  const [apiKey, setApiKey] = useState("lEbnG39cJwC4lKUe5fliVA9HFcyR");
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -59,12 +70,21 @@ export default function Sandbox() {
     const endpoint = sandboxEndpoints.find(e => e.id === endpointId);
     if (endpoint) {
       setSelectedEndpoint(endpoint);
-      const category = endpoint.category as keyof typeof sampleRequests;
-      const method = endpoint.method as keyof typeof sampleRequests[typeof category];
-      if (sampleRequests[category] && sampleRequests[category][method]) {
-        setRequestBody(sampleRequests[category][method]);
+      
+      // Set specific sample requests based on endpoint
+      if (endpoint.name === "Payment Enquiry") {
+        setRequestBody(JSON.stringify({
+          "transactionId": "TXN12345678901",
+          "uniqueRequestId": "REQ123456789"
+        }, null, 2));
       } else {
-        setRequestBody("");
+        const category = endpoint.category as keyof typeof sampleRequests;
+        const method = endpoint.method as keyof typeof sampleRequests[typeof category];
+        if (sampleRequests[category] && sampleRequests[category][method]) {
+          setRequestBody(sampleRequests[category][method]);
+        } else {
+          setRequestBody("");
+        }
       }
       setResponse(null);
     }

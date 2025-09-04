@@ -109,32 +109,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simulate API endpoints for demo
-  app.post("/api/sandbox/accounts", async (req, res) => {
+  // AU Bank OAuth Token Generation
+  app.get("/api/sandbox/oauth/accesstoken", async (req, res) => {
     res.json({
-      id: "acc_" + Math.random().toString(36).substr(2, 9),
-      balance: 1000.00,
-      currency: "USD",
-      status: "active"
+      "refresh_token_expires_in": "0",
+      "api_product_list": "[LDAP, Oauth, Payment, Customer Onboarding, karza, CBSMiniStatementService, test]",
+      "api_product_list_json": [
+        "LDAP",
+        "Oauth", 
+        "Payment",
+        "Customer Onboarding",
+        "karza",
+        "CBSMiniStatementService",
+        "test"
+      ],
+      "organization_name": "au-apigee-nprod",
+      "developer.email": "kunal.boriwal@aubank.in",
+      "token_type": "BearerToken", 
+      "issued_at": Date.now().toString(),
+      "client_id": "2I7UVNalTfFBxm3ZYxOtzYXwXX1PMIJCSSFf6AMipK0H0zR9",
+      "access_token": "lEbnG39cJwC4lKUe5fliVA9HFcyR",
+      "application_name": "f0556c9d-6c97-40aa-8d4e-c6bb190ef2ce",
+      "scope": "",
+      "expires_in": "86399",
+      "refresh_count": "0", 
+      "status": "approved"
     });
   });
 
+  // AU Bank Payment Creation
+  app.post("/api/sandbox/CNBPaymentService/paymentCreation", async (req, res) => {
+    const transactionId = "TXN" + Math.random().toString(36).substr(2, 12).toUpperCase();
+    res.json({
+      "responseCode": "00",
+      "responseMessage": "Payment initiated successfully", 
+      "transactionId": transactionId,
+      "uniqueRequestId": req.body.uniqueRequestId || "REQ" + Math.random().toString(36).substr(2, 9),
+      "batchId": "BATCH" + Math.random().toString(36).substr(2, 9),
+      "status": "SUCCESS",
+      "timestamp": new Date().toISOString(),
+      "paymentDetails": {
+        "amount": req.body.amount || "100.00",
+        "currency": "INR",
+        "paymentMethod": req.body.paymentMethodName || "NEFT",
+        "beneficiaryAccount": req.body.beneAccNo || "1234567890",
+        "beneficiaryName": req.body.beneName || "Test Beneficiary"
+      }
+    });
+  });
+
+  // AU Bank Payment Enquiry
+  app.post("/api/sandbox/paymentEnquiry", async (req, res) => {
+    const statuses = ["SUCCESS", "PENDING", "FAILED"];
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    
+    res.json({
+      "responseCode": "00",
+      "responseMessage": "Enquiry processed successfully",
+      "transactionId": req.body.transactionId || "TXN" + Math.random().toString(36).substr(2, 12),
+      "paymentStatus": randomStatus,
+      "bankReference": "AU" + Math.random().toString(36).substr(2, 10).toUpperCase(),
+      "processedDate": new Date().toISOString(),
+      "amount": "100.00",
+      "currency": "INR",
+      "remarks": randomStatus === "FAILED" ? "Insufficient funds" : "Transaction processed successfully"
+    });
+  });
+
+  // Standard Banking APIs
   app.get("/api/sandbox/accounts/:id/balance", async (req, res) => {
     res.json({
       accountId: req.params.id,
-      balance: 2500.75,
-      currency: "USD",
+      balance: 25000.75,
+      currency: "INR",
       lastUpdated: new Date().toISOString()
     });
   });
 
-  app.post("/api/sandbox/payments", async (req, res) => {
+  app.get("/api/sandbox/accounts/:id/transactions", async (req, res) => {
     res.json({
-      id: "pay_" + Math.random().toString(36).substr(2, 9),
-      amount: req.body.amount || 100.00,
-      currency: "USD",
-      status: "pending",
-      createdAt: new Date().toISOString()
+      accountId: req.params.id,
+      transactions: [
+        {
+          id: "TXN001",
+          amount: -500.00,
+          currency: "INR", 
+          type: "DEBIT",
+          description: "NEFT Payment",
+          date: new Date(Date.now() - 86400000).toISOString()
+        },
+        {
+          id: "TXN002", 
+          amount: 1000.00,
+          currency: "INR",
+          type: "CREDIT",
+          description: "Salary Credit",
+          date: new Date(Date.now() - 172800000).toISOString()
+        }
+      ]
     });
   });
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +11,14 @@ import { Link } from "wouter";
 import { ApiEndpoint } from "@shared/schema";
 
 const categoryIcons = {
+  auth: Shield,
   accounts: Building2,
   payments: CreditCard,
   kyc: Shield,
 };
 
 const categoryColors = {
+  auth: "bg-orange-100 text-orange-600",
   accounts: "bg-blue-100 text-blue-600",
   payments: "bg-green-100 text-green-600", 
   kyc: "bg-purple-100 text-purple-600",
@@ -26,18 +28,61 @@ export default function ApiExplorer() {
   const [selectedCategory, setSelectedCategory] = useState<string>("accounts");
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint | null>(null);
   const [requestBody, setRequestBody] = useState("");
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState("lEbnG39cJwC4lKUe5fliVA9HFcyR");
   const [response, setResponse] = useState<any>(null);
 
   const { data: endpoints = [], isLoading } = useQuery<ApiEndpoint[]>({
     queryKey: ["/api/endpoints"],
   });
 
-  const categories = ["accounts", "payments", "kyc"];
+  const categories = ["auth", "accounts", "payments", "kyc"];
   
   const filteredEndpoints = endpoints.filter((endpoint: ApiEndpoint) => 
     endpoint.category === selectedCategory
   );
+
+  // Set sample request body when endpoint changes
+  React.useEffect(() => {
+    if (selectedEndpoint) {
+      let sampleRequest = "";
+      
+      if (selectedEndpoint.category === "payments" && selectedEndpoint.name === "CNB Payment Creation") {
+        sampleRequest = JSON.stringify({
+          "uniqueRequestId": "REQ123456789",
+          "corporateCode": "CORP001",
+          "corporateProductCode": "PROD001",
+          "paymentMethodName": "NEFT",
+          "remitterAccountNo": "1234567890123",
+          "amount": "1000.00",
+          "ifscCode": "AUBL0002086",
+          "payableCurrency": "INR",
+          "beneAccNo": "9876543210987",
+          "beneName": "Test Beneficiary",
+          "valueDate": "20240115",
+          "remarks": "Payment for services",
+          "transactionRefNo": "TXN001",
+          "paymentInstruction": "NEFT Payment",
+          "email": "test@example.com",
+          "phoneNo": "9876543210"
+        }, null, 2);
+      } else if (selectedEndpoint.category === "payments" && selectedEndpoint.name === "Payment Enquiry") {
+        sampleRequest = JSON.stringify({
+          "transactionId": "TXN12345678901",
+          "uniqueRequestId": "REQ123456789"
+        }, null, 2);
+      } else if (selectedEndpoint.category === "kyc" && selectedEndpoint.name === "Verify Identity") {
+        sampleRequest = JSON.stringify({
+          "documentType": "PAN",
+          "documentNumber": "ABCDE1234F",
+          "name": "John Doe",
+          "dateOfBirth": "1990-01-15"
+        }, null, 2);
+      }
+      
+      setRequestBody(sampleRequest);
+      setResponse(null);
+    }
+  }, [selectedEndpoint]);
 
   const handleTestEndpoint = async () => {
     if (!selectedEndpoint) return;
@@ -273,6 +318,86 @@ export default function ApiExplorer() {
                             </tr>
                           </tbody>
                         </table>
+                        
+                        {/* AU Bank specific documentation */}
+                        {selectedEndpoint.category === "auth" && selectedEndpoint.name === "Generate Access Token" && (
+                          <div>
+                            <h4>AU Bank OAuth Authentication</h4>
+                            <p><strong>UAT URL:</strong> https://api.aubankuat.in/oauth/accesstoken?grant_type=client_credentials</p>
+                            <p><strong>Token Validity:</strong> 24 hours in UAT, 6 months in production</p>
+                            <p><strong>Authentication:</strong> Client credentials (provided by AU Bank)</p>
+                            
+                            <h5>Sample Response:</h5>
+                            <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
+{`{
+  "access_token": "lEbnG39cJwC4lKUe5fliVA9HFcyR",
+  "token_type": "BearerToken",
+  "expires_in": "86399",
+  "client_id": "2I7UVNalTfFBxm3ZYxOtzYXwXX1PMIJCSSFf6AMipK0H0zR9",
+  "status": "approved"
+}`}
+                            </pre>
+                          </div>
+                        )}
+
+                        {selectedEndpoint.category === "payments" && selectedEndpoint.name === "CNB Payment Creation" && (
+                          <div>
+                            <h4>AU Bank Payment Creation</h4>
+                            <p><strong>UAT URL:</strong> https://api.aubankuat.in/CNBPaymentService/paymentCreation</p>
+                            <p><strong>Encryption:</strong> AES-256 encryption required</p>
+                            <p><strong>Bulk Payments:</strong> Up to 50 transactions per batch</p>
+                            
+                            <h5>Sample Request:</h5>
+                            <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
+{`{
+  "uniqueRequestId": "REQ123456789",
+  "corporateCode": "CORP001",
+  "corporateProductCode": "PROD001", 
+  "paymentMethodName": "NEFT",
+  "remitterAccountNo": "1234567890123",
+  "amount": "1000.00",
+  "ifscCode": "AUBL0002086",
+  "payableCurrency": "INR",
+  "beneAccNo": "9876543210987",
+  "beneName": "Test Beneficiary",
+  "valueDate": "20240115",
+  "remarks": "Payment for services",
+  "transactionRefNo": "TXN001",
+  "paymentInstruction": "NEFT Payment"
+}`}
+                            </pre>
+                          </div>
+                        )}
+
+                        {selectedEndpoint.category === "payments" && selectedEndpoint.name === "Payment Enquiry" && (
+                          <div>
+                            <h4>AU Bank Payment Enquiry</h4>
+                            <p><strong>Recommended Frequency:</strong> Every 15 minutes for NEFT transactions</p>
+                            <p><strong>Processing Time:</strong> NEFT transactions may take 1-2 hours to reflect final status</p>
+                            
+                            <h5>Sample Request:</h5>
+                            <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
+{`{
+  "transactionId": "TXN12345678901",
+  "uniqueRequestId": "REQ123456789"
+}`}
+                            </pre>
+
+                            <h5>Sample Response:</h5>
+                            <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
+{`{
+  "responseCode": "00",
+  "responseMessage": "Enquiry processed successfully",
+  "transactionId": "TXN12345678901",
+  "paymentStatus": "SUCCESS",
+  "bankReference": "AU1234567890",
+  "processedDate": "2024-01-15T10:30:00Z",
+  "amount": "1000.00",
+  "currency": "INR"
+}`}
+                            </pre>
+                          </div>
+                        )}
                         
                         <h4>Authentication</h4>
                         <p>This endpoint requires Bearer token authentication. Include your API key in the Authorization header:</p>

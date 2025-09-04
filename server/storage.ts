@@ -55,15 +55,18 @@ export class MemStorage implements IStorage {
 
   private seedApiEndpoints() {
     const endpoints = [
-      { id: "1", category: "accounts", name: "Get Account Balance", path: "/accounts/{id}/balance", method: "GET", description: "Retrieve the current balance of a specific account", isActive: true },
-      { id: "2", category: "accounts", name: "Get Account Transactions", path: "/accounts/{id}/transactions", method: "GET", description: "Get transaction history for an account", isActive: true },
-      { id: "3", category: "accounts", name: "Create Account", path: "/accounts", method: "POST", description: "Create a new bank account", isActive: true },
-      { id: "4", category: "payments", name: "Send Payment", path: "/payments", method: "POST", description: "Initiate a payment transfer", isActive: true },
-      { id: "5", category: "payments", name: "Get Payment Status", path: "/payments/{id}", method: "GET", description: "Check the status of a payment", isActive: true },
-      { id: "6", category: "payments", name: "Cancel Payment", path: "/payments/{id}/cancel", method: "POST", description: "Cancel a pending payment", isActive: true },
-      { id: "7", category: "kyc", name: "Verify Identity", path: "/kyc/verify", method: "POST", description: "Submit documents for identity verification", isActive: true },
-      { id: "8", category: "kyc", name: "Get Verification Status", path: "/kyc/{id}/status", method: "GET", description: "Check the status of KYC verification", isActive: true },
-      { id: "9", category: "kyc", name: "Update KYC Information", path: "/kyc/{id}", method: "PATCH", description: "Update existing KYC information", isActive: true },
+      // AU Bank OAuth and Authentication
+      { id: "1", category: "auth", name: "Generate Access Token", path: "/oauth/accesstoken", method: "GET", description: "Generate OAuth access token for API authentication (Valid for 24hrs in UAT, 6 months in production)", isActive: true },
+      
+      // AU Bank Payout APIs
+      { id: "2", category: "payments", name: "CNB Payment Creation", path: "/CNBPaymentService/paymentCreation", method: "POST", description: "Initiate Internal Fund Transfer/NEFT/RTGS/IMPS transactions (Single + Bulk payment up to 50 transactions)", isActive: true },
+      { id: "3", category: "payments", name: "Payment Enquiry", path: "/paymentEnquiry", method: "POST", description: "Get payment status and transaction details. Recommended to call every 15 minutes for NEFT transactions", isActive: true },
+      
+      // Standard Banking APIs for compatibility
+      { id: "4", category: "accounts", name: "Get Account Balance", path: "/accounts/{id}/balance", method: "GET", description: "Retrieve the current balance of a specific account", isActive: true },
+      { id: "5", category: "accounts", name: "Get Account Transactions", path: "/accounts/{id}/transactions", method: "GET", description: "Get transaction history for an account", isActive: true },
+      { id: "6", category: "kyc", name: "Verify Identity", path: "/kyc/verify", method: "POST", description: "Submit documents for identity verification", isActive: true },
+      { id: "7", category: "kyc", name: "Get Verification Status", path: "/kyc/{id}/status", method: "GET", description: "Check the status of KYC verification", isActive: true },
     ];
     
     endpoints.forEach(endpoint => {
