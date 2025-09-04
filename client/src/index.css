@@ -4,18 +4,33 @@
 @tailwind utilities;
 
 :root {
-  /* Base system colors using bank light palette */
-  --background: #ffffff;
-  --foreground: #10111A; /* Neutrals/900 */
+  /* AU Bank Theme Variables */
+  --au-primary: #89338f;
+  --au-primary-700: #4f1d4e;
+  --au-primary-900: #291127;
+  --au-surface: #fefefe;
+  --au-bg-soft-1: #e7c9de;
+  --au-bg-soft-2: #e7d8ef;
+  --au-bg-soft-3: #f1b0d5;
+  --au-muted: #6b7280;
+  --au-text: #111827;
+  --au-accent: #f59e0b;
+  --au-border: #efe7fb;
+  --au-shadow: 0 8px 24px rgba(17,24,39,.08);
+  --au-radius: 14px;
+
+  /* Base system colors using AU Bank palette */
+  --background: var(--au-surface);
+  --foreground: var(--au-text);
   --card: #ffffff;
-  --card-foreground: #10111A; /* Neutrals/900 */
+  --card-foreground: var(--au-text);
   --popover: #ffffff;
-  --popover-foreground: #10111A; /* Neutrals/900 */
+  --popover-foreground: var(--au-text);
   
-  /* Primary brand colors from bank palette */
-  --primary: #1570EF; /* Blue/600 */
+  /* Primary brand colors from AU Bank palette */
+  --primary: var(--au-primary);
   --primary-foreground: #ffffff;
-  --secondary: #F37435; /* Primary/600 */
+  --secondary: var(--au-accent);
   --secondary-foreground: #ffffff;
   
   /* UI component colors */
@@ -190,34 +205,149 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    background: var(--au-surface); 
+    color: var(--au-text);
   }
 }
 
-/* Updated utility classes with new bank colors */
+/* AU Bank utility classes */
+.au-btn{ 
+  border:0; 
+  border-radius: 9999px; 
+  padding: 10px 18px; 
+  font-weight:700; 
+  cursor:pointer; 
+  box-shadow: 0 2px 0 rgba(0,0,0,.06); 
+}
+
+.au-btn-primary{ 
+  background: var(--au-primary); 
+  color:#fff; 
+}
+
+.au-btn-primary:hover{ 
+  background: var(--au-primary-700); 
+}
+
+.au-btn-accent{ 
+  background: var(--au-accent); 
+  color:#fff; 
+}
+
+.au-btn-outline{ 
+  background:transparent; 
+  border:2px solid var(--au-primary); 
+  color: var(--au-primary); 
+}
+
+.au-btn-outline:hover{ 
+  background:#f3e8ff; 
+}
+
+.au-header{ 
+  background:#fff; 
+  border-bottom:1px solid rgba(0,0,0,.06); 
+}
+
+.au-nav a{ 
+  color:#374151; 
+  font-weight:600; 
+  text-decoration:none; 
+  padding:8px 10px; 
+  border-radius:8px; 
+}
+
+.au-nav a:hover{ 
+  background:#f3e8ff; 
+  color: var(--au-primary-700);
+}
+
+.au-hero{
+  background:
+    radial-gradient(1100px 560px at 18% -10%, var(--au-bg-soft-3) 0, transparent 60%),
+    radial-gradient(900px 560px at 92% 0%, var(--au-bg-soft-2) 0, transparent 60%),
+    linear-gradient(180deg, var(--au-surface) 0, var(--au-surface) 100%);
+}
+
+.au-hero-panel{
+  background: linear-gradient(135deg, var(--au-primary) 0%, var(--au-primary-700) 100%);
+  border-radius: 20px;
+  box-shadow: var(--au-shadow);
+  color:#fff;
+}
+
+.au-hero .badge{ 
+  background: var(--au-primary-900); 
+  color:#fff; 
+  padding:6px 10px; 
+  border-radius:9999px; 
+  font-weight:700; 
+}
+
+.au-card{ 
+  background:#fff; 
+  border:1px solid var(--au-border); 
+  border-radius: var(--au-radius); 
+  padding:18px; 
+  box-shadow: var(--au-shadow); 
+}
+
+.au-card h3{ 
+  color: var(--au-primary-700); 
+  margin:.25rem 0 .5rem; 
+}
+
+.au-tag{ 
+  display:inline-block; 
+  background:#f3e8ff; 
+  color: var(--au-primary-700); 
+  padding:4px 10px; 
+  border-radius:9999px; 
+  font-size:.8rem; 
+  font-weight:700; 
+}
+
+.au-search input{ 
+  border:1px solid #e5e7eb; 
+  border-radius:9999px; 
+  padding:10px 14px; 
+}
+
+.au-footer{ 
+  background: var(--au-primary-900); 
+  color:#e9d5ff; 
+}
+
+.au-footer a{ 
+  color:#f1b0d5; 
+  text-decoration:none;
+}
+
+/* Updated utility classes with AU Bank colors */
 .header-bg {
-  background-color: #10111A;
+  background-color: var(--au-primary-900);
 }
 
 .primary-blue {
-  color: #1570EF;
+  color: var(--au-primary);
 }
 
 .btn-primary {
-  background-color: #1570EF;
+  background-color: var(--au-primary);
 }
 
 .btn-secondary {
-  background-color: #F37435;
+  background-color: var(--au-accent);
 }
 
 .card-bg {
-  background-color: #F5FAFF;
+  background-color: var(--au-surface);
 }
 
 .text-dark {
-  color: #575965;
+  color: var(--au-muted);
 }
 
 .text-darker {
-  color: #3D404D;
+  color: var(--au-text);
 }
