@@ -382,36 +382,40 @@ export default function Home() {
       </section>
 
       {/* Journey to go Live */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-gradient-to-br from-white to-[var(--au-bg-soft-1)]/30">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutrals-900 mb-6">Journey to go Live</h2>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-[var(--au-primary-700)] mb-4">Journey to go Live</h2>
+            <p className="text-lg text-neutrals-600 max-w-2xl mx-auto">Follow our streamlined path from development to production</p>
           </div>
           
-          <div className="flex justify-center items-center gap-8 mb-8">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <Play className="w-12 h-12 text-blue-600" />
+          <div className="flex justify-center items-center gap-12 mb-12">
+            <div className="text-center group">
+              <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
+                <Play className="w-16 h-16 text-white" />
               </div>
-              <h3 className="text-lg font-semibold">SANDBOX</h3>
+              <h3 className="text-xl font-bold text-neutrals-800 mb-2">SANDBOX</h3>
+              <p className="text-sm text-neutrals-600">Test & Develop</p>
             </div>
             
-            <ArrowRight className="w-8 h-8 text-neutrals-400" />
+            <ArrowRight className="w-10 h-10 text-[var(--au-primary)] opacity-60" />
             
-            <div className="text-center">
-              <div className="w-24 h-24 bg-yellow-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <Target className="w-12 h-12 text-yellow-600" />
+            <div className="text-center group">
+              <div className="w-32 h-32 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
+                <Target className="w-16 h-16 text-white" />
               </div>
-              <h3 className="text-lg font-semibold">UAT</h3>
+              <h3 className="text-xl font-bold text-neutrals-800 mb-2">UAT</h3>
+              <p className="text-sm text-neutrals-600">User Testing</p>
             </div>
             
-            <ArrowRight className="w-8 h-8 text-neutrals-400" />
+            <ArrowRight className="w-10 h-10 text-[var(--au-primary)] opacity-60" />
             
-            <div className="text-center">
-              <div className="w-24 h-24 bg-green-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <Globe className="w-12 h-12 text-green-600" />
+            <div className="text-center group">
+              <div className="w-32 h-32 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
+                <Globe className="w-16 h-16 text-white" />
               </div>
-              <h3 className="text-lg font-semibold">PRODUCTION</h3>
+              <h3 className="text-xl font-bold text-neutrals-800 mb-2">PRODUCTION</h3>
+              <p className="text-sm text-neutrals-600">Go Live</p>
             </div>
           </div>
           
@@ -427,27 +431,28 @@ export default function Home() {
       </section>
 
       {/* Available APIs */}
-      <section id="apis" className="py-16 bg-neutrals-50">
+      <section id="apis" className="py-20 bg-gradient-to-b from-[var(--au-bg-soft-2)]/20 to-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutrals-900 mb-4">Available APIs</h2>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-[var(--au-primary-700)] mb-6">Available APIs</h2>
+            <p className="text-lg text-neutrals-600 max-w-3xl mx-auto">Discover our comprehensive suite of banking APIs designed to power your financial applications</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {apiCategories.map((category, index) => {
               const IconComponent = category.icon;
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-neutrals-100 rounded-lg flex items-center justify-center">
-                        <IconComponent className={`w-6 h-6 ${category.color}`} />
+                <Card key={index} className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-2">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <IconComponent className={`w-8 h-8 ${category.color}`} />
                       </div>
-                      <CardTitle className="text-lg">{category.title}</CardTitle>
+                      <CardTitle className="text-xl font-bold text-neutrals-800">{category.title}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-neutrals-600 leading-relaxed">
+                    <p className="text-neutrals-600 leading-relaxed text-base">
                       {category.description}
                     </p>
                   </CardContent>
@@ -465,32 +470,33 @@ export default function Home() {
       </section>
 
       {/* Featured APIs */}
-      <section className="py-16 bg-white">
+      <section className="py-20 bg-gradient-to-r from-white via-[var(--au-bg-soft-3)]/10 to-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutrals-900 mb-4">Featured APIs</h2>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-[var(--au-primary-700)] mb-6">Featured APIs</h2>
+            <p className="text-lg text-neutrals-600 max-w-3xl mx-auto">Our most popular and powerful APIs trusted by leading fintech companies</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {featuredApis.map((api, index) => {
               const IconComponent = api.icon;
               return (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-neutrals-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <IconComponent className={`w-6 h-6 ${api.color}`} />
+                <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white hover:-translate-y-1">
+                  <CardHeader className="pb-6">
+                    <div className="flex items-start gap-6">
+                      <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <IconComponent className={`w-8 h-8 ${api.color}`} />
                       </div>
                       <div>
-                        <CardTitle className="text-lg mb-2">{api.title}</CardTitle>
-                        <Badge variant="secondary" className="text-xs">
+                        <CardTitle className="text-xl font-bold mb-3 text-neutrals-800">{api.title}</CardTitle>
+                        <Badge variant="secondary" className="text-sm px-3 py-1 bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] border-0">
                           {api.category}
                         </Badge>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-neutrals-600 leading-relaxed">
+                    <p className="text-neutrals-600 leading-relaxed text-base">
                       {api.description}
                     </p>
                   </CardContent>
@@ -502,7 +508,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-neutrals-900 text-white py-12">
+      <footer className="bg-gradient-to-r from-[var(--au-primary-900)] via-[var(--au-primary-700)] to-[var(--au-primary-900)] text-white py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
