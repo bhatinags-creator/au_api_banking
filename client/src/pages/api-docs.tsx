@@ -1210,7 +1210,7 @@ export default function APIDocs() {
                 {!showForm ? (
                   <Card className="max-w-md">
                     <CardHeader>
-                      <CardTitle className="text-xl">Let's get you Onboard</CardTitle>
+                      <CardTitle className="text-xl">Let's get you Onboard (New)</CardTitle>
                       <CardDescription>Start your API integration journey with AU Bank</CardDescription>
                     </CardHeader>
                     <CardContent>
