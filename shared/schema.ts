@@ -14,7 +14,21 @@ export const developers = pgTable("developers", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   company: text("company"),
+  accountNumber: text("account_number"),
+  isVerified: boolean("is_verified").notNull().default(false),
   apiKey: text("api_key").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const corporateRegistrations = pgTable("corporate_registrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyName: text("company_name").notNull(),
+  accountNumber: text("account_number").notNull(),
+  email: text("email").notNull(),
+  contactPerson: text("contact_person").notNull(),
+  status: text("status").notNull().default("pending"), // pending, verified, rejected
+  otpCode: text("otp_code"),
+  otpExpiry: timestamp("otp_expiry"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -55,7 +69,21 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertDeveloperSchema = createInsertSchema(developers).omit({
   id: true,
   apiKey: true,
+  isVerified: true,
   createdAt: true,
+});
+
+export const insertCorporateRegistrationSchema = createInsertSchema(corporateRegistrations).omit({
+  id: true,
+  status: true,
+  otpCode: true,
+  otpExpiry: true,
+  createdAt: true,
+});
+
+export const verifyOtpSchema = z.object({
+  registrationId: z.string(),
+  otpCode: z.string().length(6),
 });
 
 export const insertApplicationSchema = createInsertSchema(applications).omit({
@@ -76,6 +104,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Developer = typeof developers.$inferSelect;
 export type InsertDeveloper = z.infer<typeof insertDeveloperSchema>;
+export type CorporateRegistration = typeof corporateRegistrations.$inferSelect;
+export type InsertCorporateRegistration = z.infer<typeof insertCorporateRegistrationSchema>;
+export type VerifyOtp = z.infer<typeof verifyOtpSchema>;
 export type Application = typeof applications.$inferSelect;
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type ApiEndpoint = typeof apiEndpoints.$inferSelect;

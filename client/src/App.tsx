@@ -8,6 +8,7 @@ import ApiExplorer from "@/pages/api-explorer";
 import Sandbox from "@/pages/sandbox";
 import Dashboard from "@/pages/dashboard";
 import Analytics from "@/pages/analytics";
+import CorporateRegistration from "@/pages/corporate-registration";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/analytics" component={Analytics} />
+      <Route path="/register" component={CorporateRegistration} />
       <Route component={NotFound} />
     </Switch>
   );

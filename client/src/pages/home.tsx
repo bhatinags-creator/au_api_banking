@@ -108,7 +108,7 @@ export default function Home() {
                   Explore APIs
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href="/register">
                 <Button 
                   className="btn-secondary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
                   data-testid="button-get-api-key"

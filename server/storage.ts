@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Developer, type InsertDeveloper, type Application, type InsertApplication, type ApiEndpoint, type InsertApiEndpoint, type ApiUsage, type InsertApiUsage } from "@shared/schema";
+import { type User, type InsertUser, type Developer, type InsertDeveloper, type Application, type InsertApplication, type ApiEndpoint, type InsertApiEndpoint, type ApiUsage, type InsertApiUsage, type CorporateRegistration, type InsertCorporateRegistration } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 // modify the interface with any CRUD methods
@@ -15,6 +15,12 @@ export interface IStorage {
   getDeveloperByApiKey(apiKey: string): Promise<Developer | undefined>;
   createDeveloper(developer: InsertDeveloper): Promise<Developer>;
   getAllDevelopers(): Promise<Developer[]>;
+  
+  // Corporate Registration operations
+  createCorporateRegistration(registration: InsertCorporateRegistration): Promise<CorporateRegistration>;
+  getCorporateRegistration(id: string): Promise<CorporateRegistration | undefined>;
+  updateCorporateRegistration(id: string, updates: Partial<CorporateRegistration>): Promise<CorporateRegistration | undefined>;
+  getCorporateRegistrationByEmail(email: string): Promise<CorporateRegistration | undefined>;
   
   // Application operations
   getApplication(id: string): Promise<Application | undefined>;
@@ -41,6 +47,7 @@ export class MemStorage implements IStorage {
   private applications: Map<string, Application>;
   private apiEndpoints: Map<string, ApiEndpoint>;
   private apiUsage: Map<string, ApiUsage>;
+  private corporateRegistrations: Map<string, CorporateRegistration>;
 
   constructor() {
     this.users = new Map();
@@ -48,6 +55,7 @@ export class MemStorage implements IStorage {
     this.applications = new Map();
     this.apiEndpoints = new Map();
     this.apiUsage = new Map();
+    this.corporateRegistrations = new Map();
     
     // Seed with sample API endpoints
     this.seedApiEndpoints();
@@ -120,6 +128,42 @@ export class MemStorage implements IStorage {
 
   async getAllDevelopers(): Promise<Developer[]> {
     return Array.from(this.developers.values());
+  }
+
+  // Corporate Registration operations
+  async createCorporateRegistration(insertRegistration: InsertCorporateRegistration): Promise<CorporateRegistration> {
+    const id = randomUUID();
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // Generate 6-digit OTP
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    
+    const registration: CorporateRegistration = {
+      ...insertRegistration,
+      id,
+      status: "pending",
+      otpCode,
+      otpExpiry,
+      createdAt: new Date()
+    };
+    
+    this.corporateRegistrations.set(id, registration);
+    return registration;
+  }
+
+  async getCorporateRegistration(id: string): Promise<CorporateRegistration | undefined> {
+    return this.corporateRegistrations.get(id);
+  }
+
+  async updateCorporateRegistration(id: string, updates: Partial<CorporateRegistration>): Promise<CorporateRegistration | undefined> {
+    const registration = this.corporateRegistrations.get(id);
+    if (!registration) return undefined;
+    
+    const updatedRegistration = { ...registration, ...updates };
+    this.corporateRegistrations.set(id, updatedRegistration);
+    return updatedRegistration;
+  }
+
+  async getCorporateRegistrationByEmail(email: string): Promise<CorporateRegistration | undefined> {
+    return Array.from(this.corporateRegistrations.values()).find(reg => reg.email === email);
   }
 
   // Application operations

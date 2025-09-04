@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertDeveloperSchema, insertApplicationSchema } from "@shared/schema";
+import { insertDeveloperSchema, insertApplicationSchema, insertCorporateRegistrationSchema, verifyOtpSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Developer routes
@@ -217,6 +217,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       submittedAt: new Date().toISOString(),
       estimatedCompletion: "2-3 business days"
     });
+  });
+
+  // Corporate Registration routes
+  app.post("/api/corporate-registration", async (req, res) => {
+    try {
+      const validatedData = insertCorporateRegistrationSchema.parse(req.body);
+      
+      // Check if email is already registered
+      const existingRegistration = await storage.getCorporateRegistrationByEmail(validatedData.email);
+      if (existingRegistration && existingRegistration.status === "verified") {
+        return res.status(409).json({ error: "Email already registered and verified" });
+      }
+
+      const registration = await storage.createCorporateRegistration(validatedData);
+      
+      // In a real application, you would send an actual email here
+      console.log(`OTP for ${validatedData.email}: ${registration.otpCode}`);
+      
+      // Don't return sensitive data
+      const { otpCode, ...safeRegistration } = registration;
+      res.status(201).json(safeRegistration);
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(400).json({ error: "Invalid registration data" });
+    }
+  });
+
+  app.post("/api/verify-otp", async (req, res) => {
+    try {
+      const { registrationId, otpCode } = verifyOtpSchema.parse(req.body);
+      
+      const registration = await storage.getCorporateRegistration(registrationId);
+      if (!registration) {
+        return res.status(404).json({ error: "Registration not found" });
+      }
+
+      if (registration.status === "verified") {
+        return res.status(409).json({ error: "Registration already verified" });
+      }
+
+      if (!registration.otpCode || !registration.otpExpiry) {
+        return res.status(400).json({ error: "OTP not available" });
+      }
+
+      if (new Date() > registration.otpExpiry) {
+        return res.status(400).json({ error: "OTP has expired" });
+      }
+
+      if (registration.otpCode !== otpCode) {
+        return res.status(400).json({ error: "Invalid OTP" });
+      }
+
+      // Generate API key
+      const apiKey = `au_${Math.random().toString(36).substr(2, 20)}`;
+      
+      // Update registration status
+      await storage.updateCorporateRegistration(registrationId, { 
+        status: "verified",
+        otpCode: null,
+        otpExpiry: null
+      });
+
+      // Create developer account
+      const developer = await storage.createDeveloper({
+        name: registration.contactPerson,
+        email: registration.email,
+        company: registration.companyName,
+        accountNumber: registration.accountNumber
+      });
+
+      res.json({ 
+        success: true, 
+        apiKey,
+        developerId: developer.id
+      });
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      res.status(400).json({ error: "Invalid verification data" });
+    }
   });
 
   const httpServer = createServer(app);
