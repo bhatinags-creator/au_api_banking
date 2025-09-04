@@ -632,11 +632,17 @@ export default function APIDocs() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<string[]>(["introduction", "security"]);
   const [showForm, setShowForm] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState(1);
+  const [otpSent, setOtpSent] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     companyName: "",
-    mobileNumber: ""
+    mobileNumber: "",
+    otp: "",
+    username: "",
+    password: "",
+    confirmPassword: ""
   });
   const { toast } = useToast();
 
@@ -672,14 +678,103 @@ export default function APIDocs() {
     return null;
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleStepSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (registrationStep === 1) {
+      // Basic Details
+      if (!formData.fullName || !formData.email || !formData.companyName) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in all required fields",
+          variant: "destructive"
+        });
+        return;
+      }
+      setRegistrationStep(2);
+    } else if (registrationStep === 2) {
+      // Mobile Number & OTP
+      if (!otpSent && !formData.mobileNumber) {
+        toast({
+          title: "Missing Mobile Number",
+          description: "Please enter your mobile number",
+          variant: "destructive"
+        });
+        return;
+      }
+      if (!otpSent) {
+        // Send OTP
+        setOtpSent(true);
+        toast({
+          title: "OTP Sent!",
+          description: `Verification code sent to ${formData.mobileNumber}`,
+        });
+      } else {
+        // Verify OTP
+        if (!formData.otp || formData.otp.length !== 6) {
+          toast({
+            title: "Invalid OTP",
+            description: "Please enter the 6-digit OTP",
+            variant: "destructive"
+          });
+          return;
+        }
+        setRegistrationStep(3);
+      }
+    } else if (registrationStep === 3) {
+      // Credentials
+      if (!formData.username || !formData.password || !formData.confirmPassword) {
+        toast({
+          title: "Missing Credentials",
+          description: "Please fill in all credential fields",
+          variant: "destructive"
+        });
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        toast({
+          title: "Password Mismatch",
+          description: "Passwords do not match",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Complete registration
+      toast({
+        title: "Registration Successful!",
+        description: "Your developer account has been created. You will receive an email with next steps.",
+      });
+      setShowForm(false);
+      setRegistrationStep(1);
+      setOtpSent(false);
+      setFormData({
+        fullName: "",
+        email: "",
+        companyName: "",
+        mobileNumber: "",
+        otp: "",
+        username: "",
+        password: "",
+        confirmPassword: ""
+      });
+    }
+  };
+
+  const handleSendOtp = () => {
+    if (!formData.mobileNumber) {
+      toast({
+        title: "Missing Mobile Number",
+        description: "Please enter your mobile number first",
+        variant: "destructive"
+      });
+      return;
+    }
+    setOtpSent(true);
     toast({
-      title: "Registration Successful!",
-      description: "Your developer account request has been submitted. We'll contact you within 2-3 business days.",
+      title: "OTP Sent!",
+      description: `Verification code sent to ${formData.mobileNumber}`,
     });
-    setShowForm(false);
-    setFormData({ fullName: "", email: "", companyName: "", mobileNumber: "" });
   };
 
   const currentEndpoint = getCurrentEndpoint();
@@ -1128,62 +1223,168 @@ export default function APIDocs() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <Card className="max-w-md">
+                  <Card className="max-w-lg">
                     <CardHeader>
-                      <CardTitle className="text-xl">Developer Registration</CardTitle>
-                      <CardDescription>
-                        Basic Details • Mobile Number • Credentials
+                      <CardTitle className="text-xl">Let's get you Onboard</CardTitle>
+                      <CardDescription className="flex items-center gap-2">
+                        <span className={registrationStep >= 1 ? "text-pink-600 font-medium" : "text-neutrals-400"}>Basic Details</span>
+                        <span className="text-neutrals-300">•</span>
+                        <span className={registrationStep >= 2 ? "text-pink-600 font-medium" : "text-neutrals-400"}>Mobile Number</span>
+                        <span className="text-neutrals-300">•</span>
+                        <span className={registrationStep >= 3 ? "text-pink-600 font-medium" : "text-neutrals-400"}>Credentials</span>
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <form onSubmit={handleFormSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="fullName">Full Name</Label>
-                            <Input
-                              id="fullName"
-                              placeholder="John Doe"
-                              value={formData.fullName}
-                              onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="john@techfirm.com"
-                              value={formData.email}
-                              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="companyName">Company Name</Label>
-                          <Input
-                            id="companyName"
-                            placeholder="Tech Firm"
-                            value={formData.companyName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="mobileNumber">Mobile Number</Label>
-                          <Input
-                            id="mobileNumber"
-                            placeholder="+91 98765 43210"
-                            value={formData.mobileNumber}
-                            onChange={(e) => setFormData(prev => ({ ...prev, mobileNumber: e.target.value }))}
-                            required
-                          />
-                        </div>
-                        <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700">
-                          Submit Registration
-                        </Button>
+                      <form onSubmit={handleStepSubmit} className="space-y-4">
+                        {registrationStep === 1 && (
+                          <>
+                            <div>
+                              <Label htmlFor="fullName">Full Name</Label>
+                              <Input
+                                id="fullName"
+                                placeholder="John Doe"
+                                value={formData.fullName}
+                                onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="email">Email</Label>
+                              <Input
+                                id="email"
+                                type="email"
+                                placeholder="john@techfirm.com"
+                                value={formData.email}
+                                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="companyName">Company Name</Label>
+                              <Input
+                                id="companyName"
+                                placeholder="Tech Firm"
+                                value={formData.companyName}
+                                onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                                required
+                              />
+                            </div>
+                            <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700">
+                              Next
+                            </Button>
+                          </>
+                        )}
+
+                        {registrationStep === 2 && (
+                          <>
+                            {!otpSent ? (
+                              <>
+                                <div>
+                                  <Label htmlFor="mobileNumber">Please enter the Phone Number</Label>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      id="mobileNumber"
+                                      placeholder="9999999999"
+                                      value={formData.mobileNumber}
+                                      onChange={(e) => setFormData(prev => ({ ...prev, mobileNumber: e.target.value }))}
+                                      required
+                                      className="flex-1"
+                                    />
+                                    <Button 
+                                      type="button" 
+                                      onClick={handleSendOtp}
+                                      variant="outline"
+                                      className="border-pink-600 text-pink-600 hover:bg-pink-50"
+                                    >
+                                      SEND OTP
+                                    </Button>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div>
+                                  <Label htmlFor="otp">Enter the OTP Received on your Phone Number</Label>
+                                  <Input
+                                    id="otp"
+                                    placeholder="Enter 6-digit OTP"
+                                    value={formData.otp}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, otp: e.target.value }))}
+                                    maxLength={6}
+                                    required
+                                  />
+                                </div>
+                                <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700">
+                                  VERIFY
+                                </Button>
+                              </>
+                            )}
+                          </>
+                        )}
+
+                        {registrationStep === 3 && (
+                          <>
+                            <div>
+                              <Label htmlFor="username">Username</Label>
+                              <Input
+                                id="username"
+                                placeholder="johndoe"
+                                value={formData.username}
+                                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                                required
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="password">Create Password</Label>
+                                <Input
+                                  id="password"
+                                  type="password"
+                                  placeholder="••••••••"
+                                  value={formData.password}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                <Input
+                                  id="confirmPassword"
+                                  type="password"
+                                  placeholder="••••••••"
+                                  value={formData.confirmPassword}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input type="checkbox" required className="rounded border-gray-300" />
+                              <label className="text-sm text-gray-600">I ACCEPT ALL TERMS & CONDITIONS</label>
+                            </div>
+                            <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700">
+                              SUBMIT
+                            </Button>
+                          </>
+                        )}
                       </form>
+                      
+                      {registrationStep > 1 && (
+                        <Button 
+                          variant="ghost" 
+                          className="w-full mt-2"
+                          onClick={() => {
+                            if (registrationStep === 3) {
+                              setRegistrationStep(2);
+                            } else if (registrationStep === 2) {
+                              setRegistrationStep(1);
+                              setOtpSent(false);
+                            }
+                          }}
+                        >
+                          ← Back
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 )}
