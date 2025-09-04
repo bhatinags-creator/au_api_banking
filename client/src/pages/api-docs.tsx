@@ -810,88 +810,141 @@ export default function APIDocs() {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r h-screen overflow-y-auto sticky top-0">
+        <div className="w-64 bg-white border-r h-screen overflow-y-auto sticky top-0">
           <div className="p-4">
-            <div className="space-y-2">
-              {apiCategories.map((category) => {
-                const IconComponent = category.icon;
-                const isOpen = openCategories.includes(category.id);
-                const hasEndpoints = category.endpoints.length > 0 || category.subcategories;
-                
-                return (
-                  <div key={category.id}>
-                    <div
-                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedCategory === category.id 
-                          ? 'bg-primary/10 text-primary border border-primary/20' 
-                          : 'hover:bg-neutrals-50'
-                      }`}
-                      onClick={() => {
-                        setSelectedCategory(category.id);
-                        setSelectedEndpoint(null);
-                        if (hasEndpoints) toggleCategory(category.id);
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <IconComponent className="w-4 h-4" />
-                        <span className="font-medium">{category.title}</span>
-                      </div>
-                      {hasEndpoints && (
-                        <ChevronDown 
-                          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-                        />
-                      )}
-                    </div>
-
-                    {isOpen && hasEndpoints && (
-                      <div className="ml-4 mt-2 space-y-1">
-                        {/* Direct endpoints */}
-                        {category.endpoints.map((endpoint) => (
-                          <div
-                            key={endpoint.id}
-                            className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
-                              selectedEndpoint === endpoint.id 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'hover:bg-neutrals-50'
-                            }`}
-                            onClick={() => setSelectedEndpoint(endpoint.id)}
-                          >
-                            <Badge variant={endpoint.method === 'GET' ? 'secondary' : 'default'} className="text-xs">
-                              {endpoint.method}
-                            </Badge>
-                            <span className="text-sm">{endpoint.title}</span>
-                          </div>
-                        ))}
-
-                        {/* Subcategories */}
-                        {category.subcategories?.map((subcategory) => (
-                          <div key={subcategory.id}>
-                            <div className="font-medium text-sm text-neutrals-700 px-2 py-1 mt-3">
-                              {subcategory.title}
-                            </div>
-                            {subcategory.endpoints.map((endpoint) => (
-                              <div
-                                key={endpoint.id}
-                                className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ml-2 ${
-                                  selectedEndpoint === endpoint.id 
-                                    ? 'bg-primary/10 text-primary' 
-                                    : 'hover:bg-neutrals-50'
-                                }`}
-                                onClick={() => setSelectedEndpoint(endpoint.id)}
-                              >
-                                <Badge variant={endpoint.method === 'GET' ? 'secondary' : 'default'} className="text-xs">
-                                  {endpoint.method}
-                                </Badge>
-                                <span className="text-sm">{endpoint.title}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            <div className="space-y-1">
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "introduction" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("introduction");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Introduction
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "security" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("security");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Security
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "building-blocks" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("building-blocks");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Building Blocks
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "loans-and-cards" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("loans-and-cards");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Loans and Cards
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "payments" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("payments");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Payments
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "accounts-deposits" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("accounts-deposits");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Accounts and Deposits
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "business-banking" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("business-banking");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Business Banking
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "trade-services" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("trade-services");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Trade Services
+              </div>
+              
+              <div
+                className={`p-3 rounded cursor-pointer transition-colors ${
+                  selectedCategory === "corporate-api-suite" 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'hover:bg-neutrals-50 text-neutrals-700'
+                }`}
+                onClick={() => {
+                  setSelectedCategory("corporate-api-suite");
+                  setSelectedEndpoint(null);
+                }}
+              >
+                Corporate API Suite
+              </div>
+            </div>
+            
+            <div className="mt-8 pt-4 border-t border-neutrals-200">
+              <div className="flex items-center gap-2 p-3 text-neutrals-700 font-medium">
+                <span className="text-lg">📚</span>
+                VIEW ALL APIS
+              </div>
             </div>
           </div>
         </div>
