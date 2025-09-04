@@ -30,6 +30,12 @@ export default function Home() {
             <span data-testid="link-apis">APIs</span>
           </Link>
           <Link 
+            href="/docs" 
+            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
+          >
+            <span data-testid="link-docs">Documentation</span>
+          </Link>
+          <Link 
             href="/sandbox" 
             className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
           >
@@ -70,6 +76,9 @@ export default function Home() {
           <nav className="px-6 py-4 space-y-4">
             <Link href="/apis" className="block text-white text-base font-normal" data-testid="mobile-link-apis">
               APIs
+            </Link>
+            <Link href="/docs" className="block text-white text-base font-normal" data-testid="mobile-link-docs">
+              Documentation
             </Link>
             <Link href="/sandbox" className="block text-white text-base font-normal" data-testid="mobile-link-sandbox">
               Sandbox

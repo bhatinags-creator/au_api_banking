@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import ApiExplorer from "@/pages/api-explorer";
+import { APIDocs } from "@/pages/api-docs";
 import Sandbox from "@/pages/sandbox";
 import Dashboard from "@/pages/dashboard";
 import Analytics from "@/pages/analytics";
@@ -16,6 +17,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/apis" component={ApiExplorer} />
+      <Route path="/docs" component={APIDocs} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/analytics" component={Analytics} />
