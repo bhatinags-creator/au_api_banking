@@ -1,10 +1,142 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Building2, CreditCard, Shield, Lock, Zap, FileText, Headphones } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { 
+  Menu, 
+  X, 
+  Building2, 
+  CreditCard, 
+  Shield, 
+  Database, 
+  Zap, 
+  FileText, 
+  ArrowRight,
+  Search,
+  Play,
+  CheckCircle,
+  Star,
+  Users,
+  Globe,
+  TrendingUp,
+  Code,
+  Layers,
+  Banknote,
+  FileCheck,
+  Target,
+  Clock
+} from "lucide-react";
 import { Link } from "wouter";
+
+const heroSlides = [
+  {
+    id: 1,
+    title: "Fulfill all your banking needs with API integration",
+    subtitle: "Avail AU Bank smart features for your business",
+    features: ["Financial Data Integration", "Smooth Transactions", "Integrated Solution"],
+    cta: "Know More About Business Banking",
+    bgColor: "from-red-600 to-red-700"
+  },
+  {
+    id: 2,
+    title: "Make smooth business payments without any worries",
+    subtitle: "Start API Banking with AU Bank to scale your business",
+    features: ["Real-time Processing", "Secure Transactions", "24/7 Availability"],
+    cta: "Know More About Payments",
+    bgColor: "from-blue-600 to-blue-700"
+  },
+  {
+    id: 3,
+    title: "Build powerful fintech solutions with our comprehensive APIs",
+    subtitle: "Transform your business with digital banking integration",
+    features: ["Developer-First Design", "Complete Documentation", "Sandbox Testing"],
+    cta: "Explore All APIs",
+    bgColor: "from-green-600 to-green-700"
+  }
+];
+
+const apiCategories = [
+  {
+    icon: Shield,
+    title: "Building Blocks",
+    description: "Essential APIs for integrating with core banking services. Run checks and validations using fundamental APIs such as KYC verification, account validation, and identity checks.",
+    color: "text-blue-600"
+  },
+  {
+    icon: Building2,
+    title: "Business Banking",
+    description: "Empower your corporate banking with seamless APIs for efficient transactions, cash deposits, smart reconciliation, and personalized management systems.",
+    color: "text-green-600"
+  },
+  {
+    icon: CreditCard,
+    title: "Payments & UPI",
+    description: "Industry-leading payment APIs to introduce tailored payment services. Multiple payment options to integrate your services with the outside world.",
+    color: "text-orange-600"
+  },
+  {
+    icon: Database,
+    title: "Accounts and Deposits",
+    description: "Enable customers to invest and bank with you by integrating savings accounts, corporate accounts, fixed deposits, and recurring deposit services.",
+    color: "text-purple-600"
+  },
+  {
+    icon: FileCheck,
+    title: "Trade Services",
+    description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
+    color: "text-red-600"
+  },
+  {
+    icon: Layers,
+    title: "Corporate API Suite",
+    description: "A curated collection of APIs specially selected to cater to evolving corporate client needs, studied after careful analysis of corporate journeys.",
+    color: "text-indigo-600"
+  }
+];
+
+const featuredApis = [
+  {
+    title: "CNB Payment Creation",
+    category: "Payments",
+    description: "Comprehensive payment creation API supporting NEFT, RTGS, and IMPS transactions with real-time status tracking and reconciliation.",
+    icon: CreditCard,
+    color: "text-orange-600"
+  },
+  {
+    title: "Account Balance Inquiry",
+    category: "Accounts",
+    description: "Real-time account balance and transaction history APIs for seamless financial data integration and account management.",
+    icon: Database,
+    color: "text-purple-600"
+  },
+  {
+    title: "OAuth Authentication",
+    category: "Security",
+    description: "Secure OAuth 2.0 implementation for API authentication with token management and refresh capabilities for enterprise security.",
+    icon: Shield,
+    color: "text-blue-600"
+  },
+  {
+    title: "Corporate Onboarding",
+    category: "Business Banking",
+    description: "Streamlined corporate registration and KYC verification APIs with document upload and verification workflow automation.",
+    icon: Building2,
+    color: "text-green-600"
+  }
+];
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -13,361 +145,382 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="header-bg w-full h-20 flex items-center justify-between px-6 lg:px-24">
-        {/* Logo */}
-        <div className="flex items-center">
-          <h1 className="text-white text-2xl font-semibold" data-testid="logo-text">
-            API Banking Portal
-          </h1>
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mr-3">
+                <Building2 className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-neutrals-900" data-testid="logo-text">
+                AU Bank Developer Portal
+              </h1>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <a href="#" className="text-neutrals-700 hover:text-primary transition-colors">Home</a>
+              <a href="#apis" className="text-neutrals-700 hover:text-primary transition-colors">Explore APIs</a>
+              <Link href="/sandbox" className="text-neutrals-700 hover:text-primary transition-colors">
+                <span data-testid="link-sandbox">Sandbox</span>
+              </Link>
+              <Link href="/docs" className="text-neutrals-700 hover:text-primary transition-colors">
+                <span data-testid="link-docs">Documentation</span>
+              </Link>
+              <a href="#" className="text-neutrals-700 hover:text-primary transition-colors">FAQ</a>
+            </nav>
+
+            {/* Auth Buttons */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Button variant="outline" size="sm">
+                Sign Up
+              </Button>
+              <Button size="sm" className="bg-primary hover:bg-primary/90">
+                Sign In
+              </Button>
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden text-neutrals-700 focus:outline-none" 
+              onClick={toggleMobileMenu}
+              aria-label="Toggle mobile menu"
+              data-testid="button-mobile-menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link 
-            href="/apis" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-apis">APIs</span>
-          </Link>
-          <Link 
-            href="/docs" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-docs">Documentation</span>
-          </Link>
-          <Link 
-            href="/sandbox" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-sandbox">Sandbox</span>
-          </Link>
-          <Link 
-            href="/dashboard" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-my-apps">My Apps</span>
-          </Link>
-          <Link 
-            href="/analytics" 
-            className="text-white text-base font-normal hover:text-blue-300 transition-colors duration-200"
-          >
-            <span data-testid="link-analytics">Analytics</span>
-          </Link>
-        </nav>
-        
-        {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden text-white focus:outline-none" 
-          onClick={toggleMobileMenu}
-          aria-label="Toggle mobile menu"
-          data-testid="button-mobile-menu"
-        >
-          {mobileMenuOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
-        </button>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t" data-testid="mobile-menu">
+            <div className="px-4 py-4 space-y-4">
+              <a href="#" className="block text-neutrals-700 hover:text-primary">Home</a>
+              <a href="#apis" className="block text-neutrals-700 hover:text-primary">Explore APIs</a>
+              <Link href="/sandbox" className="block text-neutrals-700 hover:text-primary">Sandbox</Link>
+              <Link href="/docs" className="block text-neutrals-700 hover:text-primary">Documentation</Link>
+              <a href="#" className="block text-neutrals-700 hover:text-primary">FAQ</a>
+              <div className="flex space-x-4 pt-4">
+                <Button variant="outline" size="sm" className="flex-1">Sign Up</Button>
+                <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90">Sign In</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
-      
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden header-bg" data-testid="mobile-menu">
-          <nav className="px-6 py-4 space-y-4">
-            <Link href="/apis" className="block text-white text-base font-normal" data-testid="mobile-link-apis">
-              APIs
-            </Link>
-            <Link href="/docs" className="block text-white text-base font-normal" data-testid="mobile-link-docs">
-              Documentation
-            </Link>
-            <Link href="/sandbox" className="block text-white text-base font-normal" data-testid="mobile-link-sandbox">
-              Sandbox
-            </Link>
-            <Link href="/dashboard" className="block text-white text-base font-normal" data-testid="mobile-link-my-apps">
-              My Apps
-            </Link>
-            <Link href="/analytics" className="block text-white text-base font-normal" data-testid="mobile-link-analytics">
-              Analytics
-            </Link>
-          </nav>
-        </div>
-      )}
 
-      {/* Hero Section */}
-      <section className="w-full bg-white py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-24">
-          <div className="text-center space-y-8">
-            {/* Hero Title */}
-            <h1 className="primary-blue text-4xl lg:text-6xl font-bold leading-tight" data-testid="hero-title">
-              Build. Test. Innovate with Our APIs
-            </h1>
-            
-            {/* Hero Subtitle */}
-            <p className="text-dark text-lg lg:text-xl font-normal max-w-3xl mx-auto leading-relaxed" data-testid="hero-subtitle">
-              Access Payments, Accounts, KYC and more in a secure sandbox environment.
-            </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-              <Link href="/apis">
-                <Button 
-                  className="btn-primary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
-                  data-testid="button-explore-apis"
-                >
-                  Explore APIs
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button 
-                  className="btn-secondary text-white text-lg font-semibold px-8 py-4 rounded-lg hover:bg-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl w-full sm:w-auto"
-                  data-testid="button-get-api-key"
-                >
-                  Get API Key
-                </Button>
-              </Link>
+      {/* Search Bar */}
+      <div className="bg-neutrals-50 py-3">
+        <div className="container mx-auto px-4">
+          <div className="relative max-w-md ml-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutrals-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search APIs by Name, Description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 text-sm"
+              data-testid="input-search-apis"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Carousel */}
+      <section className="relative h-96 overflow-hidden">
+        {heroSlides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-transform duration-1000 ease-in-out ${
+              index === currentSlide ? 'translate-x-0' : index < currentSlide ? '-translate-x-full' : 'translate-x-full'
+            }`}
+          >
+            <div className={`h-full bg-gradient-to-r ${slide.bgColor} flex items-center`}>
+              <div className="container mx-auto px-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                  <div className="text-white">
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+                      {slide.title}
+                    </h1>
+                    <p className="text-xl mb-6 opacity-90">
+                      {slide.subtitle}
+                    </p>
+                    <div className="space-y-3 mb-8">
+                      {slide.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <CheckCircle className="w-5 h-5 text-green-300" />
+                          <span className="text-lg">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-white">
+                      {slide.cta}
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </div>
+                  <div className="hidden lg:flex justify-center">
+                    <div className="relative">
+                      <div className="w-64 h-64 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                        <div className="w-32 h-32 bg-secondary rounded-xl flex items-center justify-center">
+                          <Code className="w-16 h-16 text-white" />
+                        </div>
+                      </div>
+                      <div className="absolute -top-4 -right-4 w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                        <span className="text-2xl font-bold text-white">API</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+        ))}
+        
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                index === currentSlide ? 'bg-white' : 'bg-white/50'
+              }`}
+              data-testid={`carousel-indicator-${index}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Collaborate, Build, Unleash Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold text-neutrals-900 mb-4">
+            Collaborate, Build, Unleash
+          </h2>
+          <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+            BROWSE ALL APIs
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </div>
+      </section>
+
+      {/* How it Works */}
+      <section className="py-16 bg-neutrals-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-neutrals-900 mb-4">How it Works?</h2>
+            <p className="text-xl text-neutrals-600 max-w-3xl mx-auto">
+              Get your developers onboard very quickly. Learn how to incorporate our AU Bank APIs in just a few easy steps.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                1
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Sign up for an AU Developer Account</h3>
+              <div className="flex justify-center my-4">
+                <ArrowRight className="w-6 h-6 text-neutrals-400" />
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                2
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Select API</h3>
+              <div className="flex justify-center my-4">
+                <ArrowRight className="w-6 h-6 text-neutrals-400" />
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                3
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Test it Out</h3>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+              SIGN UP
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* API Categories Section */}
-      <section className="w-full bg-gray-50 py-16 lg:py-24" id="apis">
-        <div className="max-w-7xl mx-auto px-6 lg:px-24">
-          {/* Section Title */}
+      {/* Journey to go Live */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-darker text-3xl lg:text-4xl font-bold mb-4" data-testid="section-title-api-categories">
-              API Categories
-            </h2>
-            <p className="text-dark text-lg max-w-2xl mx-auto" data-testid="section-subtitle-api-categories">
-              Explore our comprehensive suite of banking APIs designed for modern financial applications
-            </p>
+            <h2 className="text-4xl font-bold text-neutrals-900 mb-8">Journey to go Live</h2>
           </div>
           
-          {/* API Cards Grid */}
+          <div className="flex justify-center items-center gap-8 mb-8">
+            <div className="text-center">
+              <div className="w-24 h-24 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Play className="w-12 h-12 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold">SANDBOX</h3>
+            </div>
+            
+            <ArrowRight className="w-8 h-8 text-neutrals-400" />
+            
+            <div className="text-center">
+              <div className="w-24 h-24 bg-yellow-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Target className="w-12 h-12 text-yellow-600" />
+              </div>
+              <h3 className="text-xl font-semibold">UAT</h3>
+            </div>
+            
+            <ArrowRight className="w-8 h-8 text-neutrals-400" />
+            
+            <div className="text-center">
+              <div className="w-24 h-24 bg-green-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Globe className="w-12 h-12 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold">PRODUCTION</h3>
+            </div>
+          </div>
+          
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-lg text-neutrals-600 mb-4">
+              Signup to AU Bank API Banking Portal Sandbox environment to start your journey. Upgrade to UAT environment for end-to-end real-time testing, post your NDA with us. Go-live with integration to production environment.
+            </p>
+            <p className="text-sm text-neutrals-500">
+              *Disclaimer: Access to UAT & Production environment is subject to business approvals, NDA and other agreements, and is at the sole discretion of AU Bank.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Available APIs */}
+      <section id="apis" className="py-16 bg-neutrals-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-neutrals-900 mb-4">Available APIs</h2>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Accounts API Card */}
-            <Link href="/apis">
-              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-accounts-api">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-darker text-xl font-semibold" data-testid="title-accounts-api">
-                    Accounts API
-                  </h3>
-                  <p className="text-dark text-base leading-relaxed" data-testid="description-accounts-api">
-                    Access balances & transactions
-                  </p>
-                  <span 
-                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
-                    data-testid="button-learn-more-accounts"
-                  >
-                    Learn More →
-                  </span>
-                </div>
-              </div>
-            </Link>
-            
-            {/* Payments API Card */}
-            <Link href="/apis">
-              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-payments-api">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <CreditCard className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="text-darker text-xl font-semibold" data-testid="title-payments-api">
-                    Payments API
-                  </h3>
-                  <p className="text-dark text-base leading-relaxed" data-testid="description-payments-api">
-                    Send & receive payments
-                  </p>
-                  <span 
-                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
-                    data-testid="button-learn-more-payments"
-                  >
-                    Learn More →
-                  </span>
-                </div>
-              </div>
-            </Link>
-            
-            {/* KYC API Card */}
-            <Link href="/apis">
-              <div className="card-bg rounded-xl p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-blue-100 cursor-pointer" data-testid="card-kyc-api">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h3 className="text-darker text-xl font-semibold" data-testid="title-kyc-api">
-                    KYC API
-                  </h3>
-                  <p className="text-dark text-base leading-relaxed" data-testid="description-kyc-api">
-                    Verify customer identity
-                  </p>
-                  <span 
-                    className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200"
-                    data-testid="button-learn-more-kyc"
-                  >
-                    Learn More →
-                  </span>
-                </div>
-              </div>
-            </Link>
+            {apiCategories.map((category, index) => {
+              const IconComponent = category.icon;
+              return (
+                <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-neutrals-100 rounded-lg flex items-center justify-center">
+                        <IconComponent className={`w-6 h-6 ${category.color}`} />
+                      </div>
+                      <CardTitle className="text-xl">{category.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-neutrals-600 leading-relaxed">
+                      {category.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+              BROWSE ALL APIs
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Additional Features Section */}
-      <section className="w-full bg-white py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-6 lg:px-24">
+      {/* Featured APIs */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-darker text-3xl lg:text-4xl font-bold mb-4" data-testid="section-title-features">
-              Why Choose Our APIs?
-            </h2>
-            <p className="text-dark text-lg max-w-2xl mx-auto" data-testid="section-subtitle-features">
-              Built for developers, trusted by enterprises
-            </p>
+            <h2 className="text-4xl font-bold text-neutrals-900 mb-4">Featured APIs</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center space-y-4" data-testid="feature-security">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                <Lock className="w-8 h-8 text-blue-600" />
-              </div>
-              <h3 className="text-darker text-lg font-semibold" data-testid="title-feature-security">
-                Bank-Grade Security
-              </h3>
-              <p className="text-dark text-sm" data-testid="description-feature-security">
-                End-to-end encryption and compliance
-              </p>
-            </div>
-            
-            <div className="text-center space-y-4" data-testid="feature-speed">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <Zap className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="text-darker text-lg font-semibold" data-testid="title-feature-speed">
-                Lightning Fast
-              </h3>
-              <p className="text-dark text-sm" data-testid="description-feature-speed">
-                Sub-second response times globally
-              </p>
-            </div>
-            
-            <div className="text-center space-y-4" data-testid="feature-documentation">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                <FileText className="w-8 h-8 text-purple-600" />
-              </div>
-              <h3 className="text-darker text-lg font-semibold" data-testid="title-feature-documentation">
-                Rich Documentation
-              </h3>
-              <p className="text-dark text-sm" data-testid="description-feature-documentation">
-                Comprehensive guides and examples
-              </p>
-            </div>
-            
-            <div className="text-center space-y-4" data-testid="feature-support">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
-                <Headphones className="w-8 h-8 text-orange-600" />
-              </div>
-              <h3 className="text-darker text-lg font-semibold" data-testid="title-feature-support">
-                24/7 Support
-              </h3>
-              <p className="text-dark text-sm" data-testid="description-feature-support">
-                Expert technical assistance
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {featuredApis.map((api, index) => {
+              const IconComponent = api.icon;
+              return (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-neutrals-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <IconComponent className={`w-6 h-6 ${api.color}`} />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl mb-2">{api.title}</CardTitle>
+                        <Badge variant="secondary" className="text-xs">
+                          {api.category}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-neutrals-600 leading-relaxed">
+                      {api.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="header-bg w-full py-12">
-        <div className="max-w-7xl mx-auto px-6 lg:px-24">
+      <footer className="bg-neutrals-900 text-white py-12">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-white text-lg font-semibold" data-testid="footer-brand">
-                API Banking Portal
-              </h3>
-              <p className="text-gray-300 text-sm" data-testid="footer-description">
-                Empowering developers with secure banking APIs
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mr-3">
+                  <Building2 className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-bold">AU Bank Developer Portal</h3>
+              </div>
+              <p className="text-neutrals-400 text-sm">
+                Empowering developers with comprehensive banking APIs for modern financial solutions.
               </p>
             </div>
             
-            <div className="space-y-4">
-              <h4 className="text-white text-base font-medium" data-testid="footer-section-apis">
-                APIs
-              </h4>
-              <ul className="space-y-2 text-gray-300 text-sm">
-                <li>
-                  <a href="#accounts" className="hover:text-white transition-colors" data-testid="footer-link-accounts">
-                    Accounts
-                  </a>
-                </li>
-                <li>
-                  <a href="#payments" className="hover:text-white transition-colors" data-testid="footer-link-payments">
-                    Payments
-                  </a>
-                </li>
-                <li>
-                  <a href="#kyc" className="hover:text-white transition-colors" data-testid="footer-link-kyc">
-                    KYC
-                  </a>
-                </li>
+            <div>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-neutrals-400">
+                <li><a href="#" className="hover:text-white transition-colors">API Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Sandbox</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Get Started</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
               </ul>
             </div>
             
-            <div className="space-y-4">
-              <h4 className="text-white text-base font-medium" data-testid="footer-section-developer">
-                Developer
-              </h4>
-              <ul className="space-y-2 text-gray-300 text-sm">
-                <li>
-                  <a href="#docs" className="hover:text-white transition-colors" data-testid="footer-link-docs">
-                    Documentation
-                  </a>
-                </li>
-                <li>
-                  <a href="#sandbox" className="hover:text-white transition-colors" data-testid="footer-link-sandbox-footer">
-                    Sandbox
-                  </a>
-                </li>
-                <li>
-                  <a href="#support" className="hover:text-white transition-colors" data-testid="footer-link-support">
-                    Support
-                  </a>
-                </li>
+            <div>
+              <h4 className="font-semibold mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm text-neutrals-400">
+                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Tutorials</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Status Page</a></li>
               </ul>
             </div>
             
-            <div className="space-y-4">
-              <h4 className="text-white text-base font-medium" data-testid="footer-section-company">
-                Company
-              </h4>
-              <ul className="space-y-2 text-gray-300 text-sm">
-                <li>
-                  <a href="#about" className="hover:text-white transition-colors" data-testid="footer-link-about">
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#contact" className="hover:text-white transition-colors" data-testid="footer-link-contact">
-                    Contact
-                  </a>
-                </li>
-                <li>
-                  <a href="#privacy" className="hover:text-white transition-colors" data-testid="footer-link-privacy">
-                    Privacy
-                  </a>
-                </li>
+            <div>
+              <h4 className="font-semibold mb-4">Contact</h4>
+              <ul className="space-y-2 text-sm text-neutrals-400">
+                <li>Email: developers@aubank.in</li>
+                <li>Phone: 1800-XXX-XXXX</li>
+                <li>Support: 24/7 Available</li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-600 mt-8 pt-8 text-center">
-            <p className="text-gray-300 text-sm" data-testid="footer-copyright">
-              © 2024 API Banking Portal. All rights reserved.
-            </p>
+          <div className="border-t border-neutrals-800 mt-8 pt-8 text-center text-sm text-neutrals-400">
+            <p>&copy; 2024 AU Small Finance Bank. All rights reserved. | Privacy Policy | Terms of Service</p>
           </div>
         </div>
       </footer>
