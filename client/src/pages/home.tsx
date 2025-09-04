@@ -36,7 +36,7 @@ const heroSlides = [
     subtitle: "Avail AU Bank smart features for your business",
     features: ["Financial Data Integration", "Smooth Transactions", "Integrated Solution"],
     cta: "Know More About Business Banking",
-    bgColor: "from-red-600 to-red-700"
+    bgColor: "from-pink-600 to-pink-700"
   },
   {
     id: 2,
@@ -85,7 +85,7 @@ const apiCategories = [
     icon: FileCheck,
     title: "Trade Services",
     description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
-    color: "text-red-600"
+    color: "text-pink-600"
   },
   {
     icon: Layers,
@@ -241,17 +241,17 @@ export default function Home() {
               <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                   <div className="text-white">
-                    <h1 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+                    <h1 className="text-3xl lg:text-4xl font-bold mb-4 leading-tight">
                       {slide.title}
                     </h1>
-                    <p className="text-xl mb-6 opacity-90">
+                    <p className="text-lg mb-6 opacity-90">
                       {slide.subtitle}
                     </p>
                     <div className="space-y-3 mb-8">
                       {slide.features.map((feature, idx) => (
                         <div key={idx} className="flex items-center gap-3">
                           <CheckCircle className="w-5 h-5 text-green-300" />
-                          <span className="text-lg">{feature}</span>
+                          <span className="text-base">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -296,10 +296,10 @@ export default function Home() {
       {/* Collaborate, Build, Unleash Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-neutrals-900 mb-4">
+          <h2 className="text-3xl font-bold text-neutrals-900 mb-4">
             Collaborate, Build, Unleash
           </h2>
-          <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+          <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-white">
             BROWSE ALL APIs
             <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
@@ -310,43 +310,43 @@ export default function Home() {
       <section className="py-16 bg-neutrals-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-neutrals-900 mb-4">How it Works?</h2>
-            <p className="text-xl text-neutrals-600 max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-neutrals-900 mb-4">How it Works?</h2>
+            <p className="text-lg text-neutrals-600 max-w-3xl mx-auto">
               Get your developers onboard very quickly. Learn how to incorporate our AU Bank APIs in just a few easy steps.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+              <div className="w-12 h-12 bg-pink-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 1
               </div>
-              <h3 className="text-xl font-semibold mb-2">Sign up for an AU Developer Account</h3>
+              <h3 className="text-lg font-semibold mb-2">Sign up for an AU Developer Account</h3>
               <div className="flex justify-center my-4">
                 <ArrowRight className="w-6 h-6 text-neutrals-400" />
               </div>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+              <div className="w-12 h-12 bg-pink-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 2
               </div>
-              <h3 className="text-xl font-semibold mb-2">Select API</h3>
+              <h3 className="text-lg font-semibold mb-2">Select API</h3>
               <div className="flex justify-center my-4">
                 <ArrowRight className="w-6 h-6 text-neutrals-400" />
               </div>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+              <div className="w-12 h-12 bg-pink-600 text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-3">
                 3
               </div>
-              <h3 className="text-xl font-semibold mb-2">Test it Out</h3>
+              <h3 className="text-lg font-semibold mb-2">Test it Out</h3>
             </div>
           </div>
           
           <div className="text-center mt-12">
-            <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+            <Button size="lg" className="bg-pink-600 hover:bg-pink-700 text-white">
               SIGN UP
             </Button>
           </div>
@@ -357,7 +357,7 @@ export default function Home() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-neutrals-900 mb-8">Journey to go Live</h2>
+            <h2 className="text-3xl font-bold text-neutrals-900 mb-6">Journey to go Live</h2>
           </div>
           
           <div className="flex justify-center items-center gap-8 mb-8">
@@ -365,7 +365,7 @@ export default function Home() {
               <div className="w-24 h-24 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <Play className="w-12 h-12 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold">SANDBOX</h3>
+              <h3 className="text-lg font-semibold">SANDBOX</h3>
             </div>
             
             <ArrowRight className="w-8 h-8 text-neutrals-400" />
@@ -374,7 +374,7 @@ export default function Home() {
               <div className="w-24 h-24 bg-yellow-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <Target className="w-12 h-12 text-yellow-600" />
               </div>
-              <h3 className="text-xl font-semibold">UAT</h3>
+              <h3 className="text-lg font-semibold">UAT</h3>
             </div>
             
             <ArrowRight className="w-8 h-8 text-neutrals-400" />
@@ -383,12 +383,12 @@ export default function Home() {
               <div className="w-24 h-24 bg-green-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <Globe className="w-12 h-12 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold">PRODUCTION</h3>
+              <h3 className="text-lg font-semibold">PRODUCTION</h3>
             </div>
           </div>
           
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-lg text-neutrals-600 mb-4">
+            <p className="text-base text-neutrals-600 mb-4">
               Signup to AU Bank API Banking Portal Sandbox environment to start your journey. Upgrade to UAT environment for end-to-end real-time testing, post your NDA with us. Go-live with integration to production environment.
             </p>
             <p className="text-sm text-neutrals-500">
@@ -402,7 +402,7 @@ export default function Home() {
       <section id="apis" className="py-16 bg-neutrals-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-neutrals-900 mb-4">Available APIs</h2>
+            <h2 className="text-3xl font-bold text-neutrals-900 mb-4">Available APIs</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -415,7 +415,7 @@ export default function Home() {
                       <div className="w-12 h-12 bg-neutrals-100 rounded-lg flex items-center justify-center">
                         <IconComponent className={`w-6 h-6 ${category.color}`} />
                       </div>
-                      <CardTitle className="text-xl">{category.title}</CardTitle>
+                      <CardTitle className="text-lg">{category.title}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -440,7 +440,7 @@ export default function Home() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-neutrals-900 mb-4">Featured APIs</h2>
+            <h2 className="text-3xl font-bold text-neutrals-900 mb-4">Featured APIs</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -454,7 +454,7 @@ export default function Home() {
                         <IconComponent className={`w-6 h-6 ${api.color}`} />
                       </div>
                       <div>
-                        <CardTitle className="text-xl mb-2">{api.title}</CardTitle>
+                        <CardTitle className="text-lg mb-2">{api.title}</CardTitle>
                         <Badge variant="secondary" className="text-xs">
                           {api.category}
                         </Badge>
@@ -482,7 +482,7 @@ export default function Home() {
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center mr-3">
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-xl font-bold">AU Bank Developer Portal</h3>
+                <h3 className="text-lg font-bold">AU Bank Developer Portal</h3>
               </div>
               <p className="text-neutrals-400 text-sm">
                 Empowering developers with comprehensive banking APIs for modern financial solutions.
