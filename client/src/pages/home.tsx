@@ -256,7 +256,7 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <button className="au-btn au-btn-accent">
                   Explore All APIs
-                  <ArrowRight className="ml-2 w-4 h-4" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
                 <span className="badge bg-[var(--au-primary-900)] text-white px-3 py-1 rounded-full font-bold text-sm">
                   API
@@ -282,7 +282,7 @@ export default function Home() {
           </h2>
           <button className="au-btn au-btn-primary">
             BROWSE ALL APIs
-            <ArrowRight className="ml-2 w-5 h-5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </section>

@@ -217,7 +217,10 @@
   padding: 10px 18px; 
   font-weight:700; 
   cursor:pointer; 
-  box-shadow: 0 2px 0 rgba(0,0,0,.06); 
+  box-shadow: 0 2px 0 rgba(0,0,0,.06);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .au-btn-primary{ 
