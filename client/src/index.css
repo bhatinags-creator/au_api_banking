@@ -4,107 +4,182 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(240, 10%, 3.9%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(240, 10%, 3.9%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(240, 10%, 3.9%);
-  --primary: hsl(221, 83%, 53%);
-  --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(166, 76%, 37%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 4.8%, 95.9%);
-  --muted-foreground: hsl(240, 3.8%, 46.1%);
-  --accent: hsl(240, 4.8%, 95.9%);
-  --accent-foreground: hsl(240, 5.9%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 5.9%, 90%);
-  --input: hsl(240, 5.9%, 90%);
-  --ring: hsl(221, 83%, 53%);
-  --chart-1: hsl(12, 76%, 61%);
-  --chart-2: hsl(173, 58%, 39%);
-  --chart-3: hsl(197, 37%, 24%);
-  --chart-4: hsl(43, 74%, 66%);
-  --chart-5: hsl(27, 87%, 67%);
-  --sidebar: hsl(180, 6.6667%, 97.0588%);
-  --sidebar-foreground: hsl(210, 25%, 7.8431%);
-  --sidebar-primary: hsl(203.8863, 88.2845%, 53.1373%);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(211.5789, 51.3514%, 92.7451%);
-  --sidebar-accent-foreground: hsl(203.8863, 88.2845%, 53.1373%);
-  --sidebar-border: hsl(205.0000, 25.0000%, 90.5882%);
-  --sidebar-ring: hsl(202.8169, 89.1213%, 53.1373%);
+  /* Base system colors using bank light palette */
+  --background: #ffffff;
+  --foreground: #10111A; /* Neutrals/900 */
+  --card: #ffffff;
+  --card-foreground: #10111A; /* Neutrals/900 */
+  --popover: #ffffff;
+  --popover-foreground: #10111A; /* Neutrals/900 */
+  
+  /* Primary brand colors from bank palette */
+  --primary: #1570EF; /* Blue/600 */
+  --primary-foreground: #ffffff;
+  --secondary: #F37435; /* Primary/600 */
+  --secondary-foreground: #ffffff;
+  
+  /* UI component colors */
+  --muted: #F9F9FB; /* Neutrals/50 */
+  --muted-foreground: #575965; /* Neutrals/600 */
+  --accent: #EFF8FF; /* Blue/50 */
+  --accent-foreground: #1570EF; /* Blue/600 */
+  --destructive: #F04438; /* Error/500 */
+  --destructive-foreground: #ffffff;
+  --border: #E1E1E3; /* Neutrals/200 */
+  --input: #F2F2F4; /* Neutrals/100 */
+  --ring: #1570EF; /* Blue/600 */
+  
+  /* Chart colors from bank palette */
+  --chart-1: #2E90FA; /* Blue/500 */
+  --chart-2: #12B76A; /* Success/600 */
+  --chart-3: #F79009; /* Warning/500 */
+  --chart-4: #EE46BC; /* Pink/500 */
+  --chart-5: #F37435; /* Primary/600 */
+  
+  /* Sidebar colors */
+  --sidebar: #F9F9FB; /* Neutrals/50 */
+  --sidebar-foreground: #3D404D; /* Neutrals/700 */
+  --sidebar-primary: #1570EF; /* Blue/600 */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #EFF8FF; /* Blue/50 */
+  --sidebar-accent-foreground: #1570EF; /* Blue/600 */
+  --sidebar-border: #E1E1E3; /* Neutrals/200 */
+  --sidebar-ring: #1570EF; /* Blue/600 */
+  
+  /* Typography */
   --font-sans: 'Inter', sans-serif;
   --font-serif: 'Georgia', serif;
   --font-mono: 'Courier New', monospace;
   --radius: 0.5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 1px 2px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 1px 2px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 2px 4px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 4px 6px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 8px 10px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
+  
+  /* Shadow styles */
+  --shadow-2xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0px 1px 2px 0px rgba(16, 24, 40, 0.05), 0px 1px 3px 0px rgba(16, 24, 40, 0.10);
+  --shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05), 0px 1px 3px 0px rgba(16, 24, 40, 0.10);
+  --shadow-md: 0px 2px 4px -2px rgba(16, 24, 40, 0.06), 0px 4px 8px -2px rgba(16, 24, 40, 0.10);
+  --shadow-lg: 0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08);
+  --shadow-xl: 0px 8px 8px -4px rgba(16, 24, 40, 0.03), 0px 20px 24px -4px rgba(16, 24, 40, 0.08);
+  --shadow-2xl: 0px 24px 48px -12px rgba(16, 24, 40, 0.18);
+  
   --tracking-normal: 0em;
   --spacing: 0.25rem;
   
-  /* Custom colors from design */
-  --header-bg: hsl(230, 50%, 15%);
-  --primary-blue: hsl(221, 83%, 53%);
-  --secondary-green: hsl(166, 76%, 37%);
-  --card-bg: hsl(218, 100%, 97%);
-  --text-dark: hsl(210, 20%, 20%);
-  --text-darker: hsl(210, 24%, 16%);
+  /* Bank-specific color palette */
+  --blue-25: #F5FAFF;
+  --blue-50: #EFF8FF;
+  --blue-100: #D1E9FF;
+  --blue-600: #1570EF;
+  --blue-700: #175CD3;
+  --neutrals-25: #FCFCFD;
+  --neutrals-50: #F9F9FB;
+  --neutrals-100: #F2F2F4;
+  --neutrals-200: #E1E1E3;
+  --neutrals-300: #D1D2D5;
+  --neutrals-600: #575965;
+  --neutrals-700: #3D404D;
+  --neutrals-800: #222636;
+  --neutrals-900: #10111A;
+  --primary-600: #F37435;
+  --success-600: #039855;
+  --warning-500: #F79009;
+  --error-500: #F04438;
+  
+  /* Legacy custom variables */
+  --header-bg: #10111A;
+  --primary-blue: #1570EF;
+  --secondary-green: #039855;
+  --card-bg: #F5FAFF;
+  --text-dark: #575965;
+  --text-darker: #3D404D;
 }
 
 .dark {
-  --background: hsl(0, 0%, 0%);
-  --foreground: hsl(200, 6.6667%, 91.1765%);
-  --card: hsl(228, 9.8039%, 10%);
-  --card-foreground: hsl(0, 0%, 85.0980%);
-  --popover: hsl(0, 0%, 0%);
-  --popover-foreground: hsl(200, 6.6667%, 91.1765%);
-  --primary: hsl(203.7736, 87.6033%, 52.5490%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(195.0000, 15.3846%, 94.9020%);
-  --secondary-foreground: hsl(210, 25%, 7.8431%);
-  --muted: hsl(0, 0%, 9.4118%);
-  --muted-foreground: hsl(210, 3.3898%, 46.2745%);
-  --accent: hsl(205.7143, 70%, 7.8431%);
-  --accent-foreground: hsl(203.7736, 87.6033%, 52.5490%);
-  --destructive: hsl(356.3033, 90.5579%, 54.3137%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(210, 5.2632%, 14.9020%);
-  --input: hsl(207.6923, 27.6596%, 18.4314%);
-  --ring: hsl(202.8169, 89.1213%, 53.1373%);
-  --chart-1: hsl(203.8863, 88.2845%, 53.1373%);
-  --chart-2: hsl(159.7826, 100%, 36.0784%);
-  --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
-  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
-  --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
-  --sidebar: hsl(228, 9.8039%, 10%);
-  --sidebar-foreground: hsl(0, 0%, 85.0980%);
-  --sidebar-primary: hsl(202.8169, 89.1213%, 53.1373%);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(205.7143, 70%, 7.8431%);
-  --sidebar-accent-foreground: hsl(203.7736, 87.6033%, 52.5490%);
-  --sidebar-border: hsl(205.7143, 15.7895%, 26.0784%);
-  --sidebar-ring: hsl(202.8169, 89.1213%, 53.1373%);
+  /* Base system colors using bank dark palette */
+  --background: #000000;
+  --foreground: #F2F2F5; /* Neutrals/900 dark */
+  --card: #171A21; /* Neutrals/100 dark */
+  --card-foreground: #F2F2F5; /* Neutrals/900 dark */
+  --popover: #000000;
+  --popover-foreground: #F2F2F5; /* Neutrals/900 dark */
+  
+  /* Primary brand colors for dark theme */
+  --primary: #2E90FA; /* Blue/500 */
+  --primary-foreground: #000000;
+  --secondary: #F5905D; /* Primary/800 dark */
+  --secondary-foreground: #000000;
+  
+  /* UI component colors for dark theme */
+  --muted: #171A21; /* Neutrals/100 dark */
+  --muted-foreground: #828596; /* Neutrals/600 dark */
+  --accent: #080514; /* Neutrals/50 dark */
+  --accent-foreground: #F2F2F5; /* Neutrals/900 dark */
+  --destructive: #CC1F30; /* Error/500 dark */
+  --destructive-foreground: #ffffff;
+  --border: #26242E; /* Neutrals/200 dark */
+  --input: #171A21; /* Neutrals/100 dark */
+  --ring: #2E90FA; /* Blue/500 */
+  
+  /* Chart colors for dark theme */
+  --chart-1: #2E90FA; /* Blue/500 */
+  --chart-2: #177833; /* Success/600 dark */
+  --chart-3: #825C00; /* Warning/600 dark */
+  --chart-4: #DD2590; /* Pink/600 */
+  --chart-5: #F5905D; /* Primary/800 dark */
+  
+  /* Sidebar colors for dark theme */
+  --sidebar: #171A21; /* Neutrals/100 dark */
+  --sidebar-foreground: #D6D6DB; /* Neutrals/800 dark */
+  --sidebar-primary: #2E90FA; /* Blue/500 */
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #080514; /* Neutrals/50 dark */
+  --sidebar-accent-foreground: #F2F2F5; /* Neutrals/900 dark */
+  --sidebar-border: #26242E; /* Neutrals/200 dark */
+  --sidebar-ring: #2E90FA; /* Blue/500 */
+  
+  /* Typography */
   --font-sans: 'Inter', sans-serif;
   --font-serif: 'Georgia', serif;
   --font-mono: 'Courier New', monospace;
   --radius: 0.5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 1px 2px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 1px 2px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 2px 4px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 4px 6px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00), 0px 8px 10px -1px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373%, 0.00);
+  
+  /* Shadow styles for dark theme */
+  --shadow-2xs: 0px 1px 2px 0px rgba(255, 255, 255, 0.05);
+  --shadow-xs: 0px 1px 2px 0px rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0px 1px 2px 0px rgba(255, 255, 255, 0.05), 0px 1px 3px 0px rgba(255, 255, 255, 0.10);
+  --shadow: 0px 1px 2px 0px rgba(255, 255, 255, 0.05), 0px 1px 3px 0px rgba(255, 255, 255, 0.10);
+  --shadow-md: 0px 2px 4px -2px rgba(255, 255, 255, 0.06), 0px 4px 8px -2px rgba(255, 255, 255, 0.10);
+  --shadow-lg: 0px 4px 6px -2px rgba(255, 255, 255, 0.03), 0px 12px 16px -4px rgba(255, 255, 255, 0.08);
+  --shadow-xl: 0px 8px 8px -4px rgba(255, 255, 255, 0.03), 0px 20px 24px -4px rgba(255, 255, 255, 0.08);
+  --shadow-2xl: 0px 24px 48px -12px rgba(255, 255, 255, 0.18);
+  
+  /* Bank-specific dark color palette */
+  --blue-25: #F5FAFF;
+  --blue-50: #F0F9FF;
+  --blue-100: #E0F2FE;
+  --blue-600: #2E90FA;
+  --blue-700: #175CD3;
+  --neutrals-25: #050312;
+  --neutrals-50: #080514;
+  --neutrals-100: #171A21;
+  --neutrals-200: #26242E;
+  --neutrals-300: #262630;
+  --neutrals-600: #828596;
+  --neutrals-700: #BABAC4;
+  --neutrals-800: #D6D6DB;
+  --neutrals-900: #F2F2F5;
+  --primary-600: #F5905D;
+  --success-600: #177833;
+  --warning-500: #825C00;
+  --error-500: #CC1F30;
+  
+  /* Legacy custom variables for dark theme */
+  --header-bg: #10111A;
+  --primary-blue: #2E90FA;
+  --secondary-green: #177833;
+  --card-bg: #171A21;
+  --text-dark: #BABAC4;
+  --text-darker: #F2F2F5;
 }
 
 @layer base {
@@ -118,31 +193,31 @@
   }
 }
 
-/* Custom utility classes */
+/* Updated utility classes with new bank colors */
 .header-bg {
-  background-color: #1A1A33;
+  background-color: #10111A;
 }
 
 .primary-blue {
-  color: #1A73E8;
+  color: #1570EF;
 }
 
 .btn-primary {
-  background-color: #1A73E8;
+  background-color: #1570EF;
 }
 
 .btn-secondary {
-  background-color: #00BF99;
+  background-color: #F37435;
 }
 
 .card-bg {
-  background-color: #F3F7FF;
+  background-color: #F5FAFF;
 }
 
 .text-dark {
-  color: #333333;
+  color: #575965;
 }
 
 .text-darker {
-  color: #111827;
+  color: #3D404D;
 }
