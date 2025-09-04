@@ -36,7 +36,7 @@ const heroSlides = [
     subtitle: "Avail AU Bank smart features for your business",
     features: ["Financial Data Integration", "Smooth Transactions", "Integrated Solution"],
     cta: "Know More About Business Banking",
-    bgColor: "from-pink-600 to-pink-700"
+    bgColor: "from-pink-200 to-pink-300"
   },
   {
     id: 2,
