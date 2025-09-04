@@ -1091,10 +1091,6 @@ export default function APIDocs() {
                     </Card>
                   </div>
 
-                  <div className="max-w-2xl mt-8 space-y-4 text-sm text-neutrals-600">
-                    <p><strong>Step 2:</strong> Complete the registration by entering your details and create an account.</p>
-                    <p><strong>Step 3:</strong> When authorized, an email will be sent to your registered email-id with a link to activate your account by logging in. You now have access to your dashboard. From here you can create and configure your apps.</p>
-                  </div>
                 </div>
 
                 <div className="mb-8">
