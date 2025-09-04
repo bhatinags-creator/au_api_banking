@@ -992,7 +992,7 @@ export default function APIDocs() {
                   <h2 className="text-2xl font-semibold mb-6">Registration Process</h2>
                   <p className="text-neutrals-600 mb-6">Follow these simple steps to get onboard with AU Bank's API Banking Portal</p>
                   
-                  <div className="max-w-md mx-auto">
+                  <div className="max-w-md">
                     <Card className="relative mb-6">
                       <CardHeader className="pb-4">
                         <CardTitle className="text-lg">Let's get you Onboard</CardTitle>
@@ -1091,7 +1091,7 @@ export default function APIDocs() {
                     </Card>
                   </div>
 
-                  <div className="max-w-2xl mx-auto mt-8 space-y-4 text-sm text-neutrals-600">
+                  <div className="max-w-2xl mt-8 space-y-4 text-sm text-neutrals-600">
                     <p><strong>Step 2:</strong> Complete the registration by entering your details and create an account.</p>
                     <p><strong>Step 3:</strong> When authorized, an email will be sent to your registered email-id with a link to activate your account by logging in. You now have access to your dashboard. From here you can create and configure your apps.</p>
                   </div>
