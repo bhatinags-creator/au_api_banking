@@ -326,14 +326,134 @@ export default function ApiExplorer() {
                             <p><strong>UAT URL:</strong> https://api.aubankuat.in/oauth/accesstoken?grant_type=client_credentials</p>
                             <p><strong>Token Validity:</strong> 24 hours in UAT, 6 months in production</p>
                             <p><strong>Authentication:</strong> Client credentials (provided by AU Bank)</p>
+                            <p><strong>Method:</strong> GET with query parameter grant_type=client_credentials</p>
+                            
+                            <h5>Request Parameters:</h5>
+                            <div className="overflow-x-auto">
+                              <table className="w-full border border-gray-200 text-xs">
+                                <thead>
+                                  <tr className="bg-gray-50">
+                                    <th className="border border-gray-200 p-2 text-left">Parameter</th>
+                                    <th className="border border-gray-200 p-2 text-left">Type</th>
+                                    <th className="border border-gray-200 p-2 text-left">Required</th>
+                                    <th className="border border-gray-200 p-2 text-left">Description</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">grant_type</td>
+                                    <td className="border border-gray-200 p-2">Query String</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Must be "client_credentials"</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <h5>Response Fields:</h5>
+                            <div className="overflow-x-auto">
+                              <table className="w-full border border-gray-200 text-xs">
+                                <thead>
+                                  <tr className="bg-gray-50">
+                                    <th className="border border-gray-200 p-2 text-left">Field Name</th>
+                                    <th className="border border-gray-200 p-2 text-left">Data Type</th>
+                                    <th className="border border-gray-200 p-2 text-left">Description</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">access_token</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">The Bearer token for API authentication</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">token_type</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Token type - always "BearerToken"</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">expires_in</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Token validity in seconds (86399 = 24hrs for UAT)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">client_id</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Client identifier provided by AU Bank</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">issued_at</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Timestamp when token was issued (Unix timestamp)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">application_name</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Application identifier assigned by AU Bank</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">organization_name</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Organization name (au-apigee-nprod for UAT)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">developer.email</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Developer email associated with the application</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">api_product_list</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">List of API products available (comma-separated string)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">api_product_list_json</td>
+                                    <td className="border border-gray-200 p-2">Array</td>
+                                    <td className="border border-gray-200 p-2">API products as JSON array</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">status</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Token status - "approved" for successful authentication</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">refresh_count</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Number of times token has been refreshed</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">refresh_token_expires_in</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Refresh token expiry (0 = not applicable)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">scope</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">OAuth scope (empty for client credentials)</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
                             
                             <h5>Sample Response:</h5>
                             <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
 {`{
-  "access_token": "lEbnG39cJwC4lKUe5fliVA9HFcyR",
+  "refresh_token_expires_in": "0",
+  "api_product_list": "[LDAP, Oauth, Payment, Customer Onboarding, karza, CBSMiniStatementService, test]",
+  "api_product_list_json": [
+    "LDAP", "Oauth", "Payment", "Customer Onboarding", 
+    "karza", "CBSMiniStatementService", "test"
+  ],
+  "organization_name": "au-apigee-nprod",
+  "developer.email": "kunal.boriwal@aubank.in",
   "token_type": "BearerToken",
-  "expires_in": "86399",
+  "issued_at": "1704950669618",
   "client_id": "2I7UVNalTfFBxm3ZYxOtzYXwXX1PMIJCSSFf6AMipK0H0zR9",
+  "access_token": "lEbnG39cJwC4lKUe5fliVA9HFcyR",
+  "application_name": "f0556c9d-6c97-40aa-8d4e-c6bb190ef2ce",
+  "scope": "",
+  "expires_in": "86399",
+  "refresh_count": "0",
   "status": "approved"
 }`}
                             </pre>
@@ -344,8 +464,145 @@ export default function ApiExplorer() {
                           <div>
                             <h4>AU Bank Payment Creation</h4>
                             <p><strong>UAT URL:</strong> https://api.aubankuat.in/CNBPaymentService/paymentCreation</p>
-                            <p><strong>Encryption:</strong> AES-256 encryption required</p>
+                            <p><strong>Encryption:</strong> AES-256 encryption required (payload must be encrypted with 64 bytes key)</p>
                             <p><strong>Bulk Payments:</strong> Up to 50 transactions per batch</p>
+                            <p><strong>Payment Methods:</strong> NEFT, RTGS, IMPS, Internal Fund Transfer</p>
+                            
+                            <h5>Request Fields:</h5>
+                            <div className="overflow-x-auto">
+                              <table className="w-full border border-gray-200 text-xs">
+                                <thead>
+                                  <tr className="bg-gray-50">
+                                    <th className="border border-gray-200 p-2 text-left">Field Name</th>
+                                    <th className="border border-gray-200 p-2 text-left">Data Type</th>
+                                    <th className="border border-gray-200 p-2 text-left">Length</th>
+                                    <th className="border border-gray-200 p-2 text-left">Required</th>
+                                    <th className="border border-gray-200 p-2 text-left">Description</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">uniqueRequestId</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">20</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Unique Request/Reference number of calling app for Batch request</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">corporateCode</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">20</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Corporate code maintained in Core (CIF Number) - Provided by AU Bank</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">corporateProductCode</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">50</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Corporate product code maintained in CIB - Provided by AU Bank</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">paymentMethodName</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">50</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Payment method: NEFT, RTGS, IMPS, Internal Fund Transfer</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">remitterAccountNo</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">35</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Remitter Account Number - Provided by AU Bank</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">amount</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">14,2</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Payable amount (format: 1000.00)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">ifscCode</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">50</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Beneficiary IFSC Code - Provided by AU Bank</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">payableCurrency</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">20</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Always "INR" for Indian Rupees</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">beneAccNo</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">35</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Beneficiary Account Number/Payment Receiver Account number</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">beneName</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">200</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Beneficiary Name/Payment Receiver name</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">transactionRefNo</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">25</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Unique reference number for each transaction at batch level</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">paymentInstruction</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">314</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">User can input the desirable narration</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">beneCode</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">200</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-blue-600">Optional</span></td>
+                                    <td className="border border-gray-200 p-2">Beneficiary code</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">valueDate</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">8</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-blue-600">Optional</span></td>
+                                    <td className="border border-gray-200 p-2">Value date (YYYYMMDD). Default: current date. Future dates will be scheduled</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">remarks</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">40</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-blue-600">Optional</span></td>
+                                    <td className="border border-gray-200 p-2">Optional field for additional remarks</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">email</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">50</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-blue-600">Optional</span></td>
+                                    <td className="border border-gray-200 p-2">Email address for notifications</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">phoneNo</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">200</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-blue-600">Optional</span></td>
+                                    <td className="border border-gray-200 p-2">Phone number for notifications</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
                             
                             <h5>Sample Request:</h5>
                             <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
@@ -374,6 +631,95 @@ export default function ApiExplorer() {
                             <h4>AU Bank Payment Enquiry</h4>
                             <p><strong>Recommended Frequency:</strong> Every 15 minutes for NEFT transactions</p>
                             <p><strong>Processing Time:</strong> NEFT transactions may take 1-2 hours to reflect final status</p>
+                            <p><strong>Purpose:</strong> Get payment status and transaction details after payment creation</p>
+                            
+                            <h5>Request Fields:</h5>
+                            <div className="overflow-x-auto">
+                              <table className="w-full border border-gray-200 text-xs">
+                                <thead>
+                                  <tr className="bg-gray-50">
+                                    <th className="border border-gray-200 p-2 text-left">Field Name</th>
+                                    <th className="border border-gray-200 p-2 text-left">Data Type</th>
+                                    <th className="border border-gray-200 p-2 text-left">Required</th>
+                                    <th className="border border-gray-200 p-2 text-left">Description</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">transactionId</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Transaction ID received from payment creation response</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">uniqueRequestId</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2"><span className="text-red-600">Mandatory</span></td>
+                                    <td className="border border-gray-200 p-2">Same unique request ID used in payment creation</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+
+                            <h5>Response Fields:</h5>
+                            <div className="overflow-x-auto">
+                              <table className="w-full border border-gray-200 text-xs">
+                                <thead>
+                                  <tr className="bg-gray-50">
+                                    <th className="border border-gray-200 p-2 text-left">Field Name</th>
+                                    <th className="border border-gray-200 p-2 text-left">Data Type</th>
+                                    <th className="border border-gray-200 p-2 text-left">Description</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">responseCode</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">"00" for success, other codes for errors</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">responseMessage</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Human readable response message</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">transactionId</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Transaction ID for tracking</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">paymentStatus</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">SUCCESS, PENDING, FAILED, or PROCESSING</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">bankReference</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Bank reference number for the transaction</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">processedDate</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Date and time when transaction was processed (ISO format)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">amount</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Transaction amount (decimal format: 1000.00)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">currency</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Currency code (INR for Indian Rupees)</td>
+                                  </tr>
+                                  <tr>
+                                    <td className="border border-gray-200 p-2 font-mono">remarks</td>
+                                    <td className="border border-gray-200 p-2">String</td>
+                                    <td className="border border-gray-200 p-2">Additional remarks about transaction status</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
                             
                             <h5>Sample Request:</h5>
                             <pre className="bg-gray-900 text-green-400 p-4 rounded text-xs overflow-x-auto">
@@ -393,7 +739,8 @@ export default function ApiExplorer() {
   "bankReference": "AU1234567890",
   "processedDate": "2024-01-15T10:30:00Z",
   "amount": "1000.00",
-  "currency": "INR"
+  "currency": "INR",
+  "remarks": "Transaction processed successfully"
 }`}
                             </pre>
                           </div>
