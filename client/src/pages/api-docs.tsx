@@ -1094,9 +1094,6 @@ export default function APIDocs() {
                 </div>
 
                 <div className="mb-8">
-                  <p className="text-neutrals-600 mb-4">
-                    If you already have an account, then sign in and jump to <strong>step 2</strong>. Else follow the steps to create an account.
-                  </p>
                   <div className="bg-neutrals-50 p-4 rounded-lg mb-6">
                     <p className="text-sm"><strong>Step 1:</strong> Go to our sign up page.</p>
                     <p className="text-sm"><strong>a)</strong> Enter your Credentials.</p>
