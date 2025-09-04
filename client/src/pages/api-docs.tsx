@@ -2,10 +2,48 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Copy, ChevronDown, ChevronRight, Play, Eye, EyeOff } from "lucide-react";
+import { 
+  Copy, 
+  ChevronDown, 
+  ChevronRight, 
+  Play, 
+  Eye, 
+  EyeOff, 
+  ArrowLeft,
+  Shield,
+  Building2,
+  CreditCard,
+  Database,
+  FileCheck,
+  Users,
+  Lock,
+  Layers,
+  BookOpen,
+  Settings,
+  Key,
+  Banknote
+} from "lucide-react";
+import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+
+interface APICategory {
+  id: string;
+  title: string;
+  icon: any;
+  description: string;
+  endpoints: APIEndpoint[];
+  subcategories?: APISubcategory[];
+}
+
+interface APISubcategory {
+  id: string;
+  title: string;
+  endpoints: APIEndpoint[];
+}
 
 interface APIEndpoint {
   id: string;
@@ -14,7 +52,7 @@ interface APIEndpoint {
   title: string;
   description: string;
   parameters?: Parameter[];
-  requestBody?: RequestBodySchema;
+  requestBody?: any;
   responses: Response[];
   examples: Example[];
   security?: SecurityRequirement[];
@@ -26,29 +64,12 @@ interface Parameter {
   required: boolean;
   description: string;
   example?: string;
-  constraints?: string;
-}
-
-interface RequestBodySchema {
-  type: string;
-  properties: { [key: string]: Property };
-  required: string[];
-}
-
-interface Property {
-  type: string;
-  description: string;
-  example?: any;
-  maxLength?: number;
-  minLength?: number;
-  format?: string;
-  enum?: string[];
 }
 
 interface Response {
   status: number;
   description: string;
-  schema?: any;
+  example?: any;
 }
 
 interface Example {
@@ -63,774 +84,1089 @@ interface SecurityRequirement {
   description: string;
 }
 
-const endpoints: APIEndpoint[] = [
+const apiCategories: APICategory[] = [
   {
-    id: "oauth-token",
-    method: "POST",
-    path: "/oauth/token",
-    title: "OAuth Token Generation",
-    description: "Generate OAuth access token for API authentication. This endpoint uses AES-256 encryption for secure token generation.",
-    security: [
-      { type: "Client Credentials", description: "Base64 encoded client_id:client_secret in Authorization header" }
-    ],
-    parameters: [
-      { name: "Authorization", type: "string", required: true, description: "Base64 encoded credentials", example: "Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=" },
-      { name: "Content-Type", type: "string", required: true, description: "Must be application/x-www-form-urlencoded", example: "application/x-www-form-urlencoded" }
-    ],
-    requestBody: {
-      type: "application/x-www-form-urlencoded",
-      properties: {
-        grant_type: {
-          type: "string",
-          description: "OAuth grant type",
-          example: "client_credentials",
-          enum: ["client_credentials"]
-        },
-        scope: {
-          type: "string", 
-          description: "Requested scopes for the token",
-          example: "payment_read payment_write"
-        }
-      },
-      required: ["grant_type"]
-    },
-    responses: [
-      {
-        status: 200,
-        description: "Token generated successfully",
-        schema: {
-          access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-          token_type: "Bearer",
-          expires_in: 3600,
-          scope: "payment_read payment_write"
-        }
-      },
-      {
-        status: 400,
-        description: "Invalid request",
-        schema: {
-          error: "invalid_request",
-          error_description: "Missing or invalid grant_type"
-        }
-      },
-      {
-        status: 401,
-        description: "Invalid client credentials",
-        schema: {
-          error: "invalid_client",
-          error_description: "Client authentication failed"
-        }
-      }
-    ],
-    examples: [
-      {
-        title: "Generate Access Token",
-        request: {
-          grant_type: "client_credentials",
-          scope: "payment_read payment_write"
-        },
-        response: {
-          access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.EkN-DOsnsuRjRO6BxXemmJDm3HbxrbRzXglbN2S4sOkopdU4IsDxTI8jO19W_A4K8ZPJijNLis4EZsHeY559a4DFOd50_OqgHs_n2nZ2NrMnYtfGxbJBxdRv6oaKhL5PB2cNx2llxLg1f4h-vC5N-qE-mTK3n9n8i-N1jw5mI1L",
-          token_type: "Bearer",
-          expires_in: 3600,
-          scope: "payment_read payment_write"
-        },
-        curl: `curl -X POST "https://aubank.tech/uat/oauth/token" \\
-  -H "Content-Type: application/x-www-form-urlencoded" \\
-  -H "Authorization: Basic Y2xpZW50X2lkOmNsaWVudF9zZWNyZXQ=" \\
-  -d "grant_type=client_credentials&scope=payment_read payment_write"`
-      }
-    ]
+    id: "introduction",
+    title: "Introduction",
+    icon: BookOpen,
+    description: "Getting started with AU Bank APIs",
+    endpoints: []
   },
   {
-    id: "cnb-payment",
-    method: "POST", 
-    path: "/cnb/payment",
-    title: "CNB Payment Creation",
-    description: "Create a new CNB (Card Not Present) payment transaction. Supports both domestic and international transfers with real-time processing.",
-    security: [
-      { type: "Bearer Token", description: "OAuth access token in Authorization header" }
-    ],
-    parameters: [
-      { name: "Authorization", type: "string", required: true, description: "Bearer token from OAuth", example: "Bearer eyJhbGciOiJSUzI1NiIs..." },
-      { name: "Content-Type", type: "string", required: true, description: "Must be application/json", example: "application/json" },
-      { name: "X-Request-ID", type: "string", required: true, description: "Unique request identifier", example: "req_123456789", constraints: "Max 50 characters" }
-    ],
-    requestBody: {
-      type: "application/json",
-      properties: {
-        amount: {
-          type: "number",
-          description: "Payment amount in smallest currency unit",
-          example: 100000,
-          minLength: 1
-        },
-        currency: {
-          type: "string",
-          description: "ISO currency code",
-          example: "INR",
-          maxLength: 3,
-          minLength: 3
-        },
-        reference: {
-          type: "string", 
-          description: "Merchant reference ID",
-          example: "TXN_20241201_001",
-          maxLength: 50
-        },
-        description: {
-          type: "string",
-          description: "Payment description",
-          example: "Online purchase - Electronics",
-          maxLength: 200
-        },
-        beneficiary: {
-          type: "object",
-          description: "Beneficiary details",
-          example: {
-            name: "John Doe",
-            account_number: "1234567890123456",
-            bank_code: "AUBL0002086",
-            account_type: "SAVINGS"
+    id: "security",
+    title: "Security",
+    icon: Shield,
+    description: "Authentication and security protocols",
+    endpoints: [
+      {
+        id: "encryption",
+        method: "POST",
+        path: "/security/encrypt",
+        title: "Encryption",
+        description: "Encrypt sensitive data using AES-256 encryption",
+        security: [{ type: "API Key", description: "API Key required in header" }],
+        parameters: [
+          { name: "data", type: "string", required: true, description: "Data to encrypt", example: "sensitive_information" },
+          { name: "algorithm", type: "string", required: false, description: "Encryption algorithm", example: "AES-256" }
+        ],
+        responses: [
+          { 
+            status: 200, 
+            description: "Successfully encrypted data",
+            example: { encrypted_data: "3f4h5g6j7k8l9m0n", encryption_key: "abc123def456" }
           }
-        },
-        remitter: {
-          type: "object",
-          description: "Remitter details", 
-          example: {
-            name: "Jane Smith",
-            account_number: "9876543210987654",
-            mobile: "+911234567890"
-          }
-        }
-      },
-      required: ["amount", "currency", "reference", "beneficiary", "remitter"]
-    },
-    responses: [
-      {
-        status: 201,
-        description: "Payment created successfully",
-        schema: {
-          payment_id: "pay_1a2b3c4d5e6f",
-          status: "PENDING",
-          amount: 100000,
-          currency: "INR",
-          reference: "TXN_20241201_001",
-          created_at: "2024-12-01T10:30:00Z",
-          estimated_completion: "2024-12-01T10:32:00Z"
-        }
-      },
-      {
-        status: 400,
-        description: "Invalid request data",
-        schema: {
-          error: "VALIDATION_ERROR",
-          message: "Invalid beneficiary account number",
-          details: {
-            field: "beneficiary.account_number",
-            code: "INVALID_FORMAT"
-          }
-        }
-      },
-      {
-        status: 401,
-        description: "Authentication failed",
-        schema: {
-          error: "UNAUTHORIZED",
-          message: "Invalid or expired access token"
-        }
-      },
-      {
-        status: 403,
-        description: "Insufficient permissions",
-        schema: {
-          error: "FORBIDDEN", 
-          message: "Payment creation not allowed for this client"
-        }
-      }
-    ],
-    examples: [
-      {
-        title: "Domestic Bank Transfer",
-        request: {
-          amount: 100000,
-          currency: "INR", 
-          reference: "TXN_20241201_001",
-          description: "Online purchase - Electronics",
-          beneficiary: {
-            name: "John Doe",
-            account_number: "1234567890123456",
-            bank_code: "AUBL0002086",
-            account_type: "SAVINGS"
-          },
-          remitter: {
-            name: "Jane Smith", 
-            account_number: "9876543210987654",
-            mobile: "+911234567890"
-          }
-        },
-        response: {
-          payment_id: "pay_1a2b3c4d5e6f",
-          status: "PENDING",
-          amount: 100000,
-          currency: "INR",
-          reference: "TXN_20241201_001", 
-          created_at: "2024-12-01T10:30:00Z",
-          estimated_completion: "2024-12-01T10:32:00Z"
-        },
-        curl: `curl -X POST "https://aubank.tech/uat/cnb/payment" \\
+        ],
+        examples: [{
+          title: "Basic Encryption",
+          request: { data: "sensitive_data", algorithm: "AES-256" },
+          response: { encrypted_data: "3f4h5g6j7k8l9m0n", encryption_key: "abc123def456" },
+          curl: `curl -X POST "https://api.aubank.in/security/encrypt" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \\
-  -H "X-Request-ID: req_123456789" \\
-  -d '{
-    "amount": 100000,
-    "currency": "INR",
-    "reference": "TXN_20241201_001",
-    "description": "Online purchase - Electronics",
-    "beneficiary": {
-      "name": "John Doe",
-      "account_number": "1234567890123456",
-      "bank_code": "AUBL0002086",
-      "account_type": "SAVINGS"
-    },
-    "remitter": {
-      "name": "Jane Smith",
-      "account_number": "9876543210987654", 
-      "mobile": "+911234567890"
-    }
-  }'`
+  -d '{"data": "sensitive_data", "algorithm": "AES-256"}'`
+        }]
+      },
+      {
+        id: "test-api",
+        method: "GET",
+        path: "/security/test",
+        title: "Test API",
+        description: "Test API connectivity and authentication",
+        security: [{ type: "API Key", description: "API Key required in header" }],
+        parameters: [],
+        responses: [
+          { 
+            status: 200, 
+            description: "API connection successful",
+            example: { status: "success", message: "API is working", timestamp: "2024-12-01T10:30:00Z" }
+          }
+        ],
+        examples: [{
+          title: "Test Connection",
+          response: { status: "success", message: "API is working", timestamp: "2024-12-01T10:30:00Z" },
+          curl: `curl -X GET "https://api.aubank.in/security/test" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`
+        }]
+      },
+      {
+        id: "decryption",
+        method: "POST",
+        path: "/security/decrypt",
+        title: "Decryption",
+        description: "Decrypt encrypted data using provided encryption key",
+        security: [{ type: "API Key", description: "API Key required in header" }],
+        parameters: [
+          { name: "encrypted_data", type: "string", required: true, description: "Encrypted data to decrypt", example: "3f4h5g6j7k8l9m0n" },
+          { name: "encryption_key", type: "string", required: true, description: "Encryption key", example: "abc123def456" }
+        ],
+        responses: [
+          { 
+            status: 200, 
+            description: "Successfully decrypted data",
+            example: { decrypted_data: "sensitive_information" }
+          }
+        ],
+        examples: [{
+          title: "Basic Decryption",
+          request: { encrypted_data: "3f4h5g6j7k8l9m0n", encryption_key: "abc123def456" },
+          response: { decrypted_data: "sensitive_information" },
+          curl: `curl -X POST "https://api.aubank.in/security/decrypt" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"encrypted_data": "3f4h5g6j7k8l9m0n", "encryption_key": "abc123def456"}'`
+        }]
       }
     ]
   },
   {
-    id: "payment-enquiry",
-    method: "GET",
-    path: "/payment/{payment_id}",
-    title: "Payment Enquiry",
-    description: "Retrieve detailed information about a specific payment transaction including status, timeline, and settlement details.",
-    security: [
-      { type: "Bearer Token", description: "OAuth access token in Authorization header" }
-    ],
-    parameters: [
-      { name: "payment_id", type: "string", required: true, description: "Unique payment identifier", example: "pay_1a2b3c4d5e6f", constraints: "Path parameter" },
-      { name: "Authorization", type: "string", required: true, description: "Bearer token from OAuth", example: "Bearer eyJhbGciOiJSUzI1NiIs..." },
-      { name: "X-Request-ID", type: "string", required: false, description: "Optional request tracking ID", example: "req_987654321" }
-    ],
-    responses: [
+    id: "building-blocks",
+    title: "Building Blocks",
+    icon: Building2,
+    description: "Essential APIs for core banking operations",
+    endpoints: [],
+    subcategories: [
       {
-        status: 200,
-        description: "Payment details retrieved successfully",
-        schema: {
-          payment_id: "pay_1a2b3c4d5e6f",
-          status: "COMPLETED",
-          amount: 100000,
-          currency: "INR",
-          reference: "TXN_20241201_001",
-          description: "Online purchase - Electronics",
-          beneficiary: {
-            name: "John Doe",
-            account_number: "****7890123456",
-            bank_code: "AUBL0002086"
+        id: "customer-auth",
+        title: "Customer Authentication",
+        endpoints: [
+          {
+            id: "otp-generation",
+            method: "POST",
+            path: "/auth/otp/generate",
+            title: "OTP Generation",
+            description: "Generate One-Time Password for customer authentication",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "mobile_number", type: "string", required: true, description: "Customer mobile number", example: "+919876543210" },
+              { name: "purpose", type: "string", required: true, description: "Purpose of OTP", example: "authentication" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "OTP generated successfully",
+                example: { otp_id: "otp_123456", expires_in: 300, message: "OTP sent successfully" }
+              }
+            ],
+            examples: [{
+              title: "Generate OTP",
+              request: { mobile_number: "+919876543210", purpose: "authentication" },
+              response: { otp_id: "otp_123456", expires_in: 300, message: "OTP sent successfully" },
+              curl: `curl -X POST "https://api.aubank.in/auth/otp/generate" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"mobile_number": "+919876543210", "purpose": "authentication"}'`
+            }]
           },
-          remitter: {
-            name: "Jane Smith",
-            account_number: "****3210987654"
+          {
+            id: "otp-verification",
+            method: "POST",
+            path: "/auth/otp/verify",
+            title: "OTP Verification",
+            description: "Verify One-Time Password for customer authentication",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "otp_id", type: "string", required: true, description: "OTP ID from generation", example: "otp_123456" },
+              { name: "otp_code", type: "string", required: true, description: "6-digit OTP code", example: "123456" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "OTP verified successfully",
+                example: { verified: true, customer_id: "cust_789", access_token: "token_abc123" }
+              }
+            ],
+            examples: [{
+              title: "Verify OTP",
+              request: { otp_id: "otp_123456", otp_code: "123456" },
+              response: { verified: true, customer_id: "cust_789", access_token: "token_abc123" },
+              curl: `curl -X POST "https://api.aubank.in/auth/otp/verify" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"otp_id": "otp_123456", "otp_code": "123456"}'`
+            }]
           },
-          created_at: "2024-12-01T10:30:00Z",
-          completed_at: "2024-12-01T10:31:45Z",
-          settlement_date: "2024-12-01",
-          timeline: [
-            {
-              status: "PENDING",
-              timestamp: "2024-12-01T10:30:00Z",
-              description: "Payment initiated"
-            },
-            {
-              status: "PROCESSING", 
-              timestamp: "2024-12-01T10:30:30Z",
-              description: "Payment processing started"
-            },
-            {
-              status: "COMPLETED",
-              timestamp: "2024-12-01T10:31:45Z",
-              description: "Payment completed successfully"
-            }
-          ]
-        }
+          {
+            id: "fetch-pan-details",
+            method: "POST",
+            path: "/auth/pan/details",
+            title: "Fetch PAN Details",
+            description: "Fetch customer details using PAN number",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "pan_number", type: "string", required: true, description: "PAN number", example: "ABCDE1234F" },
+              { name: "consent", type: "boolean", required: true, description: "Customer consent", example: "true" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "PAN details fetched successfully",
+                example: { name: "John Doe", pan_number: "ABCDE1234F", status: "valid", verified: true }
+              }
+            ],
+            examples: [{
+              title: "Fetch PAN Details",
+              request: { pan_number: "ABCDE1234F", consent: true },
+              response: { name: "John Doe", pan_number: "ABCDE1234F", status: "valid", verified: true },
+              curl: `curl -X POST "https://api.aubank.in/auth/pan/details" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"pan_number": "ABCDE1234F", "consent": true}'`
+            }]
+          }
+        ]
       },
       {
-        status: 404,
-        description: "Payment not found",
-        schema: {
-          error: "NOT_FOUND",
-          message: "Payment with ID 'pay_1a2b3c4d5e6f' not found"
-        }
-      },
-      {
-        status: 401,
-        description: "Authentication failed",
-        schema: {
-          error: "UNAUTHORIZED",
-          message: "Invalid or expired access token"
-        }
+        id: "document-upload",
+        title: "Document Upload",
+        endpoints: [
+          {
+            id: "document-upload",
+            method: "POST",
+            path: "/documents/upload",
+            title: "Document Upload",
+            description: "Upload customer documents for verification",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "document_type", type: "string", required: true, description: "Type of document", example: "aadhar" },
+              { name: "file", type: "file", required: true, description: "Document file (PDF/JPG/PNG)", example: "document.pdf" },
+              { name: "customer_id", type: "string", required: true, description: "Customer identifier", example: "cust_789" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Document uploaded successfully",
+                example: { document_id: "doc_456", status: "uploaded", verification_status: "pending" }
+              }
+            ],
+            examples: [{
+              title: "Upload Document",
+              request: { document_type: "aadhar", customer_id: "cust_789" },
+              response: { document_id: "doc_456", status: "uploaded", verification_status: "pending" },
+              curl: `curl -X POST "https://api.aubank.in/documents/upload" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -F "document_type=aadhar" \\
+  -F "customer_id=cust_789" \\
+  -F "file=@document.pdf"`
+            }]
+          }
+        ]
       }
-    ],
-    examples: [
+    ]
+  },
+  {
+    id: "payments",
+    title: "Payments",
+    icon: CreditCard,
+    description: "Payment processing and transaction APIs",
+    endpoints: [],
+    subcategories: [
       {
-        title: "Get Payment Status",
-        response: {
-          payment_id: "pay_1a2b3c4d5e6f",
-          status: "COMPLETED",
-          amount: 100000,
-          currency: "INR",
-          reference: "TXN_20241201_001",
-          description: "Online purchase - Electronics",
-          beneficiary: {
-            name: "John Doe",
-            account_number: "****7890123456",
-            bank_code: "AUBL0002086"
+        id: "upi",
+        title: "UPI 2.0",
+        endpoints: [
+          {
+            id: "validate-vpa",
+            method: "POST",
+            path: "/upi/validate-vpa",
+            title: "Validate Virtual Address",
+            description: "Validate UPI Virtual Payment Address (VPA)",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "vpa", type: "string", required: true, description: "Virtual Payment Address", example: "user@aubank" },
+              { name: "merchant_id", type: "string", required: true, description: "Merchant identifier", example: "merchant_123" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "VPA validation successful",
+                example: { valid: true, account_holder: "John Doe", bank: "AU Small Finance Bank" }
+              }
+            ],
+            examples: [{
+              title: "Validate VPA",
+              request: { vpa: "user@aubank", merchant_id: "merchant_123" },
+              response: { valid: true, account_holder: "John Doe", bank: "AU Small Finance Bank" },
+              curl: `curl -X POST "https://api.aubank.in/upi/validate-vpa" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"vpa": "user@aubank", "merchant_id": "merchant_123"}'`
+            }]
           },
-          remitter: {
-            name: "Jane Smith",
-            account_number: "****3210987654"
-          },
-          created_at: "2024-12-01T10:30:00Z",
-          completed_at: "2024-12-01T10:31:45Z",
-          settlement_date: "2024-12-01",
-          timeline: [
-            {
-              status: "PENDING",
-              timestamp: "2024-12-01T10:30:00Z", 
-              description: "Payment initiated"
-            },
-            {
-              status: "PROCESSING",
-              timestamp: "2024-12-01T10:30:30Z",
-              description: "Payment processing started"
-            },
-            {
-              status: "COMPLETED",
-              timestamp: "2024-12-01T10:31:45Z",
-              description: "Payment completed successfully"
+          {
+            id: "pay-to-vpa",
+            method: "POST",
+            path: "/upi/pay",
+            title: "Pay To Virtual Address",
+            description: "Initiate payment to a UPI Virtual Payment Address",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "payer_vpa", type: "string", required: true, description: "Payer VPA", example: "payer@aubank" },
+              { name: "payee_vpa", type: "string", required: true, description: "Payee VPA", example: "payee@upi" },
+              { name: "amount", type: "number", required: true, description: "Payment amount", example: "100.00" },
+              { name: "note", type: "string", required: false, description: "Payment note", example: "Payment for services" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Payment initiated successfully",
+                example: { transaction_id: "txn_789", status: "initiated", amount: 100.00, timestamp: "2024-12-01T10:30:00Z" }
+              }
+            ],
+            examples: [{
+              title: "UPI Payment",
+              request: { payer_vpa: "payer@aubank", payee_vpa: "payee@upi", amount: 100.00, note: "Payment for services" },
+              response: { transaction_id: "txn_789", status: "initiated", amount: 100.00, timestamp: "2024-12-01T10:30:00Z" },
+              curl: `curl -X POST "https://api.aubank.in/upi/pay" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"payer_vpa": "payer@aubank", "payee_vpa": "payee@upi", "amount": 100.00, "note": "Payment for services"}'`
+            }]
+          }
+        ]
+      },
+      {
+        id: "cnb-payment",
+        title: "CNB Payment",
+        endpoints: [
+          {
+            id: "cnb-payment-creation",
+            method: "POST",
+            path: "/cnb/payment/create",
+            title: "CNB Payment Creation",
+            description: "Create a CNB (Corporate Net Banking) payment transaction",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "uniqueRequestId", type: "string", required: true, description: "Unique request identifier", example: "REQ123456789" },
+              { name: "corporateCode", type: "string", required: true, description: "Corporate code", example: "CORP001" },
+              { name: "remitterAccountNo", type: "string", required: true, description: "Remitter account number", example: "1234567890123" },
+              { name: "amount", type: "string", required: true, description: "Payment amount", example: "1000.00" },
+              { name: "beneAccNo", type: "string", required: true, description: "Beneficiary account number", example: "9876543210987" },
+              { name: "beneName", type: "string", required: true, description: "Beneficiary name", example: "Test Beneficiary" },
+              { name: "ifscCode", type: "string", required: true, description: "IFSC code", example: "AUBL0002086" }
+            ],
+            responses: [
+              { 
+                status: 201, 
+                description: "CNB payment created successfully",
+                example: { 
+                  payment_id: "pay_123456789", 
+                  status: "initiated", 
+                  amount: "1000.00", 
+                  beneficiary: "Test Beneficiary",
+                  transaction_ref: "TXN123456789"
+                }
+              }
+            ],
+            examples: [{
+              title: "Create CNB Payment",
+              request: {
+                uniqueRequestId: "REQ123456789",
+                corporateCode: "CORP001",
+                remitterAccountNo: "1234567890123",
+                amount: "1000.00",
+                beneAccNo: "9876543210987",
+                beneName: "Test Beneficiary",
+                ifscCode: "AUBL0002086"
+              },
+              response: {
+                payment_id: "pay_123456789",
+                status: "initiated",
+                amount: "1000.00",
+                beneficiary: "Test Beneficiary",
+                transaction_ref: "TXN123456789"
+              },
+              curl: `curl -X POST "https://api.aubank.in/cnb/payment/create" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "uniqueRequestId": "REQ123456789",
+    "corporateCode": "CORP001",
+    "remitterAccountNo": "1234567890123",
+    "amount": "1000.00",
+    "beneAccNo": "9876543210987",
+    "beneName": "Test Beneficiary",
+    "ifscCode": "AUBL0002086"
+  }'`
+            }]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "accounts-deposits",
+    title: "Accounts and Deposits",
+    icon: Database,
+    description: "Account management and deposit services",
+    endpoints: [
+      {
+        id: "account-balance",
+        method: "GET",
+        path: "/accounts/{account_id}/balance",
+        title: "Get Account Balance",
+        description: "Retrieve current account balance and details",
+        security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+        parameters: [
+          { name: "account_id", type: "string", required: true, description: "Account identifier", example: "acc_123456789" }
+        ],
+        responses: [
+          { 
+            status: 200, 
+            description: "Account balance retrieved successfully",
+            example: {
+              account_id: "acc_123456789",
+              account_number: "****1234",
+              balance: {
+                available: 25750.50,
+                ledger: 26000.00,
+                currency: "INR"
+              },
+              last_updated: "2024-12-01T10:30:00Z"
             }
-          ]
-        },
-        curl: `curl -X GET "https://aubank.tech/uat/payment/pay_1a2b3c4d5e6f" \\
-  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \\
-  -H "X-Request-ID: req_987654321"`
+          }
+        ],
+        examples: [{
+          title: "Get Balance",
+          response: {
+            account_id: "acc_123456789",
+            account_number: "****1234",
+            balance: {
+              available: 25750.50,
+              ledger: 26000.00,
+              currency: "INR"
+            },
+            last_updated: "2024-12-01T10:30:00Z"
+          },
+          curl: `curl -X GET "https://api.aubank.in/accounts/acc_123456789/balance" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"`
+        }]
+      },
+      {
+        id: "account-transactions",
+        method: "GET",
+        path: "/accounts/{account_id}/transactions",
+        title: "Get Account Transactions",
+        description: "Retrieve account transaction history",
+        security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+        parameters: [
+          { name: "account_id", type: "string", required: true, description: "Account identifier", example: "acc_123456789" },
+          { name: "from_date", type: "string", required: false, description: "Start date (YYYY-MM-DD)", example: "2024-11-01" },
+          { name: "to_date", type: "string", required: false, description: "End date (YYYY-MM-DD)", example: "2024-12-01" },
+          { name: "limit", type: "number", required: false, description: "Number of transactions", example: "50" }
+        ],
+        responses: [
+          { 
+            status: 200, 
+            description: "Transaction history retrieved successfully",
+            example: {
+              account_id: "acc_123456789",
+              transactions: [
+                {
+                  transaction_id: "txn_001",
+                  type: "CREDIT",
+                  amount: 5000.00,
+                  description: "Salary Credit",
+                  date: "2024-12-01",
+                  balance_after: 25750.50
+                }
+              ],
+              pagination: {
+                page: 1,
+                total_pages: 5,
+                total_transactions: 47
+              }
+            }
+          }
+        ],
+        examples: [{
+          title: "Get Transactions",
+          response: {
+            account_id: "acc_123456789",
+            transactions: [
+              {
+                transaction_id: "txn_001",
+                type: "CREDIT",
+                amount: 5000.00,
+                description: "Salary Credit",
+                date: "2024-12-01",
+                balance_after: 25750.50
+              }
+            ],
+            pagination: {
+              page: 1,
+              total_pages: 5,
+              total_transactions: 47
+            }
+          },
+          curl: `curl -X GET "https://api.aubank.in/accounts/acc_123456789/transactions?limit=50" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"`
+        }]
+      }
+    ]
+  },
+  {
+    id: "business-banking",
+    title: "Business Banking",
+    icon: Building2,
+    description: "Corporate and business banking services",
+    endpoints: [
+      {
+        id: "corporate-registration",
+        method: "POST",
+        path: "/business/corporate/register",
+        title: "Corporate Registration",
+        description: "Register a new corporate account with AU Bank",
+        security: [{ type: "API Key", description: "API Key required in header" }],
+        parameters: [
+          { name: "company_name", type: "string", required: true, description: "Company name", example: "Tech Solutions Pvt Ltd" },
+          { name: "business_type", type: "string", required: true, description: "Type of business", example: "Private Limited" },
+          { name: "registration_number", type: "string", required: true, description: "Company registration number", example: "CIN123456789" },
+          { name: "contact_email", type: "string", required: true, description: "Primary contact email", example: "contact@techsolutions.com" },
+          { name: "contact_phone", type: "string", required: true, description: "Primary contact phone", example: "+919876543210" }
+        ],
+        responses: [
+          { 
+            status: 201, 
+            description: "Corporate registration initiated",
+            example: {
+              application_id: "app_corp_123",
+              status: "under_review",
+              company_name: "Tech Solutions Pvt Ltd",
+              estimated_approval_time: "3-5 business days"
+            }
+          }
+        ],
+        examples: [{
+          title: "Corporate Registration",
+          request: {
+            company_name: "Tech Solutions Pvt Ltd",
+            business_type: "Private Limited",
+            registration_number: "CIN123456789",
+            contact_email: "contact@techsolutions.com",
+            contact_phone: "+919876543210"
+          },
+          response: {
+            application_id: "app_corp_123",
+            status: "under_review",
+            company_name: "Tech Solutions Pvt Ltd",
+            estimated_approval_time: "3-5 business days"
+          },
+          curl: `curl -X POST "https://api.aubank.in/business/corporate/register" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "company_name": "Tech Solutions Pvt Ltd",
+    "business_type": "Private Limited",
+    "registration_number": "CIN123456789",
+    "contact_email": "contact@techsolutions.com",
+    "contact_phone": "+919876543210"
+  }'`
+        }]
       }
     ]
   }
 ];
 
-export function APIDocs() {
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
-  const [activeExample, setActiveExample] = useState<{ [key: string]: number }>({});
-  const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
+export default function APIDocs() {
+  const [selectedCategory, setSelectedCategory] = useState("introduction");
+  const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+  const [openCategories, setOpenCategories] = useState<string[]>(["introduction", "security"]);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    companyName: "",
+    mobileNumber: ""
+  });
   const { toast } = useToast();
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => 
-      prev.includes(sectionId) 
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
+  const toggleCategory = (categoryId: string) => {
+    setOpenCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
     );
   };
 
-  const copyToClipboard = (text: string, label: string) => {
+  const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
       title: "Copied!",
-      description: `${label} copied to clipboard`,
+      description: "Code copied to clipboard",
     });
   };
 
-  const formatJson = (obj: any) => JSON.stringify(obj, null, 2);
-
-  const getMethodColor = (method: string) => {
-    switch (method) {
-      case 'GET': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'POST': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'PUT': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'DELETE': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  const getCurrentEndpoint = () => {
+    if (!selectedEndpoint) return null;
+    for (const category of apiCategories) {
+      const endpoint = category.endpoints?.find(e => e.id === selectedEndpoint);
+      if (endpoint) return endpoint;
+      
+      if (category.subcategories) {
+        for (const sub of category.subcategories) {
+          const subEndpoint = sub.endpoints.find(e => e.id === selectedEndpoint);
+          if (subEndpoint) return subEndpoint;
+        }
+      }
     }
+    return null;
   };
 
-  const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return 'text-green-600 dark:text-green-400';
-    if (status >= 400 && status < 500) return 'text-yellow-600 dark:text-yellow-400';
-    if (status >= 500) return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Registration Successful!",
+      description: "Your developer account request has been submitted. We'll contact you within 2-3 business days.",
+    });
+    setShowForm(false);
+    setFormData({ fullName: "", email: "", companyName: "", mobileNumber: "" });
   };
+
+  const currentEndpoint = getCurrentEndpoint();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-25 to-neutrals-50 dark:from-neutrals-900 dark:to-neutrals-800">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-neutrals-900 dark:text-neutrals-50 mb-4">
-            AU Small Finance Bank API Documentation
-          </h1>
-          <p className="text-lg text-neutrals-600 dark:text-neutrals-300 max-w-3xl mx-auto">
-            Comprehensive documentation for AU Bank's payment APIs including OAuth authentication, 
-            CNB payments, and transaction enquiry services.
-          </p>
-          <div className="flex justify-center gap-4 mt-6">
-            <Badge variant="secondary" className="text-sm">
-              Version 2.1.0
-            </Badge>
-            <Badge variant="outline" className="text-sm">
-              UAT Environment
-            </Badge>
+    <div className="min-h-screen bg-neutrals-50">
+      {/* Header */}
+      <header className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-neutrals-900">AU Bank API Documentation</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button variant="outline" size="sm">Sign Up</Button>
+              <Button size="sm" className="bg-primary hover:bg-primary/90">Sign In</Button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Base URL Info */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              Base URL
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-neutrals-100 dark:bg-neutrals-800 p-4 rounded-lg font-mono text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-primary">https://aubank.tech/uat</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard("https://aubank.tech/uat", "Base URL")}
-                  data-testid="button-copy-base-url"
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-            <p className="text-sm text-neutrals-600 dark:text-neutrals-400 mt-2">
-              All API requests should be made to this base URL with the appropriate endpoint path.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* API Endpoints */}
-        <div className="space-y-6">
-          {endpoints.map((endpoint) => (
-            <Card key={endpoint.id} className="overflow-hidden" data-testid={`endpoint-${endpoint.id}`}>
-              <Collapsible
-                open={expandedSections.includes(endpoint.id)}
-                onOpenChange={() => toggleSection(endpoint.id)}
-              >
-                <CollapsibleTrigger asChild>
-                  <CardHeader className="cursor-pointer hover:bg-neutrals-50 dark:hover:bg-neutrals-800 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <Badge className={getMethodColor(endpoint.method)}>
-                          {endpoint.method}
-                        </Badge>
-                        <div>
-                          <CardTitle className="text-lg">{endpoint.title}</CardTitle>
-                          <code className="text-sm text-neutrals-600 dark:text-neutrals-400 font-mono">
-                            {endpoint.path}
-                          </code>
-                        </div>
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-80 bg-white border-r h-screen overflow-y-auto sticky top-0">
+          <div className="p-4">
+            <div className="space-y-2">
+              {apiCategories.map((category) => {
+                const IconComponent = category.icon;
+                const isOpen = openCategories.includes(category.id);
+                const hasEndpoints = category.endpoints.length > 0 || category.subcategories;
+                
+                return (
+                  <div key={category.id}>
+                    <div
+                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedCategory === category.id 
+                          ? 'bg-primary/10 text-primary border border-primary/20' 
+                          : 'hover:bg-neutrals-50'
+                      }`}
+                      onClick={() => {
+                        setSelectedCategory(category.id);
+                        setSelectedEndpoint(null);
+                        if (hasEndpoints) toggleCategory(category.id);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <IconComponent className="w-4 h-4" />
+                        <span className="font-medium">{category.title}</span>
                       </div>
-                      {expandedSections.includes(endpoint.id) ? (
-                        <ChevronDown className="w-5 h-5" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5" />
+                      {hasEndpoints && (
+                        <ChevronDown 
+                          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+                        />
                       )}
                     </div>
-                    <CardDescription>{endpoint.description}</CardDescription>
-                  </CardHeader>
-                </CollapsibleTrigger>
 
-                <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    <Tabs defaultValue="overview" className="w-full">
-                      <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="request">Request</TabsTrigger>
-                        <TabsTrigger value="response">Response</TabsTrigger>
-                        <TabsTrigger value="examples">Examples</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="overview" className="space-y-6">
-                        {/* Security */}
-                        {endpoint.security && (
-                          <div>
-                            <h4 className="font-semibold mb-3">Authentication</h4>
-                            <div className="space-y-2">
-                              {endpoint.security.map((security, index) => (
-                                <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="secondary" className="text-xs">{security.type}</Badge>
-                                    <span className="text-sm text-neutrals-700 dark:text-neutrals-300">
-                                      {security.description}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                    {isOpen && hasEndpoints && (
+                      <div className="ml-4 mt-2 space-y-1">
+                        {/* Direct endpoints */}
+                        {category.endpoints.map((endpoint) => (
+                          <div
+                            key={endpoint.id}
+                            className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                              selectedEndpoint === endpoint.id 
+                                ? 'bg-primary/10 text-primary' 
+                                : 'hover:bg-neutrals-50'
+                            }`}
+                            onClick={() => setSelectedEndpoint(endpoint.id)}
+                          >
+                            <Badge variant={endpoint.method === 'GET' ? 'secondary' : 'default'} className="text-xs">
+                              {endpoint.method}
+                            </Badge>
+                            <span className="text-sm">{endpoint.title}</span>
                           </div>
-                        )}
+                        ))}
 
-                        {/* Path Parameters */}
-                        {endpoint.parameters && endpoint.parameters.some(p => endpoint.path.includes(`{${p.name}}`)) && (
-                          <div>
-                            <h4 className="font-semibold mb-3">Path Parameters</h4>
-                            <div className="space-y-3">
-                              {endpoint.parameters
-                                .filter(param => endpoint.path.includes(`{${param.name}}`))
-                                .map((param, index) => (
-                                <div key={index} className="p-4 border rounded-lg">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <code className="text-sm font-mono bg-neutrals-100 dark:bg-neutrals-800 px-2 py-1 rounded">
-                                      {param.name}
-                                    </code>
-                                    <Badge variant={param.required ? "destructive" : "secondary"} className="text-xs">
-                                      {param.required ? "required" : "optional"}
-                                    </Badge>
-                                    <span className="text-xs text-neutrals-500">({param.type})</span>
-                                  </div>
-                                  <p className="text-sm text-neutrals-600 dark:text-neutrals-400 mb-2">
-                                    {param.description}
-                                  </p>
-                                  {param.example && (
-                                    <div className="text-xs">
-                                      <span className="text-neutrals-500">Example: </span>
-                                      <code className="font-mono bg-neutrals-100 dark:bg-neutrals-800 px-1 py-0.5 rounded">
-                                        {param.example}
-                                      </code>
-                                    </div>
-                                  )}
-                                  {param.constraints && (
-                                    <div className="text-xs text-neutrals-500 mt-1">
-                                      Constraints: {param.constraints}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
+                        {/* Subcategories */}
+                        {category.subcategories?.map((subcategory) => (
+                          <div key={subcategory.id}>
+                            <div className="font-medium text-sm text-neutrals-700 px-2 py-1 mt-3">
+                              {subcategory.title}
                             </div>
-                          </div>
-                        )}
-                      </TabsContent>
-
-                      <TabsContent value="request" className="space-y-6">
-                        {/* Headers */}
-                        {endpoint.parameters && endpoint.parameters.some(p => !endpoint.path.includes(`{${p.name}}`)) && (
-                          <div>
-                            <h4 className="font-semibold mb-3">Headers</h4>
-                            <div className="space-y-3">
-                              {endpoint.parameters
-                                .filter(param => !endpoint.path.includes(`{${param.name}}`))
-                                .map((param, index) => (
-                                <div key={index} className="p-4 border rounded-lg">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <code className="text-sm font-mono bg-neutrals-100 dark:bg-neutrals-800 px-2 py-1 rounded">
-                                      {param.name}
-                                    </code>
-                                    <Badge variant={param.required ? "destructive" : "secondary"} className="text-xs">
-                                      {param.required ? "required" : "optional"}
-                                    </Badge>
-                                    <span className="text-xs text-neutrals-500">({param.type})</span>
-                                  </div>
-                                  <p className="text-sm text-neutrals-600 dark:text-neutrals-400 mb-2">
-                                    {param.description}
-                                  </p>
-                                  {param.example && (
-                                    <div className="text-xs">
-                                      <span className="text-neutrals-500">Example: </span>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <code className="font-mono bg-neutrals-100 dark:bg-neutrals-800 px-2 py-1 rounded text-xs flex-1">
-                                          {showSecrets[`${endpoint.id}-${param.name}`] ? param.example : param.example.replace(/[A-Za-z0-9]/g, '*')}
-                                        </code>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => setShowSecrets(prev => ({
-                                            ...prev,
-                                            [`${endpoint.id}-${param.name}`]: !prev[`${endpoint.id}-${param.name}`]
-                                          }))}
-                                          className="h-8 w-8 p-0"
-                                        >
-                                          {showSecrets[`${endpoint.id}-${param.name}`] ? (
-                                            <EyeOff className="w-3 h-3" />
-                                          ) : (
-                                            <Eye className="w-3 h-3" />
-                                          )}
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Request Body */}
-                        {endpoint.requestBody && (
-                          <div>
-                            <h4 className="font-semibold mb-3">Request Body</h4>
-                            <div className="space-y-4">
-                              <div className="p-3 bg-neutrals-50 dark:bg-neutrals-800 rounded-lg">
-                                <span className="text-sm font-medium">Content-Type: </span>
-                                <code className="text-sm font-mono">{endpoint.requestBody.type}</code>
-                              </div>
-                              
-                              <div className="space-y-3">
-                                {Object.entries(endpoint.requestBody.properties).map(([key, prop]) => (
-                                  <div key={key} className="p-4 border rounded-lg">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <code className="text-sm font-mono bg-neutrals-100 dark:bg-neutrals-800 px-2 py-1 rounded">
-                                        {key}
-                                      </code>
-                                      <Badge 
-                                        variant={endpoint.requestBody?.required.includes(key) ? "destructive" : "secondary"} 
-                                        className="text-xs"
-                                      >
-                                        {endpoint.requestBody?.required.includes(key) ? "required" : "optional"}
-                                      </Badge>
-                                      <span className="text-xs text-neutrals-500">({prop.type})</span>
-                                    </div>
-                                    <p className="text-sm text-neutrals-600 dark:text-neutrals-400 mb-2">
-                                      {prop.description}
-                                    </p>
-                                    {prop.example && (
-                                      <div className="text-xs">
-                                        <span className="text-neutrals-500">Example: </span>
-                                        <code className="font-mono bg-neutrals-100 dark:bg-neutrals-800 px-1 py-0.5 rounded">
-                                          {typeof prop.example === 'object' ? JSON.stringify(prop.example) : prop.example}
-                                        </code>
-                                      </div>
-                                    )}
-                                    <div className="flex flex-wrap gap-4 mt-2 text-xs text-neutrals-500">
-                                      {prop.maxLength && <span>Max length: {prop.maxLength}</span>}
-                                      {prop.minLength && <span>Min length: {prop.minLength}</span>}
-                                      {prop.format && <span>Format: {prop.format}</span>}
-                                      {prop.enum && <span>Allowed values: {prop.enum.join(', ')}</span>}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </TabsContent>
-
-                      <TabsContent value="response" className="space-y-6">
-                        <div>
-                          <h4 className="font-semibold mb-3">Response Codes</h4>
-                          <div className="space-y-4">
-                            {endpoint.responses.map((response, index) => (
-                              <div key={index} className="border rounded-lg overflow-hidden">
-                                <div className="p-4 bg-neutrals-50 dark:bg-neutrals-800 border-b">
-                                  <div className="flex items-center gap-3">
-                                    <code className={`font-bold ${getStatusColor(response.status)}`}>
-                                      {response.status}
-                                    </code>
-                                    <span className="text-sm">{response.description}</span>
-                                  </div>
-                                </div>
-                                {response.schema && (
-                                  <div className="p-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-sm font-medium">Response Body:</span>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => copyToClipboard(formatJson(response.schema), "Response schema")}
-                                        data-testid={`button-copy-response-${response.status}`}
-                                      >
-                                        <Copy className="w-4 h-4" />
-                                      </Button>
-                                    </div>
-                                    <pre className="text-xs bg-neutrals-100 dark:bg-neutrals-900 p-3 rounded overflow-x-auto">
-                                      <code>{formatJson(response.schema)}</code>
-                                    </pre>
-                                  </div>
-                                )}
+                            {subcategory.endpoints.map((endpoint) => (
+                              <div
+                                key={endpoint.id}
+                                className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ml-2 ${
+                                  selectedEndpoint === endpoint.id 
+                                    ? 'bg-primary/10 text-primary' 
+                                    : 'hover:bg-neutrals-50'
+                                }`}
+                                onClick={() => setSelectedEndpoint(endpoint.id)}
+                              >
+                                <Badge variant={endpoint.method === 'GET' ? 'secondary' : 'default'} className="text-xs">
+                                  {endpoint.method}
+                                </Badge>
+                                <span className="text-sm">{endpoint.title}</span>
                               </div>
                             ))}
                           </div>
-                        </div>
-                      </TabsContent>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
-                      <TabsContent value="examples" className="space-y-6">
-                        {endpoint.examples.map((example, index) => (
-                          <div key={index} className="border rounded-lg overflow-hidden">
-                            <div className="p-4 bg-neutrals-50 dark:bg-neutrals-800 border-b">
-                              <h5 className="font-medium">{example.title}</h5>
-                            </div>
-                            <div className="p-4 space-y-4">
-                              {example.curl && (
-                                <div>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium">cURL Command:</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(example.curl!, "cURL command")}
-                                      data-testid={`button-copy-curl-${index}`}
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </Button>
+        {/* Main Content */}
+        <div className="flex-1 p-8">
+          {selectedCategory === "introduction" && !selectedEndpoint && (
+            <div className="max-w-4xl">
+              <div className="bg-white rounded-lg p-8 shadow-sm">
+                <h1 className="text-3xl font-bold text-neutrals-900 mb-4">
+                  Welcome to AU Bank API Banking Portal!
+                </h1>
+                <p className="text-lg text-neutrals-600 mb-8 leading-relaxed">
+                  Equipped with our services inventory and open API platform, we provide you the chance to reach, test and use our AU Bank's digital services. Using these, you now have the power of AU Bank supporting you to develop the next generation of applications. Let's see how you can do it.
+                </p>
+
+                <div className="mb-8">
+                  <h2 className="text-2xl font-semibold mb-6">Getting Started</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Users className="w-8 h-8 text-pink-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">1. Sign Up</h3>
+                      <p className="text-neutrals-600">Create your developer account</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Settings className="w-8 h-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">2. Select API</h3>
+                      <p className="text-neutrals-600">Choose the APIs for your needs</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Play className="w-8 h-8 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">3. Test It Out</h3>
+                      <p className="text-neutrals-600">Test in our sandbox environment</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <p className="text-neutrals-600 mb-4">
+                    If you already have an account, then sign in and jump to <strong>step 2</strong>. Else follow the steps to create an account.
+                  </p>
+                  <div className="bg-neutrals-50 p-4 rounded-lg">
+                    <p className="text-sm"><strong>Step 1:</strong> Go to our sign up page.</p>
+                    <p className="text-sm"><strong>a)</strong> Enter your Credentials.</p>
+                  </div>
+                </div>
+
+                {!showForm ? (
+                  <Card className="max-w-md">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Let's get you Onboard</CardTitle>
+                      <CardDescription>Start your API integration journey with AU Bank</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        onClick={() => setShowForm(true)}
+                        className="w-full bg-pink-600 hover:bg-pink-700"
+                      >
+                        Get Started
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="max-w-md">
+                    <CardHeader>
+                      <CardTitle className="text-xl">Developer Registration</CardTitle>
+                      <CardDescription>
+                        Basic Details • Mobile Number • Credentials
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <form onSubmit={handleFormSubmit} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="fullName">Full Name</Label>
+                            <Input
+                              id="fullName"
+                              placeholder="John Doe"
+                              value={formData.fullName}
+                              onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="john@techfirm.com"
+                              value={formData.email}
+                              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="companyName">Company Name</Label>
+                          <Input
+                            id="companyName"
+                            placeholder="Tech Firm"
+                            value={formData.companyName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="mobileNumber">Mobile Number</Label>
+                          <Input
+                            id="mobileNumber"
+                            placeholder="+91 98765 43210"
+                            value={formData.mobileNumber}
+                            onChange={(e) => setFormData(prev => ({ ...prev, mobileNumber: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700">
+                          Submit Registration
+                        </Button>
+                      </form>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          )}
+
+          {currentEndpoint && (
+            <div className="max-w-6xl">
+              <div className="bg-white rounded-lg shadow-sm">
+                <div className="p-8 border-b">
+                  <div className="flex items-center gap-4 mb-4">
+                    <Badge variant={currentEndpoint.method === 'GET' ? 'secondary' : 'default'}>
+                      {currentEndpoint.method}
+                    </Badge>
+                    <code className="text-lg font-mono bg-neutrals-100 px-3 py-1 rounded">
+                      {currentEndpoint.path}
+                    </code>
+                  </div>
+                  <h1 className="text-3xl font-bold text-neutrals-900 mb-4">
+                    {currentEndpoint.title}
+                  </h1>
+                  <p className="text-lg text-neutrals-600">
+                    {currentEndpoint.description}
+                  </p>
+                </div>
+
+                <div className="p-8">
+                  <Tabs defaultValue="overview" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="overview">Overview</TabsTrigger>
+                      <TabsTrigger value="parameters">Parameters</TabsTrigger>
+                      <TabsTrigger value="examples">Examples</TabsTrigger>
+                      <TabsTrigger value="responses">Responses</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="overview" className="mt-6">
+                      <div className="space-y-6">
+                        {currentEndpoint.security && (
+                          <div>
+                            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                              <Shield className="w-5 h-5" />
+                              Authentication
+                            </h3>
+                            <div className="space-y-2">
+                              {currentEndpoint.security.map((sec, index) => (
+                                <div key={index} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Lock className="w-4 h-4 text-blue-600" />
+                                    <span className="font-semibold text-blue-800">{sec.type}</span>
                                   </div>
-                                  <pre className="text-xs bg-neutrals-100 dark:bg-neutrals-900 p-3 rounded overflow-x-auto">
-                                    <code>{example.curl}</code>
-                                  </pre>
+                                  <p className="text-sm text-blue-700">{sec.description}</p>
                                 </div>
-                              )}
-                              
-                              {example.request && (
-                                <div>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium">Request Body:</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(formatJson(example.request), "Request body")}
-                                      data-testid={`button-copy-request-${index}`}
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                  <pre className="text-xs bg-neutrals-100 dark:bg-neutrals-900 p-3 rounded overflow-x-auto">
-                                    <code>{formatJson(example.request)}</code>
-                                  </pre>
-                                </div>
-                              )}
-                              
-                              {example.response && (
-                                <div>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium">Response:</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(formatJson(example.response), "Response body")}
-                                      data-testid={`button-copy-response-example-${index}`}
-                                    >
-                                      <Copy className="w-4 h-4" />
-                                    </Button>
-                                  </div>
-                                  <pre className="text-xs bg-neutrals-100 dark:bg-neutrals-900 p-3 rounded overflow-x-auto">
-                                    <code>{formatJson(example.response)}</code>
-                                  </pre>
-                                </div>
-                              )}
+                              ))}
                             </div>
                           </div>
+                        )}
+
+                        <div>
+                          <h3 className="text-xl font-semibold mb-4">Request URL</h3>
+                          <div className="bg-neutrals-900 text-white p-4 rounded-lg font-mono">
+                            <span className="text-green-400">{currentEndpoint.method}</span>{" "}
+                            <span className="text-blue-300">https://api.aubank.in{currentEndpoint.path}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="parameters" className="mt-6">
+                      <div className="space-y-6">
+                        {currentEndpoint.parameters && currentEndpoint.parameters.length > 0 ? (
+                          <div>
+                            <h3 className="text-xl font-semibold mb-4">Parameters</h3>
+                            <div className="overflow-x-auto">
+                              <table className="w-full border-collapse border border-neutrals-200">
+                                <thead>
+                                  <tr className="bg-neutrals-50">
+                                    <th className="border border-neutrals-200 p-3 text-left">Name</th>
+                                    <th className="border border-neutrals-200 p-3 text-left">Type</th>
+                                    <th className="border border-neutrals-200 p-3 text-left">Required</th>
+                                    <th className="border border-neutrals-200 p-3 text-left">Description</th>
+                                    <th className="border border-neutrals-200 p-3 text-left">Example</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {currentEndpoint.parameters.map((param, index) => (
+                                    <tr key={index}>
+                                      <td className="border border-neutrals-200 p-3 font-mono">{param.name}</td>
+                                      <td className="border border-neutrals-200 p-3">
+                                        <Badge variant="outline">{param.type}</Badge>
+                                      </td>
+                                      <td className="border border-neutrals-200 p-3">
+                                        <Badge variant={param.required ? "destructive" : "secondary"}>
+                                          {param.required ? "Required" : "Optional"}
+                                        </Badge>
+                                      </td>
+                                      <td className="border border-neutrals-200 p-3">{param.description}</td>
+                                      <td className="border border-neutrals-200 p-3 font-mono text-sm">
+                                        {param.example}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-neutrals-500">
+                            <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                            <p>No parameters required for this endpoint</p>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="examples" className="mt-6">
+                      <div className="space-y-6">
+                        {currentEndpoint.examples.map((example, index) => (
+                          <div key={index}>
+                            <h3 className="text-xl font-semibold mb-4">{example.title}</h3>
+                            
+                            {example.request && (
+                              <div className="mb-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-semibold">Request Body</h4>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(JSON.stringify(example.request, null, 2))}
+                                  >
+                                    <Copy className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto">
+                                  <code>{JSON.stringify(example.request, null, 2)}</code>
+                                </pre>
+                              </div>
+                            )}
+
+                            {example.response && (
+                              <div className="mb-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-semibold">Response</h4>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(JSON.stringify(example.response, null, 2))}
+                                  >
+                                    <Copy className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto">
+                                  <code>{JSON.stringify(example.response, null, 2)}</code>
+                                </pre>
+                              </div>
+                            )}
+
+                            {example.curl && (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-semibold">cURL</h4>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(example.curl || "")}
+                                  >
+                                    <Copy className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto">
+                                  <code>{example.curl}</code>
+                                </pre>
+                              </div>
+                            )}
+                          </div>
                         ))}
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </Card>
-          ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="responses" className="mt-6">
+                      <div className="space-y-6">
+                        <h3 className="text-xl font-semibold mb-4">Response Codes</h3>
+                        <div className="space-y-4">
+                          {currentEndpoint.responses.map((response, index) => (
+                            <div key={index} className="border rounded-lg p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <Badge 
+                                  variant={
+                                    response.status >= 200 && response.status < 300 ? "default" :
+                                    response.status >= 400 && response.status < 500 ? "destructive" : "secondary"
+                                  }
+                                >
+                                  {response.status}
+                                </Badge>
+                                <span className="font-semibold">{response.description}</span>
+                              </div>
+                              {response.example && (
+                                <div>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium">Example Response</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => copyToClipboard(JSON.stringify(response.example, null, 2))}
+                                    >
+                                      <Copy className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                  <pre className="bg-neutrals-50 p-3 rounded text-sm overflow-x-auto">
+                                    <code>{JSON.stringify(response.example, null, 2)}</code>
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedCategory !== "introduction" && !selectedEndpoint && (
+            <div className="max-w-4xl">
+              <div className="bg-white rounded-lg p-8 shadow-sm">
+                <div className="flex items-center gap-4 mb-6">
+                  {(() => {
+                    const category = apiCategories.find(c => c.id === selectedCategory);
+                    const IconComponent = category?.icon || BookOpen;
+                    return <IconComponent className="w-8 h-8 text-primary" />;
+                  })()}
+                  <div>
+                    <h1 className="text-3xl font-bold text-neutrals-900">
+                      {apiCategories.find(c => c.id === selectedCategory)?.title}
+                    </h1>
+                    <p className="text-lg text-neutrals-600">
+                      {apiCategories.find(c => c.id === selectedCategory)?.description}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-neutrals-600">
+                  Select an API endpoint from the sidebar to view detailed documentation, examples, and integration guides.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import ApiExplorer from "@/pages/api-explorer";
-import { APIDocs } from "@/pages/api-docs";
+import APIDocs from "@/pages/api-docs";
 import Sandbox from "@/pages/sandbox";
 import Dashboard from "@/pages/dashboard";
 import Analytics from "@/pages/analytics";
