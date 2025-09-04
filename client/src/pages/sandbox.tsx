@@ -469,27 +469,27 @@ export default function Sandbox() {
   };
 
   return (
-    <div className="min-h-screen au-hero">
+    <div className="min-h-screen bg-gradient-to-br from-blue-25 to-neutrals-50 dark:from-neutrals-900 dark:to-neutrals-800">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="sm" data-testid="button-back-home" className="hover:bg-white/10">
+              <Button variant="ghost" size="sm" data-testid="button-back-home">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Home
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-neutrals-900 dark:text-neutrals-50">
                 API Testing Playground
               </h1>
-              <p className="text-gray-600">
+              <p className="text-neutrals-600 dark:text-neutrals-400">
                 Test and explore AU Bank APIs in a safe sandbox environment
               </p>
             </div>
           </div>
-          <Badge variant="secondary" className="text-sm bg-purple-100 text-purple-800">
+          <Badge variant="secondary" className="text-sm">
             Sandbox Environment
           </Badge>
         </div>
@@ -657,10 +657,10 @@ export default function Sandbox() {
                     <Play className="w-5 h-5" />
                     API Test Configuration
                   </div>
-                  <button
+                  <Button
                     onClick={handleTestRequest}
                     disabled={loading || (selectedEndpoint.requiresAuth && !apiToken)}
-                    className="au-button disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-primary hover:bg-primary/90"
                     data-testid="button-test-api"
                   >
                     {loading ? (
@@ -674,7 +674,7 @@ export default function Sandbox() {
                         Test API
                       </>
                     )}
-                  </button>
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
