@@ -104,7 +104,10 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Payments",
     description: "Check the status of UPI payout transaction",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      reference_id: "REF123456789",
+      transaction_date: "2024-12-05"
+    }
   },
   {
     id: "bbps-biller-list",
@@ -114,7 +117,11 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Bill Payments",
     description: "Retrieve list of available billers for BBPS payments",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      category: "Electricity",
+      state: "Maharashtra",
+      limit: "50"
+    }
   },
   {
     id: "bbps-bill-fetch",
@@ -137,7 +144,10 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Payments",
     description: "Query status and details of a payment transaction",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      payment_id: "PAY123456789",
+      reference_date: "2024-12-05"
+    }
   },
   {
     id: "account-balance", 
@@ -147,7 +157,10 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Accounts",
     description: "Get current account balance and details",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      account_id: "ACC123456789",
+      include_pending: "true"
+    }
   },
   {
     id: "account-transactions",
@@ -157,7 +170,12 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Accounts",
     description: "Retrieve account transaction history",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      account_id: "ACC123456789",
+      from_date: "2024-11-01",
+      to_date: "2024-12-05",
+      limit: "100"
+    }
   },
   // Additional KYC APIs
   {
@@ -181,7 +199,10 @@ const apiEndpoints: APIEndpoint[] = [
     category: "KYC",
     description: "Check KYC verification status",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      customer_id: "CUST123456789",
+      status_type: "detailed"
+    }
   },
   {
     id: "kyc-video-verification",
@@ -233,7 +254,10 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Cards",
     description: "Get credit/debit card balance",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      card_id: "CARD123456789",
+      include_limits: "true"
+    }
   },
   {
     id: "card-transactions",
@@ -243,7 +267,12 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Cards",
     description: "Get card transaction history",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      card_id: "CARD123456789",
+      from_date: "2024-11-01",
+      to_date: "2024-12-05",
+      transaction_type: "all"
+    }
   },
   {
     id: "card-block",
@@ -267,7 +296,12 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Accounts",
     description: "Generate account statement",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      account_id: "ACC123456789",
+      from_date: "2024-11-01",
+      to_date: "2024-12-05",
+      format: "pdf"
+    }
   },
   {
     id: "fund-transfer",
@@ -322,7 +356,10 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Loans",
     description: "Check loan application status",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      loan_id: "LOAN123456789",
+      include_details: "true"
+    }
   }
 ];
 
@@ -478,7 +515,7 @@ export default function Sandbox() {
     // Set query parameters for GET endpoints with sample data
     if (endpoint.method === "GET" && endpoint.sampleRequest) {
       const queryParamsString = Object.entries(endpoint.sampleRequest)
-        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
         .join('&');
       setQueryParams(queryParamsString);
     } else {
