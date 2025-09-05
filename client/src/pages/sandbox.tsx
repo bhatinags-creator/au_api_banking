@@ -397,22 +397,41 @@ export default function Sandbox() {
         };
       
       case "cnb-payment":
-        const paymentData = body ? JSON.parse(body) : {};
-        return {
-          status: 201,
-          statusText: "Created",
-          headers: { "Content-Type": "application/json" },
-          data: {
-            payment_id: "pay_" + Date.now(),
-            status: "PENDING",
-            unique_request_id: paymentData.uniqueRequestId,
-            amount: paymentData.amount,
-            currency: paymentData.payableCurrency || "INR",
-            beneficiary_name: paymentData.beneName,
-            created_at: new Date().toISOString(),
-            estimated_completion: new Date(Date.now() + 2 * 60 * 1000).toISOString()
-          }
-        };
+        try {
+          const paymentData = body ? JSON.parse(body) : {};
+          return {
+            status: 201,
+            statusText: "Created",
+            headers: { "Content-Type": "application/json" },
+            data: {
+              payment_id: "pay_" + Date.now(),
+              status: "INITIATED",
+              unique_request_id: paymentData.uniqueRequestId || "REQ" + Date.now(),
+              amount: paymentData.amount || "1000.00",
+              currency: paymentData.payableCurrency || "INR",
+              beneficiary_name: paymentData.beneName || "Test Beneficiary",
+              beneficiary_account: paymentData.beneAccNo || "9876543210987",
+              ifsc_code: paymentData.ifscCode || "AUBL0002086",
+              payment_mode: paymentData.paymentMethodName || "NEFT",
+              corporate_code: paymentData.corporateCode || "CORP001",
+              remitter_account: paymentData.remitterAccountNo || "1234567890123",
+              transaction_ref: "TXN" + Date.now(),
+              utr_number: "UTR" + Date.now(),
+              created_at: new Date().toISOString(),
+              estimated_completion: new Date(Date.now() + 2 * 60 * 1000).toISOString()
+            }
+          };
+        } catch (error) {
+          return {
+            status: 400,
+            statusText: "Bad Request",
+            headers: { "Content-Type": "application/json" },
+            data: {
+              error: "Invalid JSON format in request body",
+              message: "Please check your request format and try again"
+            }
+          };
+        }
         
       case "payment-enquiry":
         return {
