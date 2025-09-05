@@ -57,6 +57,7 @@ interface APIEndpoint {
   responses: Response[];
   examples: Example[];
   security?: SecurityRequirement[];
+  subcategory?: string;
 }
 
 interface Parameter {
@@ -1070,6 +1071,8 @@ export default function APIDocs() {
   const [selectedCategory, setSelectedCategory] = useState("introduction");
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<string[]>(["introduction", "security"]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState("ALL");
   const [showForm, setShowForm] = useState(false);
   const [registrationStep, setRegistrationStep] = useState(1);
   const [otpSent, setOtpSent] = useState(false);
@@ -1963,16 +1966,16 @@ export default function APIDocs() {
                 animate="animate"
                 exit="exit"
               >
-                <div className="max-w-4xl">
-                  <div className="bg-white rounded-lg p-8 shadow-sm">
-                    <div className="flex items-center gap-4 mb-6">
+                <div className="max-w-7xl">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-2xl border border-[var(--au-primary)]/10">
+                    <div className="flex items-center gap-4 mb-8">
                       {(() => {
                         const category = apiCategories.find(c => c.id === selectedCategory);
                         const IconComponent = category?.icon || BookOpen;
-                        return <IconComponent className="w-8 h-8 text-primary" />;
+                        return <IconComponent className="w-10 h-10 text-[var(--au-primary)]" />;
                       })()}
                       <div>
-                        <h1 className="text-3xl font-bold text-neutrals-900">
+                        <h1 className="text-4xl font-bold text-[var(--au-primary-700)]">
                           {apiCategories.find(c => c.id === selectedCategory)?.title}
                         </h1>
                         <p className="text-lg text-neutrals-600">
@@ -1980,9 +1983,180 @@ export default function APIDocs() {
                         </p>
                       </div>
                     </div>
-                    <p className="text-neutrals-600">
-                      Select an API endpoint from the sidebar to view detailed documentation, examples, and integration guides.
-                    </p>
+
+                    {/* Search and Filter Section */}
+                    <div className="mb-8 space-y-4">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1 relative">
+                          <Input
+                            placeholder="Search API endpoints..."
+                            className="pl-10 pr-4 py-3 text-lg"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <Settings className="w-5 h-5 text-neutrals-400" />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {['ALL', 'GET', 'POST', 'PUT', 'DELETE'].map((method) => (
+                            <Button
+                              key={method}
+                              variant={selectedMethod === method ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setSelectedMethod(method)}
+                              className={`${
+                                selectedMethod === method 
+                                  ? 'bg-[var(--au-primary)] text-white' 
+                                  : 'hover:bg-[var(--au-primary)]/10'
+                              }`}
+                            >
+                              {method}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* API Endpoints Grid */}
+                    <div className="space-y-8">
+                      {(() => {
+                        const currentCategory = apiCategories.find(c => c.id === selectedCategory);
+                        if (!currentCategory) return null;
+
+                        // Get all endpoints from category and subcategories
+                        const allEndpoints = [
+                          ...(currentCategory.endpoints || []),
+                          ...(currentCategory.subcategories?.flatMap(sub => 
+                            sub.endpoints.map(endpoint => ({ ...endpoint, subcategory: sub.title }))
+                          ) || [])
+                        ];
+
+                        // Filter endpoints based on search and method
+                        const filteredEndpoints = allEndpoints.filter(endpoint => {
+                          const matchesSearch = !searchTerm || 
+                            endpoint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            endpoint.path.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            endpoint.description.toLowerCase().includes(searchTerm.toLowerCase());
+                          
+                          const matchesMethod = selectedMethod === 'ALL' || endpoint.method === selectedMethod;
+                          
+                          return matchesSearch && matchesMethod;
+                        });
+
+                        if (filteredEndpoints.length === 0) {
+                          return (
+                            <div className="text-center py-12">
+                              <Settings className="w-16 h-16 mx-auto mb-4 text-neutrals-300" />
+                              <h3 className="text-xl font-semibold text-neutrals-600 mb-2">No APIs Found</h3>
+                              <p className="text-neutrals-500">Try adjusting your search or filter criteria</p>
+                            </div>
+                          );
+                        }
+
+                        // Group by subcategory if they exist
+                        const groupedEndpoints = currentCategory.subcategories ? 
+                          currentCategory.subcategories.reduce((acc, sub) => {
+                            const subEndpoints = filteredEndpoints.filter(e => e.subcategory === sub.title);
+                            if (subEndpoints.length > 0) {
+                              acc[sub.title] = subEndpoints;
+                            }
+                            return acc;
+                          }, {} as Record<string, any[]>) :
+                          { [currentCategory.title]: filteredEndpoints };
+
+                        return Object.entries(groupedEndpoints).map(([groupTitle, endpoints]) => (
+                          <motion.div 
+                            key={groupTitle}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            {currentCategory.subcategories && (
+                              <h3 className="text-2xl font-semibold text-[var(--au-primary-600)] mb-6 flex items-center gap-2">
+                                <Banknote className="w-6 h-6" />
+                                {groupTitle}
+                              </h3>
+                            )}
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              {endpoints.map((endpoint, index) => (
+                                <motion.div
+                                  key={endpoint.id}
+                                  initial={{ opacity: 0, scale: 0.95 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                                  whileHover={{ 
+                                    scale: shouldReduceMotion ? 1 : 1.02,
+                                    y: shouldReduceMotion ? 0 : -4,
+                                    transition: { duration: 0.2 }
+                                  }}
+                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                                  onClick={() => setSelectedEndpoint(endpoint.id)}
+                                >
+                                  <div className="p-6">
+                                    <div className="flex items-start justify-between mb-4">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Badge 
+                                            className={`text-xs font-mono ${
+                                              endpoint.method === 'GET' ? 'bg-green-100 text-green-700 hover:bg-green-200' :
+                                              endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
+                                              endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' :
+                                              'bg-red-100 text-red-700 hover:bg-red-200'
+                                            }`}
+                                          >
+                                            {endpoint.method}
+                                          </Badge>
+                                        </div>
+                                        <h4 className="font-semibold text-lg text-neutrals-800 group-hover:text-[var(--au-primary-700)] transition-colors mb-2">
+                                          {endpoint.title}
+                                        </h4>
+                                        <code className="text-sm text-neutrals-600 bg-neutrals-50 px-2 py-1 rounded font-mono block mb-3 truncate">
+                                          {endpoint.path}
+                                        </code>
+                                        <p className="text-sm text-neutrals-600 line-clamp-2">
+                                          {endpoint.description}
+                                        </p>
+                                      </div>
+                                      <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0" />
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between pt-4 border-t border-neutrals-100">
+                                      <div className="flex items-center gap-2 text-xs text-neutrals-500">
+                                        {endpoint.security && (
+                                          <div className="flex items-center gap-1">
+                                            <Shield className="w-3 h-3" />
+                                            <span>Secured</span>
+                                          </div>
+                                        )}
+                                        {endpoint.parameters && (
+                                          <div className="flex items-center gap-1">
+                                            <Settings className="w-3 h-3" />
+                                            <span>{endpoint.parameters.length} params</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <Button 
+                                        size="sm" 
+                                        variant="ghost"
+                                        className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-7 px-3"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedEndpoint(endpoint.id);
+                                        }}
+                                      >
+                                        View Docs
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        ));
+                      })()}
+                    </div>
                   </div>
                 </div>
               </motion.div>
