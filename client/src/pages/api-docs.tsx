@@ -2092,7 +2092,7 @@ export default function APIDocs() {
                               </h3>
                             )}
                             
-                            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
                               {endpoints.map((endpoint, index) => (
                                 <motion.div
                                   key={endpoint.id}
@@ -2106,7 +2106,7 @@ export default function APIDocs() {
                                   }}
                                   className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group"
                                   style={{
-                                    height: '280px',
+                                    height: '260px',
                                     display: 'flex',
                                     flexDirection: 'column'
                                   }}
