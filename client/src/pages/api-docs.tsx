@@ -2112,7 +2112,7 @@ export default function APIDocs() {
                                   }}
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
-                                  <div className="p-6 flex-1">
+                                  <div className="p-6 pb-20 flex-1" style={{position: 'relative'}}>
                                     <div className="flex items-start justify-between mb-4">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
@@ -2142,7 +2142,19 @@ export default function APIDocs() {
                                     </div>
                                   </div>
                                   
-                                  <div className="px-6 pb-6 pt-4 border-t border-neutrals-100" style={{marginTop: 'auto'}}>
+                                  <div 
+                                    className="px-6 pb-6 pt-4 border-t border-neutrals-100" 
+                                    style={{
+                                      marginTop: 'auto',
+                                      position: 'absolute',
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      backgroundColor: 'white',
+                                      borderBottomLeftRadius: '0.5rem',
+                                      borderBottomRightRadius: '0.5rem'
+                                    }}
+                                  >
                                     <div className="flex items-center justify-between" style={{height: '32px', alignItems: 'center'}}>
                                       <div className="flex items-center gap-3 text-xs text-neutrals-500">
                                         {endpoint.security && (
