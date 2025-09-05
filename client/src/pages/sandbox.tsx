@@ -675,19 +675,26 @@ export default function Sandbox() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-25 to-neutrals-50 dark:from-neutrals-900 dark:to-neutrals-800">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-25 dark:from-neutrals-900 dark:via-purple-950/20 dark:to-neutrals-800">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="sm" data-testid="button-back-home">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
+                data-testid="button-back-home"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Home
               </Button>
             </Link>
           </div>
-          <Badge variant="secondary" className="text-sm">
+          <Badge 
+            className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
+          >
             Sandbox Environment
           </Badge>
         </div>
@@ -696,11 +703,11 @@ export default function Sandbox() {
         {currentView === "groups" && (
           <div className="space-y-6">
             {/* API Groups Header */}
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-neutrals-900 dark:text-neutrals-50 mb-4">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-[var(--au-primary)] to-purple-600 bg-clip-text text-transparent mb-4">
                 Choose API Category
               </h2>
-              <p className="text-neutrals-600 dark:text-neutrals-400">
+              <p className="text-lg text-neutrals-600 dark:text-neutrals-400">
                 Select a category to explore {apiEndpoints.length} available API endpoints
               </p>
             </div>
@@ -712,31 +719,34 @@ export default function Sandbox() {
                 return (
                   <Card 
                     key={group.name}
-                    className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                    className="cursor-pointer hover:shadow-xl hover:shadow-[var(--au-primary)]/20 transition-all duration-300 hover:scale-105 border-2 hover:border-[var(--au-primary)]/30 bg-gradient-to-br from-white to-purple-50/30 dark:from-neutrals-800 dark:to-purple-950/10"
                     onClick={() => handleGroupSelect(group.name)}
                     data-testid={`card-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
                   >
                     <CardHeader className="text-center">
-                      <div className="mx-auto w-16 h-16 bg-[var(--au-primary)]/10 rounded-full flex items-center justify-center mb-4">
-                        <IconComponent className="w-8 h-8 text-[var(--au-primary)]" />
+                      <div className="mx-auto w-20 h-20 bg-gradient-to-br from-[var(--au-primary)]/20 to-purple-600/20 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                        <IconComponent className="w-10 h-10 text-[var(--au-primary)]" />
                       </div>
-                      <CardTitle className="text-xl">{group.name}</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-xl text-[var(--au-primary)] font-bold">{group.name}</CardTitle>
+                      <CardDescription className="text-purple-600/70 font-medium">
                         {group.endpoints.length} API{group.endpoints.length !== 1 ? 's' : ''} available
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
                         {group.endpoints.slice(0, 3).map(endpoint => (
-                          <div key={endpoint.id} className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Badge variant="outline" className="text-xs px-1">
+                          <div key={endpoint.id} className="flex items-center gap-2 text-sm">
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs px-1 border-[var(--au-primary)]/30 text-[var(--au-primary)]"
+                            >
                               {endpoint.method}
                             </Badge>
-                            <span className="truncate">{endpoint.name}</span>
+                            <span className="truncate text-purple-700 dark:text-purple-300">{endpoint.name}</span>
                           </div>
                         ))}
                         {group.endpoints.length > 3 && (
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-purple-500 font-medium">
                             +{group.endpoints.length - 3} more...
                           </div>
                         )}
@@ -752,20 +762,21 @@ export default function Sandbox() {
         {currentView === "apis" && selectedGroup && (
           <div className="space-y-6">
             {/* APIs Header with Back Button */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-6">
               <Button 
                 variant="ghost" 
                 onClick={handleBackToGroups}
+                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
                 data-testid="button-back-to-groups"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Categories
               </Button>
               <div>
-                <h2 className="text-2xl font-bold text-neutrals-900 dark:text-neutrals-50">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-[var(--au-primary)] to-purple-600 bg-clip-text text-transparent">
                   {selectedGroup} APIs
                 </h2>
-                <p className="text-neutrals-600 dark:text-neutrals-400">
+                <p className="text-lg text-purple-600/70 font-medium">
                   {getFilteredEndpoints(selectedGroup).length} endpoints available
                 </p>
               </div>
@@ -777,6 +788,7 @@ export default function Sandbox() {
                 placeholder="Search APIs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="border-[var(--au-primary)]/20 focus:border-[var(--au-primary)] focus:ring-[var(--au-primary)]/20"
                 data-testid="input-search-apis"
               />
             </div>
@@ -786,7 +798,7 @@ export default function Sandbox() {
               {getFilteredEndpoints(selectedGroup).map(endpoint => (
                 <Card 
                   key={endpoint.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                  className="cursor-pointer hover:shadow-xl hover:shadow-[var(--au-primary)]/15 transition-all duration-300 hover:scale-[1.02] border hover:border-[var(--au-primary)]/30 bg-gradient-to-br from-white to-purple-50/20 dark:from-neutrals-800 dark:to-purple-950/5"
                   onClick={() => handleApiSelect(endpoint)}
                   data-testid={`card-api-${endpoint.id}`}
                 >
