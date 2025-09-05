@@ -679,13 +679,21 @@ export default function Sandbox() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-neutrals-900 dark:text-neutrals-50">
-              API Testing Playground
-            </h1>
-            <p className="text-neutrals-600 dark:text-neutrals-400">
-              Test and explore AU Bank APIs in a safe sandbox environment
-            </p>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" data-testid="button-back-home">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-neutrals-900 dark:text-neutrals-50">
+                API Testing Playground
+              </h1>
+              <p className="text-neutrals-600 dark:text-neutrals-400">
+                Test and explore AU Bank APIs in a safe sandbox environment
+              </p>
+            </div>
           </div>
           <Badge variant="secondary" className="text-sm">
             Sandbox Environment
