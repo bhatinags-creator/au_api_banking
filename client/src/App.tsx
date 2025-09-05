@@ -10,6 +10,7 @@ import Sandbox from "@/pages/sandbox";
 import Dashboard from "@/pages/dashboard";
 import Analytics from "@/pages/analytics";
 import CorporateRegistration from "@/pages/corporate-registration";
+import AdminPanel from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/register" component={CorporateRegistration} />
+      <Route path="/admin" component={AdminPanel} />
       <Route component={NotFound} />
     </Switch>
   );

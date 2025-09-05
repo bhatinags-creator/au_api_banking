@@ -555,6 +555,11 @@ export default function Home() {
           
           <div className="border-t border-neutrals-800 mt-8 pt-8 text-center text-sm text-neutrals-400">
             <p>&copy; 2024 AU Small Finance Bank. All rights reserved. | Privacy Policy | Terms of Service</p>
+            <div className="mt-2">
+              <Link href="/admin" className="text-neutrals-500 hover:text-white transition-colors text-xs">
+                Admin Access
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
