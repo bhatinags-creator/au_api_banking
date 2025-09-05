@@ -38,6 +38,195 @@ interface TestHistory {
   timestamp: string;
 }
 
+// Validation schemas for API endpoints
+interface FieldValidation {
+  name: string;
+  type: 'string' | 'number' | 'email' | 'phone' | 'date' | 'currency' | 'boolean' | 'account' | 'ifsc';
+  required: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  description: string;
+  example?: string;
+}
+
+interface ValidationError {
+  field: string;
+  message: string;
+}
+
+interface EndpointValidation {
+  [key: string]: FieldValidation[];
+}
+
+// Comprehensive validation schemas based on API documentation
+const validationSchemas: EndpointValidation = {
+  "upi-payout": [
+    { name: "upi_id", type: "string", required: true, maxLength: 50, description: "Valid UPI ID (e.g., user@bank)", example: "user@aubank", pattern: "^[\\w.-]+@[\\w.-]+$" },
+    { name: "amount", type: "currency", required: true, maxLength: 10, description: "Amount in INR (e.g., 1000.00)", example: "1000.00", pattern: "^\\d+\\.\\d{2}$" },
+    { name: "transaction_ref", type: "string", required: true, maxLength: 25, description: "Unique transaction reference", example: "TXN123456789" },
+    { name: "customer_mobile", type: "phone", required: true, maxLength: 10, description: "Customer mobile number", example: "9876543210", pattern: "^[6-9]\\d{9}$" },
+    { name: "remarks", type: "string", required: false, maxLength: 40, description: "Optional transaction remarks", example: "Payment for services" }
+  ],
+  "cnb-payment": [
+    { name: "uniqueRequestId", type: "string", required: true, maxLength: 20, description: "Unique Request/Reference number", example: "REQ123456789" },
+    { name: "corporateCode", type: "string", required: true, maxLength: 20, description: "Corporate code (CIF Number)", example: "CORP001" },
+    { name: "corporateProductCode", type: "string", required: true, maxLength: 50, description: "Corporate product code", example: "PROD001" },
+    { name: "paymentMethodName", type: "string", required: true, maxLength: 50, description: "Payment method: NEFT, RTGS, IMPS, Internal Fund Transfer", example: "NEFT" },
+    { name: "remitterAccountNo", type: "account", required: true, maxLength: 35, description: "Remitter Account Number", example: "1234567890123" },
+    { name: "amount", type: "currency", required: true, maxLength: 16, description: "Payable amount (format: 1000.00)", example: "1000.00", pattern: "^\\d{1,14}\\.\\d{2}$" },
+    { name: "ifscCode", type: "ifsc", required: true, maxLength: 50, description: "Beneficiary IFSC Code", example: "AUBL0002086", pattern: "^[A-Z]{4}0[A-Z0-9]{6}$" },
+    { name: "payableCurrency", type: "string", required: true, maxLength: 20, description: "Always 'INR' for Indian Rupees", example: "INR" },
+    { name: "beneAccNo", type: "account", required: true, maxLength: 35, description: "Beneficiary Account Number", example: "9876543210987" },
+    { name: "beneName", type: "string", required: true, maxLength: 200, description: "Beneficiary Name", example: "Test Beneficiary" },
+    { name: "transactionRefNo", type: "string", required: true, maxLength: 25, description: "Unique reference number for transaction", example: "TXN001" },
+    { name: "paymentInstruction", type: "string", required: true, maxLength: 314, description: "Payment narration", example: "NEFT Payment" },
+    { name: "beneCode", type: "string", required: false, maxLength: 200, description: "Beneficiary code (Optional)", example: "BENE001" },
+    { name: "valueDate", type: "date", required: false, maxLength: 8, description: "Value date (YYYYMMDD)", example: "20240115", pattern: "^\\d{8}$" },
+    { name: "remarks", type: "string", required: false, maxLength: 40, description: "Additional remarks", example: "Payment for services" },
+    { name: "email", type: "email", required: false, maxLength: 50, description: "Email for notifications", example: "test@example.com" },
+    { name: "phoneNo", type: "phone", required: false, maxLength: 200, description: "Phone number for notifications", example: "9876543210" }
+  ],
+  "bbps-bill-fetch": [
+    { name: "biller_id", type: "string", required: true, maxLength: 20, description: "BBPS Biller ID", example: "MSEDCL001" },
+    { name: "customer_params", type: "string", required: true, description: "Customer identification parameters", example: "9876543210" },
+    { name: "amount", type: "currency", required: true, description: "Bill amount", example: "500.00", pattern: "^\\d+\\.\\d{2}$" },
+    { name: "reference_id", type: "string", required: true, maxLength: 25, description: "Unique reference ID", example: "FETCH123456789" }
+  ],
+  "kyc-upload": [
+    { name: "document_type", type: "string", required: true, description: "Document type: PAN, AADHAAR, PASSPORT, VOTER_ID", example: "PAN" },
+    { name: "document_number", type: "string", required: true, maxLength: 20, description: "Document number", example: "ABCDE1234F" },
+    { name: "customer_name", type: "string", required: true, maxLength: 100, description: "Customer full name", example: "John Doe" },
+    { name: "date_of_birth", type: "date", required: true, description: "Date of birth (YYYY-MM-DD)", example: "1990-01-15", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+    { name: "mobile_number", type: "phone", required: true, description: "Mobile number", example: "9876543210", pattern: "^[6-9]\\d{9}$" },
+    { name: "email", type: "email", required: false, description: "Email address", example: "john.doe@example.com" }
+  ]
+};
+
+// Validation functions
+const validateField = (value: string, field: FieldValidation): ValidationError | null => {
+  // Check if required field is empty
+  if (field.required && (!value || value.trim() === "")) {
+    return { field: field.name, message: `${field.name} is mandatory and cannot be empty` };
+  }
+  
+  // Skip validation for empty optional fields
+  if (!field.required && (!value || value.trim() === "")) {
+    return null;
+  }
+  
+  // Length validation
+  if (field.maxLength && value.length > field.maxLength) {
+    return { field: field.name, message: `${field.name} must not exceed ${field.maxLength} characters` };
+  }
+  
+  if (field.minLength && value.length < field.minLength) {
+    return { field: field.name, message: `${field.name} must be at least ${field.minLength} characters` };
+  }
+  
+  // Type-specific validation
+  switch (field.type) {
+    case 'email':
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        return { field: field.name, message: `${field.name} must be a valid email address` };
+      }
+      break;
+      
+    case 'phone':
+      const phoneRegex = /^[6-9]\d{9}$/;
+      if (!phoneRegex.test(value)) {
+        return { field: field.name, message: `${field.name} must be a valid 10-digit Indian mobile number` };
+      }
+      break;
+      
+    case 'currency':
+      const currencyRegex = /^\d+\.\d{2}$/;
+      if (!currencyRegex.test(value)) {
+        return { field: field.name, message: `${field.name} must be in format: 1000.00` };
+      }
+      if (parseFloat(value) <= 0) {
+        return { field: field.name, message: `${field.name} must be greater than 0` };
+      }
+      break;
+      
+    case 'ifsc':
+      const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+      if (!ifscRegex.test(value)) {
+        return { field: field.name, message: `${field.name} must be a valid IFSC code (e.g., AUBL0002086)` };
+      }
+      break;
+      
+    case 'account':
+      const accountRegex = /^\d{9,18}$/;
+      if (!accountRegex.test(value)) {
+        return { field: field.name, message: `${field.name} must be a valid account number (9-18 digits)` };
+      }
+      break;
+      
+    case 'date':
+      if (field.pattern) {
+        const regex = new RegExp(field.pattern);
+        if (!regex.test(value)) {
+          return { field: field.name, message: `${field.name} must be in valid date format (${field.example})` };
+        }
+      }
+      break;
+      
+    case 'number':
+      if (isNaN(Number(value))) {
+        return { field: field.name, message: `${field.name} must be a valid number` };
+      }
+      break;
+  }
+  
+  // Pattern validation
+  if (field.pattern) {
+    const regex = new RegExp(field.pattern);
+    if (!regex.test(value)) {
+      return { field: field.name, message: `${field.name} format is invalid. Expected format: ${field.example}` };
+    }
+  }
+  
+  return null;
+};
+
+const validateRequestBody = (requestBody: string, endpointId: string): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  // Get validation schema for endpoint
+  const schema = validationSchemas[endpointId];
+  if (!schema) {
+    return errors; // No validation schema defined
+  }
+  
+  try {
+    const data = JSON.parse(requestBody);
+    
+    // Validate each field in the schema
+    schema.forEach(field => {
+      const value = data[field.name];
+      const error = validateField(value || "", field);
+      if (error) {
+        errors.push(error);
+      }
+    });
+    
+    // Check for unknown fields
+    Object.keys(data).forEach(key => {
+      const isKnownField = schema.some(field => field.name === key);
+      if (!isKnownField) {
+        errors.push({ field: key, message: `${key} is not a recognized field for this endpoint` });
+      }
+    });
+    
+  } catch (e) {
+    errors.push({ field: "JSON", message: "Invalid JSON format" });
+  }
+  
+  return errors;
+};
+
 const apiEndpoints: APIEndpoint[] = [
   {
     id: "oauth-token",
@@ -393,11 +582,27 @@ export default function Sandbox() {
   const [recentlyUsed, setRecentlyUsed] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [showValidation, setShowValidation] = useState(false);
+  
   const { toast } = useToast();
 
   useEffect(() => {
     handleEndpointChange(selectedEndpoint.id);
   }, [selectedEndpoint]);
+  
+  // Real-time validation effect
+  useEffect(() => {
+    if (requestBody.trim() && selectedEndpoint.method !== 'GET') {
+      const errors = validateRequestBody(requestBody, selectedEndpoint.id);
+      setValidationErrors(errors);
+      setShowValidation(errors.length > 0);
+    } else {
+      setValidationErrors([]);
+      setShowValidation(false);
+    }
+  }, [requestBody, selectedEndpoint]);
 
   // Navigation helpers
   const getApiGroups = () => {
@@ -527,6 +732,21 @@ export default function Sandbox() {
 
   const handleTestRequest = async () => {
     if (!selectedEndpoint) return;
+    
+    // Validate request body before sending
+    if (selectedEndpoint.method !== 'GET' && requestBody.trim()) {
+      const errors = validateRequestBody(requestBody, selectedEndpoint.id);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        setShowValidation(true);
+        toast({
+          title: "Validation Failed",
+          description: `${errors.length} validation error(s) found. Please fix them before testing.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
     
     setLoading(true);
     const startTime = Date.now();
@@ -1060,9 +1280,56 @@ export default function Sandbox() {
                           value={requestBody}
                           onChange={(e) => setRequestBody(e.target.value)}
                           rows={12}
-                          className="font-mono text-sm"
+                          className={`font-mono text-sm ${showValidation && validationErrors.length > 0 ? 'border-red-500' : ''}`}
                           data-testid="textarea-request-body"
                         />
+                        
+                        {/* Validation Errors Display */}
+                        {showValidation && validationErrors.length > 0 && (
+                          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                            <div className="flex items-center mb-2">
+                              <AlertCircle className="w-4 h-4 text-red-600 mr-2" />
+                              <span className="text-sm font-medium text-red-800">
+                                Validation Errors ({validationErrors.length})
+                              </span>
+                            </div>
+                            <ul className="space-y-1">
+                              {validationErrors.map((error, index) => (
+                                <li key={index} className="text-sm text-red-700 flex items-start">
+                                  <span className="font-mono text-red-600 mr-2">{error.field}:</span>
+                                  <span>{error.message}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Field Documentation Helper */}
+                        {validationSchemas[selectedEndpoint.id] && (
+                          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                            <div className="flex items-center mb-2">
+                              <AlertCircle className="w-4 h-4 text-blue-600 mr-2" />
+                              <span className="text-sm font-medium text-blue-800">
+                                Field Requirements
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2 text-xs">
+                              {validationSchemas[selectedEndpoint.id].map((field, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                                  <div className="flex items-center">
+                                    <span className={`font-mono mr-2 ${field.required ? 'text-red-600' : 'text-blue-600'}`}>
+                                      {field.name}
+                                    </span>
+                                    <Badge variant={field.required ? "destructive" : "secondary"} className="text-xs">
+                                      {field.required ? "Required" : "Optional"}
+                                    </Badge>
+                                  </div>
+                                  <span className="text-gray-600">{field.type}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
 
