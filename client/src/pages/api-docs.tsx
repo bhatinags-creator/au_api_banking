@@ -2104,13 +2104,13 @@ export default function APIDocs() {
                                     y: shouldReduceMotion ? 0 : -4,
                                     transition: { duration: 0.2 }
                                   }}
-                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group flex flex-col"
+                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden"
                                   style={{ height: '280px' }}
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
-                                  <div className="p-6 flex-grow">
-                                    <div className="flex items-start justify-between mb-4">
-                                      <div className="flex-1">
+                                  <div className="p-6 flex-grow overflow-hidden">
+                                    <div className="flex items-start justify-between mb-4 h-full">
+                                      <div className="flex-1 min-w-0 overflow-hidden">
                                         <div className="flex items-center gap-2 mb-2">
                                           <Badge 
                                             className={`text-xs font-semibold border-0 px-2.5 py-1 ${
@@ -2124,17 +2124,17 @@ export default function APIDocs() {
                                             {endpoint.method}
                                           </Badge>
                                         </div>
-                                        <h4 className="font-semibold text-lg text-neutrals-800 group-hover:text-[var(--au-primary-700)] transition-colors mb-2">
+                                        <h4 className="font-semibold text-lg text-neutrals-800 group-hover:text-[var(--au-primary-700)] transition-colors mb-2 truncate">
                                           {endpoint.title}
                                         </h4>
-                                        <code className="text-sm text-neutrals-600 bg-neutrals-50 px-2 py-1 rounded font-mono block mb-3 truncate">
+                                        <code className="text-sm text-neutrals-600 bg-neutrals-50 px-2 py-1 rounded font-mono block mb-3 truncate max-w-full overflow-hidden">
                                           {endpoint.path}
                                         </code>
-                                        <p className="text-sm text-neutrals-600 line-clamp-2">
+                                        <p className="text-sm text-neutrals-600 line-clamp-2 overflow-hidden">
                                           {endpoint.description}
                                         </p>
                                       </div>
-                                      <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0 self-center" />
+                                      <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0 self-start mt-1" />
                                     </div>
                                   </div>
                                   
