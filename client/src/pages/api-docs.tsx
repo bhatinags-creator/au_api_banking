@@ -2107,7 +2107,7 @@ export default function APIDocs() {
                                   className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group h-full flex flex-col min-h-[280px]"
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
-                                  <div className="p-6 flex-1 flex flex-col">
+                                  <div className="p-6 pb-20 relative h-full">
                                     <div className="flex items-start justify-between mb-4">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
@@ -2136,7 +2136,7 @@ export default function APIDocs() {
                                       <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0" />
                                     </div>
                                     
-                                    <div className="mt-auto pt-4 border-t border-neutrals-100">
+                                    <div className="absolute bottom-0 left-0 right-0 p-6 pt-4 border-t border-neutrals-100 bg-white">
                                       <div className="flex items-center justify-between h-8">
                                         <div className="flex items-center gap-3 text-xs text-neutrals-500">
                                           {endpoint.security && (
