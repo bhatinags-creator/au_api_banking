@@ -2104,10 +2104,11 @@ export default function APIDocs() {
                                     y: shouldReduceMotion ? 0 : -4,
                                     transition: { duration: 0.2 }
                                   }}
-                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group h-full flex flex-col min-h-[280px]"
+                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                                  style={{ display: 'grid', gridTemplateRows: '1fr auto', minHeight: '280px' }}
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
-                                  <div className="p-6 pb-20 relative h-full">
+                                  <div className="p-6">
                                     <div className="flex items-start justify-between mb-4">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
@@ -2135,38 +2136,38 @@ export default function APIDocs() {
                                       </div>
                                       <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0" />
                                     </div>
-                                    
-                                    <div className="absolute bottom-0 left-0 right-0 p-6 pt-4 border-t border-neutrals-100 bg-white">
-                                      <div className="flex items-center justify-between h-8">
-                                        <div className="flex items-center gap-3 text-xs text-neutrals-500">
-                                          {endpoint.security && (
-                                            <div className="flex items-center gap-1.5">
-                                              <Shield className="w-3.5 h-3.5" />
-                                              <span className="font-medium">Secured</span>
-                                            </div>
-                                          )}
-                                          {endpoint.parameters && endpoint.parameters.length > 0 && (
-                                            <div className="flex items-center gap-1.5">
-                                              <Settings className="w-3.5 h-3.5" />
-                                              <span className="font-medium">{endpoint.parameters.length} param{endpoint.parameters.length !== 1 ? 's' : ''}</span>
-                                            </div>
-                                          )}
-                                          {(!endpoint.security && (!endpoint.parameters || endpoint.parameters.length === 0)) && (
-                                            <span className="text-neutrals-400 italic">No requirements</span>
-                                          )}
-                                        </div>
-                                        <Button 
-                                          size="sm" 
-                                          variant="ghost"
-                                          className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-8 px-3 font-medium shrink-0"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedEndpoint(endpoint.id);
-                                          }}
-                                        >
-                                          View Docs
-                                        </Button>
+                                  </div>
+                                  
+                                  <div className="px-6 pb-6 pt-4 border-t border-neutrals-100">
+                                    <div className="flex items-center justify-between h-8">
+                                      <div className="flex items-center gap-3 text-xs text-neutrals-500">
+                                        {endpoint.security && (
+                                          <div className="flex items-center gap-1.5">
+                                            <Shield className="w-3.5 h-3.5" />
+                                            <span className="font-medium">Secured</span>
+                                          </div>
+                                        )}
+                                        {endpoint.parameters && endpoint.parameters.length > 0 && (
+                                          <div className="flex items-center gap-1.5">
+                                            <Settings className="w-3.5 h-3.5" />
+                                            <span className="font-medium">{endpoint.parameters.length} param{endpoint.parameters.length !== 1 ? 's' : ''}</span>
+                                          </div>
+                                        )}
+                                        {(!endpoint.security && (!endpoint.parameters || endpoint.parameters.length === 0)) && (
+                                          <span className="text-neutrals-400 italic">No requirements</span>
+                                        )}
                                       </div>
+                                      <Button 
+                                        size="sm" 
+                                        variant="ghost"
+                                        className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-8 px-3 font-medium shrink-0"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedEndpoint(endpoint.id);
+                                        }}
+                                      >
+                                        View Docs
+                                      </Button>
                                     </div>
                                   </div>
                                 </motion.div>
