@@ -1718,7 +1718,7 @@ export default function APIDocs() {
                 animate="animate"
                 exit="exit"
               >
-            <div className="max-w-4xl">
+            <div className="w-full max-w-6xl mx-auto">
               <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-2xl border border-[var(--au-primary)]/10">
                 <h1 className="text-4xl font-bold text-[var(--au-primary-700)] mb-6">
                   Welcome to AU Bank API Banking Portal!
@@ -1879,7 +1879,7 @@ export default function APIDocs() {
                 animate="animate"
                 exit="exit"
               >
-            <div className="max-w-6xl">
+            <div className="w-full max-w-6xl mx-auto">
               <div className="bg-white rounded-lg shadow-sm">
                 <div className="p-8 border-b">
                   {/* Back Button */}
