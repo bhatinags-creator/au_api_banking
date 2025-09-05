@@ -1690,7 +1690,8 @@ export default function APIDocs() {
 
                     <TabsContent value="examples" className="mt-6">
                       <div className="space-y-6">
-                        {currentEndpoint.examples.map((example, index) => (
+                        {currentEndpoint.examples && currentEndpoint.examples.length > 0 ? (
+                          currentEndpoint.examples.map((example, index) => (
                           <div key={index}>
                             <h3 className="text-xl font-semibold mb-4">{example.title}</h3>
                             
@@ -1748,7 +1749,13 @@ export default function APIDocs() {
                               </div>
                             )}
                           </div>
-                        ))}
+                        ))
+                        ) : (
+                          <div className="text-center py-8 text-neutrals-500">
+                            <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                            <p>No examples available for this endpoint</p>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
 
