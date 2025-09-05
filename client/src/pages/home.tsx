@@ -289,10 +289,12 @@ export default function Home() {
 
             {/* Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                Sign Up
-              </Button>
-              <Button size="sm" className="bg-primary hover:bg-primary/90">
+              <Link href="/signup">
+                <Button variant="outline" size="sm" data-testid="button-signup">
+                  Sign Up
+                </Button>
+              </Link>
+              <Button size="sm" className="bg-primary hover:bg-primary/90" data-testid="button-signin">
                 Sign In
               </Button>
             </div>
@@ -319,8 +321,10 @@ export default function Home() {
               <a href="#" className="block text-neutrals-700 hover:text-primary">Strategic Partners</a>
               <a href="#" className="block text-neutrals-700 hover:text-primary">FAQ</a>
               <div className="flex space-x-4 pt-4">
-                <Button variant="outline" size="sm" className="flex-1">Sign Up</Button>
-                <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90">Sign In</Button>
+                <Link href="/signup" className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full" data-testid="mobile-button-signup">Sign Up</Button>
+                </Link>
+                <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90" data-testid="mobile-button-signin">Sign In</Button>
               </div>
             </div>
           </div>
@@ -541,9 +545,11 @@ export default function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <button className="au-btn au-btn-primary">
-              SIGN UP
-            </button>
+            <Link href="/signup">
+              <button className="au-btn au-btn-primary" data-testid="button-signup-process">
+                SIGN UP
+              </button>
+            </Link>
           </div>
         </div>
       </section>
