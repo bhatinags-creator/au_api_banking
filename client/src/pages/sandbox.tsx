@@ -687,9 +687,6 @@ export default function Sandbox() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-neutrals-900 dark:text-neutrals-50">
-                API Testing Playground
-              </h1>
               <p className="text-neutrals-600 dark:text-neutrals-400">
                 Test and explore AU Bank APIs in a safe sandbox environment
               </p>
