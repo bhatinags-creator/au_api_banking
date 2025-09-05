@@ -1280,7 +1280,7 @@ export default function Sandbox() {
                           value={requestBody}
                           onChange={(e) => setRequestBody(e.target.value)}
                           rows={12}
-                          className={`font-mono text-sm ${showValidation && validationErrors.length > 0 ? 'border-red-500' : ''}`}
+                          className={`font-mono text-sm ${showValidation && validationErrors.length > 0 ? 'border-[var(--au-primary)]' : ''}`}
                           data-testid="textarea-request-body"
                         />
                         
@@ -1296,7 +1296,7 @@ export default function Sandbox() {
                             <ul className="space-y-1">
                               {validationErrors.map((error, index) => (
                                 <li key={index} className="text-sm text-red-700 flex items-start">
-                                  <span className="font-mono text-red-600 mr-2">{error.field}:</span>
+                                  <span className="font-mono text-[var(--au-primary)] mr-2">{error.field}:</span>
                                   <span>{error.message}</span>
                                 </li>
                               ))}
@@ -1306,25 +1306,28 @@ export default function Sandbox() {
                         
                         {/* Field Documentation Helper */}
                         {validationSchemas[selectedEndpoint.id] && (
-                          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="mt-4 p-3 bg-[var(--au-bg-soft-1)] border border-[var(--au-primary-200)] rounded-md">
                             <div className="flex items-center mb-2">
-                              <AlertCircle className="w-4 h-4 text-blue-600 mr-2" />
-                              <span className="text-sm font-medium text-blue-800">
+                              <AlertCircle className="w-4 h-4 text-[var(--au-primary)] mr-2" />
+                              <span className="text-sm font-medium text-[var(--au-primary-700)]">
                                 Field Requirements
                               </span>
                             </div>
                             <div className="grid grid-cols-1 gap-2 text-xs">
                               {validationSchemas[selectedEndpoint.id].map((field, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                                <div key={index} className="flex items-center justify-between p-2 bg-white rounded border border-[var(--au-primary-100)]">
                                   <div className="flex items-center">
-                                    <span className={`font-mono mr-2 ${field.required ? 'text-red-600' : 'text-blue-600'}`}>
+                                    <span className={`font-mono mr-2 ${field.required ? 'text-[var(--au-primary)]' : 'text-[var(--au-primary-500)]'}`}>
                                       {field.name}
                                     </span>
-                                    <Badge variant={field.required ? "destructive" : "secondary"} className="text-xs">
+                                    <Badge 
+                                      variant={field.required ? "default" : "secondary"} 
+                                      className={`text-xs ${field.required ? 'bg-[var(--au-primary)] text-white' : 'bg-[var(--au-bg-soft-2)] text-[var(--au-primary-600)]'}`}
+                                    >
                                       {field.required ? "Required" : "Optional"}
                                     </Badge>
                                   </div>
-                                  <span className="text-gray-600">{field.type}</span>
+                                  <span className="text-[var(--au-primary-600)]">{field.type}</span>
                                 </div>
                               ))}
                             </div>
