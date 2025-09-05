@@ -131,6 +131,23 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Filter APIs based on search query
+  const filteredApiCategories = apiCategories.filter(category =>
+    searchQuery === "" || 
+    category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    category.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredFeaturedApis = featuredApis.filter(api =>
+    searchQuery === "" ||
+    api.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    api.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    api.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const hasSearchResults = searchQuery !== "" && (filteredApiCategories.length > 0 || filteredFeaturedApis.length > 0);
+  const showNoResults = searchQuery !== "" && filteredApiCategories.length === 0 && filteredFeaturedApis.length === 0;
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
@@ -221,6 +238,11 @@ export default function Home() {
               placeholder="Search APIs by Name, Description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchQuery) {
+                document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
               className="pl-10 text-sm"
               data-testid="input-search-apis"
             />
@@ -427,82 +449,203 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Search Results */}
+      {searchQuery && (
+        <section id="search-results" className="py-12 bg-gradient-to-b from-yellow-50 to-white border-t-2 border-yellow-200">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-[var(--au-primary-700)] mb-4">
+                Search Results for "{searchQuery}"
+              </h2>
+              {hasSearchResults && (
+                <p className="text-lg text-neutrals-600">
+                  Found {filteredApiCategories.length + filteredFeaturedApis.length} result{filteredApiCategories.length + filteredFeaturedApis.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+            
+            {showNoResults && (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-12 h-12 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">No results found</h3>
+                <p className="text-gray-500 mb-6">Try searching with different keywords like "payment", "authentication", or "banking"</p>
+                <Button 
+                  onClick={() => setSearchQuery("")}
+                  variant="outline" 
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
+                >
+                  Clear Search
+                </Button>
+              </div>
+            )}
+            
+            {/* API Categories Results */}
+            {filteredApiCategories.length > 0 && (
+              <div className="mb-12">
+                <h3 className="text-xl font-bold text-[var(--au-primary-700)] mb-6">API Categories</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredApiCategories.map((category, index) => {
+                    const IconComponent = category.icon;
+                    return (
+                      <Card key={index} className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-yellow-200 bg-yellow-50/50 backdrop-blur-sm hover:bg-white hover:-translate-y-1">
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                              <IconComponent className={`w-7 h-7 ${category.color}`} />
+                            </div>
+                            <CardTitle className="text-lg font-bold text-neutrals-800">{category.title}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-neutrals-600 leading-relaxed text-sm">
+                            {category.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
+            {/* Featured APIs Results */}
+            {filteredFeaturedApis.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold text-[var(--au-primary-700)] mb-6">Individual APIs</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredFeaturedApis.map((api, index) => {
+                    const IconComponent = api.icon;
+                    return (
+                      <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-2 border-yellow-200 bg-yellow-50/50 backdrop-blur-sm hover:bg-white hover:-translate-y-1">
+                        <CardHeader className="pb-4">
+                          <div className="flex items-start gap-4">
+                            <div className="w-14 h-14 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <IconComponent className={`w-7 h-7 ${api.color}`} />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg font-bold mb-2 text-neutrals-800">{api.title}</CardTitle>
+                              <Badge variant="secondary" className="text-xs px-2 py-1 bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] border-0">
+                                {api.category}
+                              </Badge>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-neutrals-600 leading-relaxed text-sm">
+                            {api.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
+            {hasSearchResults && (
+              <div className="text-center mt-8">
+                <Button 
+                  onClick={() => setSearchQuery("")}
+                  variant="outline" 
+                  className="border-primary text-primary hover:bg-primary hover:text-white mr-4"
+                >
+                  Clear Search
+                </Button>
+                <Button 
+                  size="lg" 
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => document.getElementById('apis')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Browse All APIs
+                </Button>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Available APIs */}
-      <section id="apis" className="py-20 bg-gradient-to-b from-[var(--au-bg-soft-2)]/20 to-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-[var(--au-primary-700)] mb-6">Available APIs</h2>
-            <p className="text-lg text-neutrals-600 max-w-3xl mx-auto">Discover our comprehensive suite of banking APIs designed to power your financial applications</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {apiCategories.map((category, index) => {
-              const IconComponent = category.icon;
-              return (
-                <Card key={index} className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-2">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <IconComponent className={`w-8 h-8 ${category.color}`} />
+      {!searchQuery && (
+        <section id="apis" className="py-20 bg-gradient-to-b from-[var(--au-bg-soft-2)]/20 to-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold text-[var(--au-primary-700)] mb-6">Available APIs</h2>
+              <p className="text-lg text-neutrals-600 max-w-3xl mx-auto">Discover our comprehensive suite of banking APIs designed to power your financial applications</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {apiCategories.map((category, index) => {
+                const IconComponent = category.icon;
+                return (
+                  <Card key={index} className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-2">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                          <IconComponent className={`w-8 h-8 ${category.color}`} />
+                        </div>
+                        <CardTitle className="text-xl font-bold text-neutrals-800">{category.title}</CardTitle>
                       </div>
-                      <CardTitle className="text-xl font-bold text-neutrals-800">{category.title}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-neutrals-600 leading-relaxed text-base">
-                      {category.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-neutrals-600 leading-relaxed text-base">
+                        {category.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            
+            <div className="text-center mt-12">
+              <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                BROWSE ALL APIs
+              </Button>
+            </div>
           </div>
-          
-          <div className="text-center mt-12">
-            <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-              BROWSE ALL APIs
-            </Button>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Featured APIs */}
-      <section className="py-20 bg-gradient-to-r from-white via-[var(--au-bg-soft-3)]/10 to-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-[var(--au-primary-700)] mb-6">Featured APIs</h2>
-            <p className="text-lg text-neutrals-600 max-w-3xl mx-auto">Our most popular and powerful APIs trusted by leading fintech companies</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {featuredApis.map((api, index) => {
-              const IconComponent = api.icon;
-              return (
-                <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white hover:-translate-y-1">
-                  <CardHeader className="pb-6">
-                    <div className="flex items-start gap-6">
-                      <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                        <IconComponent className={`w-8 h-8 ${api.color}`} />
+      {!searchQuery && (
+        <section className="py-20 bg-gradient-to-r from-white via-[var(--au-bg-soft-3)]/10 to-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold text-[var(--au-primary-700)] mb-6">Featured APIs</h2>
+              <p className="text-lg text-neutrals-600 max-w-3xl mx-auto">Our most popular and powerful APIs trusted by leading fintech companies</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {featuredApis.map((api, index) => {
+                const IconComponent = api.icon;
+                return (
+                  <Card key={index} className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white hover:-translate-y-1">
+                    <CardHeader className="pb-6">
+                      <div className="flex items-start gap-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                          <IconComponent className={`w-8 h-8 ${api.color}`} />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl font-bold mb-3 text-neutrals-800">{api.title}</CardTitle>
+                          <Badge variant="secondary" className="text-sm px-3 py-1 bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] border-0">
+                            {api.category}
+                          </Badge>
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle className="text-xl font-bold mb-3 text-neutrals-800">{api.title}</CardTitle>
-                        <Badge variant="secondary" className="text-sm px-3 py-1 bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] border-0">
-                          {api.category}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-neutrals-600 leading-relaxed text-base">
-                      {api.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-neutrals-600 leading-relaxed text-base">
+                        {api.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-[var(--au-primary-900)] via-[var(--au-primary-700)] to-[var(--au-primary-900)] text-white py-16">
