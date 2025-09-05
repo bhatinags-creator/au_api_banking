@@ -12,6 +12,7 @@ import Analytics from "@/pages/analytics";
 import CorporateRegistration from "@/pages/corporate-registration";
 import SignUp from "@/pages/signup";
 import SignIn from "@/pages/signin";
+import ColorPalette from "@/pages/color-palette";
 import AdminPanel from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/register" component={CorporateRegistration} />
       <Route path="/signup" component={SignUp} />
       <Route path="/signin" component={SignIn} />
+      <Route path="/color-palette" component={ColorPalette} />
       <Route path="/admin" component={AdminPanel} />
       <Route component={NotFound} />
     </Switch>

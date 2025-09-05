@@ -25,7 +25,9 @@ import {
   Banknote,
   FileCheck,
   Target,
-  Clock
+  Clock,
+  Palette,
+  Settings
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -804,6 +806,114 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Developer Tools */}
+      <section className="py-20 bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-50" style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.05%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"}}></div>
+        <div className="container mx-auto px-4 relative">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Developer Tools</h2>
+            <p className="text-lg text-purple-100 max-w-3xl mx-auto">
+              Professional tools and utilities designed to enhance your development experience with AU Bank APIs
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Color Palette Generator */}
+            <Card className="group hover:shadow-2xl transition-all duration-300 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:-translate-y-1">
+              <CardHeader className="pb-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Palette className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-bold text-white">Color Palette Generator</CardTitle>
+                    <Badge className="text-xs px-2 py-1 bg-purple-500/20 text-purple-100 border-purple-400/30 mt-1">
+                      Brand Tool
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-purple-100 leading-relaxed text-base mb-6">
+                  Create beautiful, brand-consistent color schemes based on AU Bank's design system. Generate palettes with accessibility compliance and export in multiple formats.
+                </p>
+                <Link href="/color-palette">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                    data-testid="button-color-palette"
+                  >
+                    <Palette className="w-4 h-4 mr-2" />
+                    Try Color Generator
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* API Sandbox */}
+            <Card className="group hover:shadow-2xl transition-all duration-300 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:-translate-y-1">
+              <CardHeader className="pb-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Code className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-bold text-white">API Sandbox</CardTitle>
+                    <Badge className="text-xs px-2 py-1 bg-blue-500/20 text-blue-100 border-blue-400/30 mt-1">
+                      Testing Tool
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-purple-100 leading-relaxed text-base mb-6">
+                  Interactive testing environment with beautiful visual interfaces for all AU Bank APIs. Test endpoints, validate data, and explore API functionality.
+                </p>
+                <Link href="/sandbox">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                    data-testid="button-sandbox"
+                  >
+                    <Code className="w-4 h-4 mr-2" />
+                    Open Sandbox
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Admin Panel */}
+            <Card className="group hover:shadow-2xl transition-all duration-300 bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:-translate-y-1">
+              <CardHeader className="pb-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Settings className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-bold text-white">Admin Panel</CardTitle>
+                    <Badge className="text-xs px-2 py-1 bg-emerald-500/20 text-emerald-100 border-emerald-400/30 mt-1">
+                      Management
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-purple-100 leading-relaxed text-base mb-6">
+                  Comprehensive API configuration and management interface. Configure endpoints, manage parameters, and control access with advanced admin controls.
+                </p>
+                <Link href="/admin">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                    data-testid="button-admin"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Admin Access
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-[var(--au-primary-900)] via-[var(--au-primary-700)] to-[var(--au-primary-900)] text-white py-16">
