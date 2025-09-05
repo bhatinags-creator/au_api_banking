@@ -977,18 +977,7 @@ export default function Sandbox() {
           </div>
         )}
 
-        {/* Header for test view - Only show badge */}
-        {currentView === "test" && (
-          <div className="flex justify-end mb-8">
-            <Badge 
-              className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
-            >
-              Sandbox Environment
-            </Badge>
-          </div>
-        )}
-
-        {/* Conditional Rendering Based on Current View */}
+        {/* Main Content */}
         {currentView === "groups" && (
           <div className="space-y-6">
             {/* API Groups Header */}
@@ -1172,6 +1161,7 @@ export default function Sandbox() {
                       variant="ghost" 
                       size="sm"
                       onClick={handleBackToApis}
+                      className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
                       data-testid="button-back-to-apis"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
