@@ -559,10 +559,38 @@ export default function AdminPanel() {
                 <CardTitle>Documentation Management</CardTitle>
                 <CardDescription>Manage API documentation and developer guides</CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  Documentation management interface coming soon...
-                </p>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="docs-title">Documentation Title</Label>
+                  <Input
+                    id="docs-title"
+                    defaultValue="AU Bank API Documentation"
+                    placeholder="Enter documentation title"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="docs-description">Description</Label>
+                  <Textarea
+                    id="docs-description"
+                    defaultValue="Comprehensive API documentation for AU Small Finance Bank's developer portal"
+                    placeholder="Enter documentation description"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="enable-search" defaultChecked className="rounded" />
+                  <Label htmlFor="enable-search">Enable search functionality</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="enable-examples" defaultChecked className="rounded" />
+                  <Label htmlFor="enable-examples">Show code examples</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="enable-testing" defaultChecked className="rounded" />
+                  <Label htmlFor="enable-testing">Enable API testing</Label>
+                </div>
+                <Button className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+                  Save Documentation Settings
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -574,10 +602,50 @@ export default function AdminPanel() {
                 <CardTitle>Sandbox Configuration</CardTitle>
                 <CardDescription>Configure sandbox environment and testing parameters</CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  Sandbox configuration interface coming soon...
-                </p>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="sandbox-url">Sandbox Base URL</Label>
+                    <Input
+                      id="sandbox-url"
+                      defaultValue="https://sandbox-api.aubank.in"
+                      placeholder="Enter sandbox URL"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="rate-limit">Rate Limit (requests/minute)</Label>
+                    <Input
+                      id="rate-limit"
+                      type="number"
+                      defaultValue="100"
+                      placeholder="100"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="test-data">Test Data Configuration</Label>
+                  <Textarea
+                    id="test-data"
+                    rows={4}
+                    defaultValue='{\n  "testAccounts": ["123456789", "987654321"],\n  "testAmounts": [100, 500, 1000]\n}'
+                    placeholder="Configure test data in JSON format"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="enable-logging" defaultChecked className="rounded" />
+                  <Label htmlFor="enable-logging">Enable detailed logging</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="mock-responses" defaultChecked className="rounded" />
+                  <Label htmlFor="mock-responses">Use mock responses</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="sandbox-reset" className="rounded" />
+                  <Label htmlFor="sandbox-reset">Auto-reset sandbox daily</Label>
+                </div>
+                <Button className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+                  Save Sandbox Settings
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
