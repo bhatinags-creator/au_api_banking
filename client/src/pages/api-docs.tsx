@@ -2092,7 +2092,7 @@ export default function APIDocs() {
                               </h3>
                             )}
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
                               {endpoints.map((endpoint, index) => (
                                 <motion.div
                                   key={endpoint.id}
@@ -2104,7 +2104,7 @@ export default function APIDocs() {
                                     y: shouldReduceMotion ? 0 : -4,
                                     transition: { duration: 0.2 }
                                   }}
-                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group h-full flex flex-col"
+                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group h-full flex flex-col min-h-[280px]"
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
                                   <div className="p-6 flex-1 flex flex-col">
