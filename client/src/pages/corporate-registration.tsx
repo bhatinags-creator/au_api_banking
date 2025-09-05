@@ -106,22 +106,22 @@ export default function CorporateRegistration() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--au-bg-soft-1)] to-white dark:from-gray-900 dark:to-gray-800 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+          <Link href="/" className="inline-flex items-center text-sm text-[var(--au-primary)] hover:text-[var(--au-primary-700)] dark:text-blue-400 dark:hover:text-blue-300">
             <ArrowLeft className="w-4 h-4 mr-1" />
             Back to Home
           </Link>
         </div>
 
         <Card className="shadow-lg">
-          <CardHeader className="bg-blue-600 text-white rounded-t-lg">
+          <CardHeader className="bg-[var(--au-primary)] text-white rounded-t-lg">
             <CardTitle className="text-2xl font-bold flex items-center">
               <Building2 className="w-6 h-6 mr-2" />
               Corporate API Access Registration
             </CardTitle>
-            <CardDescription className="text-blue-100">
+            <CardDescription className="text-purple-100">
               Register your company to get API access for AU Small Finance Bank services
             </CardDescription>
           </CardHeader>

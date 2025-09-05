@@ -18,10 +18,10 @@ const categoryIcons = {
 };
 
 const categoryColors = {
-  auth: "bg-orange-100 text-orange-600",
-  accounts: "bg-blue-100 text-blue-600",
-  payments: "bg-green-100 text-green-600", 
-  kyc: "bg-purple-100 text-purple-600",
+  auth: "bg-[var(--au-bg-soft-1)] text-[var(--au-primary-700)]",
+  accounts: "bg-[var(--au-bg-soft-2)] text-[var(--au-primary)]",
+  payments: "bg-[var(--au-bg-soft-3)] text-[var(--au-primary-700)]", 
+  kyc: "bg-purple-100 text-[var(--au-primary)]",
 };
 
 export default function ApiExplorer() {

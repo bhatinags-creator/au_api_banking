@@ -20,9 +20,9 @@ const mockUsageData = [
 ];
 
 const mockApiDistribution = [
-  { name: "Accounts API", value: 45, color: "#3B82F6" },
-  { name: "Payments API", value: 35, color: "#10B981" },
-  { name: "KYC API", value: 20, color: "#8B5CF6" },
+  { name: "Accounts API", value: 45, color: "#603078" },
+  { name: "Payments API", value: 35, color: "#4d2661" },
+  { name: "KYC API", value: 20, color: "#3a1d49" },
 ];
 
 const mockTopDevelopers = [
@@ -83,7 +83,7 @@ export default function Analytics() {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary-blue" data-testid="value-total-requests">
+              <div className="text-2xl font-bold text-[var(--au-primary)]" data-testid="value-total-requests">
                 {totalRequests.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -98,7 +98,7 @@ export default function Analytics() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-secondary-green" data-testid="value-avg-requests">
+              <div className="text-2xl font-bold text-[var(--au-accent)]" data-testid="value-avg-requests">
                 {avgRequestsPerDay}
               </div>
               <p className="text-xs text-muted-foreground">

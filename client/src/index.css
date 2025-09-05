@@ -4,10 +4,10 @@
 @tailwind utilities;
 
 :root {
-  /* AU Bank Theme Variables */
-  --au-primary: #89338f;
-  --au-primary-700: #4f1d4e;
-  --au-primary-900: #291127;
+  /* AU Bank Theme Variables - Official Brand Colors */
+  --au-primary: #603078;
+  --au-primary-700: #4d2661;
+  --au-primary-900: #3a1d49;
   --au-surface: #fefefe;
   --au-bg-soft-1: #e7c9de;
   --au-bg-soft-2: #e7d8ef;
