@@ -294,9 +294,11 @@ export default function Home() {
                   Sign Up
                 </Button>
               </Link>
-              <Button size="sm" className="bg-primary hover:bg-primary/90" data-testid="button-signin">
-                Sign In
-              </Button>
+              <Link href="/signin">
+                <Button size="sm" className="bg-primary hover:bg-primary/90" data-testid="button-signin">
+                  Sign In
+                </Button>
+              </Link>
             </div>
             
             {/* Mobile Menu Button */}
@@ -324,7 +326,9 @@ export default function Home() {
                 <Link href="/signup" className="flex-1">
                   <Button variant="outline" size="sm" className="w-full" data-testid="mobile-button-signup">Sign Up</Button>
                 </Link>
-                <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90" data-testid="mobile-button-signin">Sign In</Button>
+                <Link href="/signin" className="flex-1">
+                  <Button size="sm" className="w-full bg-primary hover:bg-primary/90" data-testid="mobile-button-signin">Sign In</Button>
+                </Link>
               </div>
             </div>
           </div>
