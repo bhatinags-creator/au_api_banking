@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Copy, 
   ChevronDown, 
@@ -1277,7 +1278,8 @@ export default function APIDocs() {
   const currentEndpoint = getCurrentEndpoint();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[var(--au-bg-soft-1)] via-white to-[var(--au-bg-soft-2)]">
+    <TooltipProvider>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--au-bg-soft-1)] via-white to-[var(--au-bg-soft-2)]">
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-sm border-b border-[var(--au-primary)]/10 shadow-lg">
         <div className="container mx-auto px-4">
@@ -2094,20 +2096,21 @@ export default function APIDocs() {
                             
                             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
                               {endpoints.map((endpoint, index) => (
-                                <motion.div
-                                  key={endpoint.id}
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: index * 0.1, duration: 0.3 }}
-                                  whileHover={{ 
-                                    scale: shouldReduceMotion ? 1 : 1.02,
-                                    y: shouldReduceMotion ? 0 : -4,
-                                    transition: { duration: 0.2 }
-                                  }}
-                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden"
-                                  style={{ height: '280px' }}
-                                  onClick={() => setSelectedEndpoint(endpoint.id)}
-                                >
+                                <Tooltip key={endpoint.id}>
+                                  <TooltipTrigger asChild>
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ delay: index * 0.1, duration: 0.3 }}
+                                      whileHover={{ 
+                                        scale: shouldReduceMotion ? 1 : 1.02,
+                                        y: shouldReduceMotion ? 0 : -4,
+                                        transition: { duration: 0.2 }
+                                      }}
+                                      className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden"
+                                      style={{ height: '280px' }}
+                                      onClick={() => setSelectedEndpoint(endpoint.id)}
+                                    >
                                   <div className="p-6 flex-grow overflow-hidden">
                                     <div className="flex items-start justify-between mb-4 h-full">
                                       <div className="flex-1 min-w-0 overflow-hidden">
@@ -2170,7 +2173,15 @@ export default function APIDocs() {
                                       </Button>
                                     </div>
                                   </div>
-                                </motion.div>
+                                    </motion.div>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" align="center" className="max-w-sm">
+                                    <div className="text-xs">
+                                      <div className="font-semibold mb-1">{endpoint.method} {endpoint.title}</div>
+                                      <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">{endpoint.path}</code>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
                               ))}
                             </div>
                           </motion.div>
@@ -2185,5 +2196,6 @@ export default function APIDocs() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
