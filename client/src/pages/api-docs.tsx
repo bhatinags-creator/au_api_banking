@@ -2092,7 +2092,7 @@ export default function APIDocs() {
                               </h3>
                             )}
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-6">
                               {endpoints.map((endpoint, index) => (
                                 <motion.div
                                   key={endpoint.id}
@@ -2138,7 +2138,7 @@ export default function APIDocs() {
                                           {endpoint.description}
                                         </p>
                                       </div>
-                                      <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0" />
+                                      <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0 self-center" />
                                     </div>
                                   </div>
                                   
