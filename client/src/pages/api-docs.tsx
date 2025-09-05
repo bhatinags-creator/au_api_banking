@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1083,6 +1084,61 @@ export default function APIDocs() {
     confirmPassword: ""
   });
   const { toast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
+
+  // Animation variants
+  const sidebarItemVariants = {
+    initial: { scale: 1, opacity: 0.8 },
+    hover: { 
+      scale: shouldReduceMotion ? 1 : 1.02, 
+      transition: { duration: 0.2, ease: "easeOut" }
+    },
+    tap: { 
+      scale: shouldReduceMotion ? 1 : 0.98, 
+      transition: { duration: 0.1 }
+    },
+    selected: {
+      scale: 1,
+      opacity: 1,
+      transition: { duration: 0.3, ease: "easeOut" }
+    }
+  };
+
+  const subcategoryVariants = {
+    hidden: { 
+      opacity: 0, 
+      height: 0, 
+      transition: { duration: 0.3, ease: "easeInOut" }
+    },
+    visible: { 
+      opacity: 1, 
+      height: "auto", 
+      transition: { duration: 0.4, ease: "easeOut", staggerChildren: 0.05 }
+    }
+  };
+
+  const endpointVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { 
+      opacity: 1, 
+      x: 0, 
+      transition: { duration: 0.3, ease: "easeOut" }
+    }
+  };
+
+  const contentVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { duration: 0.4, ease: "easeOut" }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20, 
+      transition: { duration: 0.2, ease: "easeIn" }
+    }
+  };
 
   const toggleCategory = (categoryId: string) => {
     setOpenCategories(prev => 
@@ -1251,169 +1307,247 @@ export default function APIDocs() {
         <div className="w-64 bg-white/95 backdrop-blur-sm border-r border-[var(--au-primary)]/10 h-screen overflow-y-auto sticky top-0 shadow-xl">
           <div className="p-4">
             <div className="space-y-1">
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "introduction" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "introduction" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("introduction");
                   setSelectedEndpoint(null);
                 }}
               >
                 Introduction
-              </div>
+              </motion.div>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "security" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "security" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("security");
                   setSelectedEndpoint(null);
                 }}
               >
                 Security
-              </div>
+              </motion.div>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "building-blocks" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "building-blocks" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("building-blocks");
                   setSelectedEndpoint(null);
                 }}
               >
                 Building Blocks
-              </div>
+              </motion.div>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "loans-and-cards" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "loans-and-cards" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("loans-and-cards");
                   setSelectedEndpoint(null);
                 }}
               >
                 Loans and Cards
-              </div>
+              </motion.div>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "payments" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "payments" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("payments");
                   setSelectedEndpoint(null);
                 }}
               >
                 Payments
-              </div>
+              </motion.div>
               
               {/* Payment Subcategories */}
-              {selectedCategory === "payments" && (
-                <div className="ml-4 border-l-2 border-[var(--au-primary)]/20">
-                  {apiCategories.find(c => c.id === "payments")?.subcategories?.map((subcategory) => (
-                    <div key={subcategory.id} className="ml-4">
-                      <div className="py-2 px-3 text-sm font-medium text-[var(--au-primary-600)] border-b border-neutrals-100">
-                        {subcategory.title}
-                      </div>
-                      {subcategory.endpoints.map((endpoint) => (
-                        <div
-                          key={endpoint.id}
-                          className={`p-2 pl-4 text-sm cursor-pointer transition-colors ${
-                            selectedEndpoint === endpoint.id
-                              ? 'bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] font-medium border-r-2 border-[var(--au-primary)]'
-                              : 'hover:bg-neutrals-50 text-neutrals-600 hover:text-[var(--au-primary-600)]'
-                          }`}
-                          onClick={() => {
-                            setSelectedEndpoint(endpoint.id);
-                          }}
+              <AnimatePresence>
+                {selectedCategory === "payments" && (
+                  <motion.div 
+                    className="ml-4 border-l-2 border-[var(--au-primary)]/20 overflow-hidden"
+                    variants={subcategoryVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                  >
+                    {apiCategories.find(c => c.id === "payments")?.subcategories?.map((subcategory, subIndex) => (
+                      <motion.div 
+                        key={subcategory.id} 
+                        className="ml-4"
+                        variants={endpointVariants}
+                        custom={subIndex}
+                      >
+                        <motion.div 
+                          className="py-2 px-3 text-sm font-medium text-[var(--au-primary-600)] border-b border-neutrals-100"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: subIndex * 0.1, duration: 0.3 }}
                         >
-                          <div className="flex items-center gap-2">
-                            <span className={`px-1.5 py-0.5 text-xs rounded font-mono ${
-                              endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
-                              endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
-                              endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
-                              {endpoint.method}
-                            </span>
-                            <span className="truncate">{endpoint.title}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
+                          {subcategory.title}
+                        </motion.div>
+                        <motion.div variants={subcategoryVariants} initial="hidden" animate="visible">
+                          {subcategory.endpoints.map((endpoint, endIndex) => (
+                            <motion.div
+                              key={endpoint.id}
+                              className={`p-2 pl-4 text-sm cursor-pointer transition-colors ${
+                                selectedEndpoint === endpoint.id
+                                  ? 'bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] font-medium border-r-2 border-[var(--au-primary)]'
+                                  : 'hover:bg-neutrals-50 text-neutrals-600 hover:text-[var(--au-primary-600)]'
+                              }`}
+                              variants={endpointVariants}
+                              whileHover={{ 
+                                scale: shouldReduceMotion ? 1 : 1.02, 
+                                x: shouldReduceMotion ? 0 : 2,
+                                transition: { duration: 0.2 }
+                              }}
+                              whileTap={{ 
+                                scale: shouldReduceMotion ? 1 : 0.98,
+                                transition: { duration: 0.1 }
+                              }}
+                              onClick={() => {
+                                setSelectedEndpoint(endpoint.id);
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <motion.span 
+                                  className={`px-1.5 py-0.5 text-xs rounded font-mono ${
+                                    endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
+                                    endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                                    endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+                                    'bg-red-100 text-red-700'
+                                  }`}
+                                  whileHover={{ scale: shouldReduceMotion ? 1 : 1.05 }}
+                                >
+                                  {endpoint.method}
+                                </motion.span>
+                                <span className="truncate">{endpoint.title}</span>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "accounts-deposits" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "accounts-deposits" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("accounts-deposits");
                   setSelectedEndpoint(null);
                 }}
               >
                 Accounts and Deposits
-              </div>
+              </motion.div>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "business-banking" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "business-banking" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("business-banking");
                   setSelectedEndpoint(null);
                 }}
               >
                 Business Banking
-              </div>
+              </motion.div>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "trade-services" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "trade-services" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("trade-services");
                   setSelectedEndpoint(null);
                 }}
               >
                 Trade Services
-              </div>
+              </motion.div>
               
-              <div
+              <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "corporate-api-suite" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
+                variants={sidebarItemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+                animate={selectedCategory === "corporate-api-suite" ? "selected" : "initial"}
                 onClick={() => {
                   setSelectedCategory("corporate-api-suite");
                   setSelectedEndpoint(null);
                 }}
               >
                 Corporate API Suite
-              </div>
+              </motion.div>
             </div>
             
             <div className="mt-8 pt-4 border-t border-neutrals-200">
@@ -1427,7 +1561,15 @@ export default function APIDocs() {
 
         {/* Main Content */}
         <div className="flex-1 p-8">
-          {selectedCategory === "introduction" && !selectedEndpoint && (
+          <AnimatePresence mode="wait">
+            {selectedCategory === "introduction" && !selectedEndpoint && (
+              <motion.div
+                key="introduction"
+                variants={contentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
             <div className="max-w-4xl">
               <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-2xl border border-[var(--au-primary)]/10">
                 <h1 className="text-4xl font-bold text-[var(--au-primary-700)] mb-6">
@@ -1578,9 +1720,17 @@ export default function APIDocs() {
 
               </div>
             </div>
-          )}
+              </motion.div>
+            )}
 
-          {currentEndpoint && (
+            {currentEndpoint && (
+              <motion.div
+                key={selectedEndpoint}
+                variants={contentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
             <div className="max-w-6xl">
               <div className="bg-white rounded-lg shadow-sm">
                 <div className="p-8 border-b">
@@ -1802,32 +1952,42 @@ export default function APIDocs() {
                 </div>
               </div>
             </div>
-          )}
+              </motion.div>
+            )}
 
-          {selectedCategory !== "introduction" && !selectedEndpoint && (
-            <div className="max-w-4xl">
-              <div className="bg-white rounded-lg p-8 shadow-sm">
-                <div className="flex items-center gap-4 mb-6">
-                  {(() => {
-                    const category = apiCategories.find(c => c.id === selectedCategory);
-                    const IconComponent = category?.icon || BookOpen;
-                    return <IconComponent className="w-8 h-8 text-primary" />;
-                  })()}
-                  <div>
-                    <h1 className="text-3xl font-bold text-neutrals-900">
-                      {apiCategories.find(c => c.id === selectedCategory)?.title}
-                    </h1>
-                    <p className="text-lg text-neutrals-600">
-                      {apiCategories.find(c => c.id === selectedCategory)?.description}
+            {selectedCategory !== "introduction" && !selectedEndpoint && (
+              <motion.div
+                key={selectedCategory}
+                variants={contentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <div className="max-w-4xl">
+                  <div className="bg-white rounded-lg p-8 shadow-sm">
+                    <div className="flex items-center gap-4 mb-6">
+                      {(() => {
+                        const category = apiCategories.find(c => c.id === selectedCategory);
+                        const IconComponent = category?.icon || BookOpen;
+                        return <IconComponent className="w-8 h-8 text-primary" />;
+                      })()}
+                      <div>
+                        <h1 className="text-3xl font-bold text-neutrals-900">
+                          {apiCategories.find(c => c.id === selectedCategory)?.title}
+                        </h1>
+                        <p className="text-lg text-neutrals-600">
+                          {apiCategories.find(c => c.id === selectedCategory)?.description}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-neutrals-600">
+                      Select an API endpoint from the sidebar to view detailed documentation, examples, and integration guides.
                     </p>
                   </div>
                 </div>
-                <p className="text-neutrals-600">
-                  Select an API endpoint from the sidebar to view detailed documentation, examples, and integration guides.
-                </p>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
