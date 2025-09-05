@@ -677,27 +677,40 @@ export default function Sandbox() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-25 dark:from-neutrals-900 dark:via-purple-950/20 dark:to-neutrals-800">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
-                data-testid="button-back-home"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
+        {/* Header - Only show Back to Home on main groups view */}
+        {currentView === "groups" && (
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
+                  data-testid="button-back-home"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+            </div>
+            <Badge 
+              className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
+            >
+              Sandbox Environment
+            </Badge>
           </div>
-          <Badge 
-            className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
-          >
-            Sandbox Environment
-          </Badge>
-        </div>
+        )}
+
+        {/* Header for other views - Only show badge */}
+        {currentView !== "groups" && (
+          <div className="flex justify-end mb-8">
+            <Badge 
+              className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
+            >
+              Sandbox Environment
+            </Badge>
+          </div>
+        )}
 
         {/* Conditional Rendering Based on Current View */}
         {currentView === "groups" && (
