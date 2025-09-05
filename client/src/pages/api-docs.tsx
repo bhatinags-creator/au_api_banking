@@ -2001,61 +2001,76 @@ export default function APIDocs() {
 
                     <TabsContent value="examples" className="mt-6">
                       <div className="space-y-6">
-                        {currentEndpoint.examples && currentEndpoint.examples.length > 0 ? (
+                        {currentEndpoint?.examples && currentEndpoint.examples.length > 0 ? (
                           currentEndpoint.examples.map((example, index) => (
-                          <div key={index}>
-                            <h3 className="text-xl font-semibold mb-4">{example.title}</h3>
+                          <div key={index} className="bg-white border border-neutrals-200 rounded-lg p-6 shadow-sm">
+                            <h3 className="text-xl font-semibold mb-6 text-[var(--au-primary-700)] border-b border-neutrals-100 pb-3">{example.title}</h3>
                             
                             {example.request && (
-                              <div className="mb-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="font-semibold">Request Body</h4>
+                              <div className="mb-6">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-[var(--au-primary-600)] flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    Request Body
+                                  </h4>
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => copyToClipboard(JSON.stringify(example.request, null, 2))}
+                                    className="hover:bg-[var(--au-primary)]/10"
                                   >
-                                    <Copy className="w-4 h-4" />
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto">
-                                  <code>{JSON.stringify(example.request, null, 2)}</code>
+                                <pre className="bg-gradient-to-r from-neutrals-900 to-neutrals-800 text-white p-4 rounded-lg overflow-x-auto border-l-4 border-blue-500">
+                                  <code className="text-sm">{JSON.stringify(example.request, null, 2)}</code>
                                 </pre>
                               </div>
                             )}
 
                             {example.response && (
-                              <div className="mb-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="font-semibold">Response</h4>
+                              <div className="mb-6">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-[var(--au-primary-600)] flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    Response
+                                  </h4>
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => copyToClipboard(JSON.stringify(example.response, null, 2))}
+                                    className="hover:bg-[var(--au-primary)]/10"
                                   >
-                                    <Copy className="w-4 h-4" />
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto">
-                                  <code>{JSON.stringify(example.response, null, 2)}</code>
+                                <pre className="bg-gradient-to-r from-neutrals-900 to-neutrals-800 text-white p-4 rounded-lg overflow-x-auto border-l-4 border-green-500">
+                                  <code className="text-sm">{JSON.stringify(example.response, null, 2)}</code>
                                 </pre>
                               </div>
                             )}
 
                             {example.curl && (
-                              <div>
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="font-semibold">cURL</h4>
+                              <div className="mb-6">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-semibold text-[var(--au-primary-600)] flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-[var(--au-primary)] rounded-full"></div>
+                                    cURL Command
+                                  </h4>
                                   <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => copyToClipboard(example.curl || "")}
+                                    className="hover:bg-[var(--au-primary)]/10"
                                   >
-                                    <Copy className="w-4 h-4" />
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto">
-                                  <code>{example.curl}</code>
+                                <pre className="bg-gradient-to-r from-neutrals-900 to-neutrals-800 text-white p-4 rounded-lg overflow-x-auto border-l-4 border-[var(--au-primary)]">
+                                  <code className="text-sm">{example.curl}</code>
                                 </pre>
                               </div>
                             )}
