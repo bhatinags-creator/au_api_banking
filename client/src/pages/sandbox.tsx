@@ -701,8 +701,8 @@ export default function Sandbox() {
           </div>
         )}
 
-        {/* Header for other views - Only show badge */}
-        {currentView !== "groups" && (
+        {/* Header for test view - Only show badge */}
+        {currentView === "test" && (
           <div className="flex justify-end mb-8">
             <Badge 
               className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
@@ -775,24 +775,31 @@ export default function Sandbox() {
         {currentView === "apis" && selectedGroup && (
           <div className="space-y-6">
             {/* APIs Header with Back Button */}
-            <div className="flex items-start gap-4 mb-6">
+            <div className="flex items-center justify-between mb-8">
               <Button 
                 variant="ghost" 
                 onClick={handleBackToGroups}
-                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)] mt-1"
+                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
                 data-testid="button-back-to-groups"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Categories
               </Button>
-              <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-[var(--au-primary)] to-purple-600 bg-clip-text text-transparent">
-                  {selectedGroup} APIs
-                </h2>
-                <p className="text-lg text-purple-600/70 font-medium">
-                  {getFilteredEndpoints(selectedGroup).length} endpoints available
-                </p>
-              </div>
+              <Badge 
+                className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
+              >
+                Sandbox Environment
+              </Badge>
+            </div>
+
+            {/* Page Title */}
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-[var(--au-primary)] to-purple-600 bg-clip-text text-transparent">
+                {selectedGroup} APIs
+              </h2>
+              <p className="text-lg text-purple-600/70 font-medium">
+                {getFilteredEndpoints(selectedGroup).length} endpoints available
+              </p>
             </div>
 
             {/* Search Bar */}
