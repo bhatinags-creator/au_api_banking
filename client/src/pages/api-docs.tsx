@@ -2009,7 +2009,7 @@ export default function APIDocs() {
                             {example.request && (
                               <div className="mb-6">
                                 <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-semibold text-[var(--au-primary-600)] flex items-center gap-2">
+                                  <h4 className="font-semibold text-neutrals-800 flex items-center gap-2">
                                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                     Request Body
                                   </h4>
@@ -2017,13 +2017,13 @@ export default function APIDocs() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => copyToClipboard(JSON.stringify(example.request, null, 2))}
-                                    className="hover:bg-[var(--au-primary)]/10"
+                                    className="hover:bg-neutrals-50"
                                   >
                                     <Copy className="w-4 h-4 mr-2" />
                                     Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-gradient-to-r from-neutrals-900 to-neutrals-800 text-white p-4 rounded-lg overflow-x-auto border-l-4 border-blue-500">
+                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto border border-neutrals-200">
                                   <code className="text-sm">{JSON.stringify(example.request, null, 2)}</code>
                                 </pre>
                               </div>
@@ -2032,7 +2032,7 @@ export default function APIDocs() {
                             {example.response && (
                               <div className="mb-6">
                                 <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-semibold text-[var(--au-primary-600)] flex items-center gap-2">
+                                  <h4 className="font-semibold text-neutrals-800 flex items-center gap-2">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     Response
                                   </h4>
@@ -2040,13 +2040,13 @@ export default function APIDocs() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => copyToClipboard(JSON.stringify(example.response, null, 2))}
-                                    className="hover:bg-[var(--au-primary)]/10"
+                                    className="hover:bg-neutrals-50"
                                   >
                                     <Copy className="w-4 h-4 mr-2" />
                                     Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-gradient-to-r from-neutrals-900 to-neutrals-800 text-white p-4 rounded-lg overflow-x-auto border-l-4 border-green-500">
+                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto border border-neutrals-200">
                                   <code className="text-sm">{JSON.stringify(example.response, null, 2)}</code>
                                 </pre>
                               </div>
@@ -2055,21 +2055,21 @@ export default function APIDocs() {
                             {example.curl && (
                               <div className="mb-6">
                                 <div className="flex items-center justify-between mb-3">
-                                  <h4 className="font-semibold text-[var(--au-primary-600)] flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-[var(--au-primary)] rounded-full"></div>
+                                  <h4 className="font-semibold text-neutrals-800 flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                                     cURL Command
                                   </h4>
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => copyToClipboard(example.curl || "")}
-                                    className="hover:bg-[var(--au-primary)]/10"
+                                    className="hover:bg-neutrals-50"
                                   >
                                     <Copy className="w-4 h-4 mr-2" />
                                     Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-gradient-to-r from-neutrals-900 to-neutrals-800 text-white p-4 rounded-lg overflow-x-auto border-l-4 border-[var(--au-primary)]">
+                                <pre className="bg-neutrals-900 text-white p-4 rounded-lg overflow-x-auto border border-neutrals-200">
                                   <code className="text-sm">{example.curl}</code>
                                 </pre>
                               </div>
