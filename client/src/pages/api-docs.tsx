@@ -2104,15 +2104,11 @@ export default function APIDocs() {
                                     y: shouldReduceMotion ? 0 : -4,
                                     transition: { duration: 0.2 }
                                   }}
-                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group"
-                                  style={{
-                                    height: '260px',
-                                    display: 'flex',
-                                    flexDirection: 'column'
-                                  }}
+                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group flex flex-col"
+                                  style={{ height: '280px' }}
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
-                                  <div className="p-6 pb-20 flex-1" style={{position: 'relative'}}>
+                                  <div className="p-6 flex-grow">
                                     <div className="flex items-start justify-between mb-4">
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
@@ -2134,7 +2130,7 @@ export default function APIDocs() {
                                         <code className="text-sm text-neutrals-600 bg-neutrals-50 px-2 py-1 rounded font-mono block mb-3 truncate">
                                           {endpoint.path}
                                         </code>
-                                        <p className="text-sm text-neutrals-600 line-clamp-3">
+                                        <p className="text-sm text-neutrals-600 line-clamp-2">
                                           {endpoint.description}
                                         </p>
                                       </div>
@@ -2142,20 +2138,8 @@ export default function APIDocs() {
                                     </div>
                                   </div>
                                   
-                                  <div 
-                                    className="px-6 pb-6 pt-4 border-t border-neutrals-100" 
-                                    style={{
-                                      position: 'absolute',
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      backgroundColor: 'white',
-                                      borderBottomLeftRadius: '0.5rem',
-                                      borderBottomRightRadius: '0.5rem',
-                                      zIndex: 1
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between" style={{height: '32px', alignItems: 'center'}}>
+                                  <div className="px-6 pb-6 pt-4 border-t border-neutrals-100 flex-shrink-0">
+                                    <div className="flex items-center justify-between h-8">
                                       <div className="flex items-center gap-3 text-xs text-neutrals-500">
                                         {endpoint.security && (
                                           <div className="flex items-center gap-1.5">
