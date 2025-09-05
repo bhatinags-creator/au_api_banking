@@ -2180,11 +2180,22 @@ export default function APIDocs() {
                                     align="start" 
                                     sideOffset={-5}
                                     alignOffset={0}
-                                    className="max-w-sm p-2 bg-gray-900 text-white text-xs rounded shadow-lg border-0"
+                                    className="max-w-sm p-2 text-xs rounded shadow-lg border-0"
+                                    style={{
+                                      backgroundColor: '#603078',
+                                      color: 'white'
+                                    }}
                                   >
                                     <div className="text-xs">
                                       <div className="font-semibold mb-1 text-white">{endpoint.method} {endpoint.title}</div>
-                                      <code className="text-xs bg-gray-800 px-1 py-0.5 rounded text-gray-200">{endpoint.path}</code>
+                                      <code 
+                                        className="text-xs px-1 py-0.5 rounded text-white"
+                                        style={{
+                                          backgroundColor: 'rgba(255, 255, 255, 0.2)'
+                                        }}
+                                      >
+                                        {endpoint.path}
+                                      </code>
                                     </div>
                                   </TooltipContent>
                                 </Tooltip>
