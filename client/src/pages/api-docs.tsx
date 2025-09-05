@@ -1737,6 +1737,19 @@ export default function APIDocs() {
             <div className="max-w-6xl">
               <div className="bg-white rounded-lg shadow-sm">
                 <div className="p-8 border-b">
+                  {/* Back Button */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedEndpoint(null)}
+                      className="flex items-center gap-2 text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back to {apiCategories.find(c => c.id === selectedCategory)?.title || 'APIs'}</span>
+                    </Button>
+                  </div>
+                  
                   <div className="flex items-center gap-4 mb-4">
                     <Badge variant={currentEndpoint.method === 'GET' ? 'secondary' : 'default'}>
                       {currentEndpoint.method}
@@ -2099,11 +2112,12 @@ export default function APIDocs() {
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                           <Badge 
-                                            className={`text-xs font-mono ${
+                                            className={`text-xs font-semibold border-0 px-2.5 py-1 ${
                                               endpoint.method === 'GET' ? 'bg-green-100 text-green-700 hover:bg-green-200' :
                                               endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-                                              endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' :
-                                              'bg-red-100 text-red-700 hover:bg-red-200'
+                                              endpoint.method === 'PUT' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
+                                              endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700 hover:bg-red-200' :
+                                              'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                           >
                                             {endpoint.method}
@@ -2123,18 +2137,21 @@ export default function APIDocs() {
                                     </div>
                                     
                                     <div className="flex items-center justify-between pt-4 border-t border-neutrals-100">
-                                      <div className="flex items-center gap-2 text-xs text-neutrals-500">
+                                      <div className="flex items-center gap-3 text-xs text-neutrals-500">
                                         {endpoint.security && (
-                                          <div className="flex items-center gap-1">
-                                            <Shield className="w-3 h-3" />
-                                            <span>Secured</span>
+                                          <div className="flex items-center gap-1.5">
+                                            <Shield className="w-3.5 h-3.5" />
+                                            <span className="font-medium">Secured</span>
                                           </div>
                                         )}
-                                        {endpoint.parameters && (
-                                          <div className="flex items-center gap-1">
-                                            <Settings className="w-3 h-3" />
-                                            <span>{endpoint.parameters.length} params</span>
+                                        {endpoint.parameters && endpoint.parameters.length > 0 && (
+                                          <div className="flex items-center gap-1.5">
+                                            <Settings className="w-3.5 h-3.5" />
+                                            <span className="font-medium">{endpoint.parameters.length} param{endpoint.parameters.length !== 1 ? 's' : ''}</span>
                                           </div>
+                                        )}
+                                        {(!endpoint.security && (!endpoint.parameters || endpoint.parameters.length === 0)) && (
+                                          <span className="text-neutrals-400 italic">No auth required</span>
                                         )}
                                       </div>
                                       <Button 
