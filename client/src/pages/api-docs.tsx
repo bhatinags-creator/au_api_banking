@@ -2023,8 +2023,8 @@ export default function APIDocs() {
                                     Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300">
-                                  <code className="text-sm font-mono">{JSON.stringify(example.request, null, 2)}</code>
+                                <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300 whitespace-pre">
+                                  <code className="text-sm font-mono leading-relaxed">{JSON.stringify(example.request, null, 2)}</code>
                                 </pre>
                               </div>
                             )}
@@ -2046,8 +2046,8 @@ export default function APIDocs() {
                                     Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300">
-                                  <code className="text-sm font-mono">{JSON.stringify(example.response, null, 2)}</code>
+                                <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300 whitespace-pre">
+                                  <code className="text-sm font-mono leading-relaxed">{JSON.stringify(example.response, null, 2)}</code>
                                 </pre>
                               </div>
                             )}
@@ -2069,8 +2069,8 @@ export default function APIDocs() {
                                     Copy
                                   </Button>
                                 </div>
-                                <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300">
-                                  <code className="text-sm font-mono">{example.curl}</code>
+                                <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300 whitespace-pre">
+                                  <code className="text-sm font-mono leading-relaxed">{example.curl}</code>
                                 </pre>
                               </div>
                             )}
