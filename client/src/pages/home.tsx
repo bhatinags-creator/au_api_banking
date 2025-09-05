@@ -258,9 +258,6 @@ export default function Home() {
                   Explore All APIs
                   <ArrowRight className="w-4 h-4" />
                 </button>
-                <span className="badge bg-[var(--au-primary-900)] text-white px-3 py-1 rounded-full font-bold text-sm">
-                  API
-                </span>
               </div>
             </div>
             <div className="lg:col-span-5 flex justify-center items-center">
