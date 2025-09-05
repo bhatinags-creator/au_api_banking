@@ -16,6 +16,30 @@ import {
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
+interface APIParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  required: boolean;
+  description: string;
+  example?: string;
+  enum?: string[];
+  format?: string;
+}
+
+interface APIHeader {
+  name: string;
+  required: boolean;
+  description: string;
+  example: string;
+}
+
+interface APIResponse {
+  statusCode: number;
+  description: string;
+  schema: string;
+  example: string;
+}
+
 interface APIEndpoint {
   id: string;
   name: string;
@@ -23,11 +47,22 @@ interface APIEndpoint {
   path: string;
   category: string;
   description: string;
+  summary: string;
   requiresAuth: boolean;
-  sampleRequest?: any;
+  authType?: 'bearer' | 'apiKey' | 'oauth2' | 'basic';
+  queryParameters: APIParameter[];
+  pathParameters: APIParameter[];
+  bodyParameters: APIParameter[];
+  headers: APIHeader[];
+  responses: APIResponse[];
+  requestExample: string;
+  responseExample: string;
   documentation?: string;
   validationSchema?: any;
   status: 'active' | 'deprecated' | 'draft';
+  tags: string[];
+  rateLimit?: number;
+  timeout?: number;
 }
 
 interface APICategory {
@@ -59,6 +94,7 @@ export default function AdminPanel() {
   const [editingCategory, setEditingCategory] = useState<APICategory | null>(null);
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [apiConfigTab, setApiConfigTab] = useState("basic");
   
   const { toast } = useToast();
 
@@ -97,8 +133,63 @@ export default function AdminPanel() {
         path: "/api/oauth/token",
         category: "Authentication",
         description: "Generate OAuth access token for API authentication",
+        summary: "OAuth token generation endpoint",
         requiresAuth: false,
+        authType: "basic",
+        queryParameters: [],
+        pathParameters: [],
+        bodyParameters: [
+          {
+            name: "grant_type",
+            type: "string",
+            required: true,
+            description: "OAuth grant type",
+            example: "client_credentials",
+            enum: ["client_credentials", "authorization_code"]
+          },
+          {
+            name: "client_id",
+            type: "string",
+            required: true,
+            description: "Client identifier",
+            example: "your_client_id"
+          },
+          {
+            name: "client_secret",
+            type: "string",
+            required: true,
+            description: "Client secret",
+            example: "your_client_secret"
+          }
+        ],
+        headers: [
+          {
+            name: "Content-Type",
+            required: true,
+            description: "Content type header",
+            example: "application/json"
+          }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Successful token generation",
+            schema: "{\"access_token\": \"string\", \"token_type\": \"string\", \"expires_in\": \"number\"}",
+            example: "{\"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\", \"token_type\": \"Bearer\", \"expires_in\": 3600}"
+          },
+          {
+            statusCode: 400,
+            description: "Bad request - invalid parameters",
+            schema: "{\"error\": \"string\", \"error_description\": \"string\"}",
+            example: "{\"error\": \"invalid_grant\", \"error_description\": \"Invalid grant type\"}"
+          }
+        ],
+        requestExample: "{\n  \"grant_type\": \"client_credentials\",\n  \"client_id\": \"your_client_id\",\n  \"client_secret\": \"your_client_secret\"\n}",
+        responseExample: "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600\n}",
         status: "active",
+        tags: ["authentication", "oauth"],
+        rateLimit: 100,
+        timeout: 30000,
         documentation: "This endpoint generates OAuth tokens for API access..."
       },
       {
@@ -108,8 +199,63 @@ export default function AdminPanel() {
         path: "/api/cnb/payment",
         category: "Payments",
         description: "Create a new CNB payment transaction",
+        summary: "Create CNB payment",
         requiresAuth: true,
+        authType: "bearer",
+        queryParameters: [],
+        pathParameters: [],
+        bodyParameters: [
+          {
+            name: "amount",
+            type: "number",
+            required: true,
+            description: "Payment amount",
+            example: "1000.50"
+          },
+          {
+            name: "currency",
+            type: "string",
+            required: true,
+            description: "Currency code",
+            example: "INR",
+            enum: ["INR", "USD", "EUR"]
+          },
+          {
+            name: "beneficiary_account",
+            type: "string",
+            required: true,
+            description: "Beneficiary account number",
+            example: "1234567890"
+          }
+        ],
+        headers: [
+          {
+            name: "Authorization",
+            required: true,
+            description: "Bearer token",
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          {
+            name: "Content-Type",
+            required: true,
+            description: "Content type header",
+            example: "application/json"
+          }
+        ],
+        responses: [
+          {
+            statusCode: 201,
+            description: "Payment created successfully",
+            schema: "{\"payment_id\": \"string\", \"status\": \"string\", \"amount\": \"number\"}",
+            example: "{\"payment_id\": \"pay_123456\", \"status\": \"pending\", \"amount\": 1000.50}"
+          }
+        ],
+        requestExample: "{\n  \"amount\": 1000.50,\n  \"currency\": \"INR\",\n  \"beneficiary_account\": \"1234567890\"\n}",
+        responseExample: "{\n  \"payment_id\": \"pay_123456\",\n  \"status\": \"pending\",\n  \"amount\": 1000.50\n}",
         status: "active",
+        tags: ["payments", "cnb"],
+        rateLimit: 50,
+        timeout: 60000,
         documentation: "Create payment transactions using CNB gateway..."
       }
     ]);
@@ -734,14 +880,27 @@ function ApiEditDialog({
   onSave: (data: Partial<APIEndpoint>) => void;
   onClose: () => void;
 }) {
+  const [configTab, setConfigTab] = useState("basic");
   const [formData, setFormData] = useState<Partial<APIEndpoint>>({
     name: api?.name || "",
     method: api?.method || "GET",
     path: api?.path || "",
     category: api?.category || "",
     description: api?.description || "",
+    summary: api?.summary || "",
     requiresAuth: api?.requiresAuth || false,
+    authType: api?.authType || "bearer",
+    queryParameters: api?.queryParameters || [],
+    pathParameters: api?.pathParameters || [],
+    bodyParameters: api?.bodyParameters || [],
+    headers: api?.headers || [],
+    responses: api?.responses || [],
+    requestExample: api?.requestExample || "",
+    responseExample: api?.responseExample || "",
     status: api?.status || "active",
+    tags: api?.tags || [],
+    rateLimit: api?.rateLimit || 100,
+    timeout: api?.timeout || 30000,
     documentation: api?.documentation || ""
   });
 
@@ -749,110 +908,624 @@ function ApiEditDialog({
     onSave(formData);
   };
 
+  const addParameter = (type: 'query' | 'path' | 'body') => {
+    const newParam: APIParameter = {
+      name: "",
+      type: "string",
+      required: false,
+      description: "",
+      example: ""
+    };
+    
+    if (type === 'query') {
+      setFormData({...formData, queryParameters: [...(formData.queryParameters || []), newParam]});
+    } else if (type === 'path') {
+      setFormData({...formData, pathParameters: [...(formData.pathParameters || []), newParam]});
+    } else {
+      setFormData({...formData, bodyParameters: [...(formData.bodyParameters || []), newParam]});
+    }
+  };
+
+  const updateParameter = (type: 'query' | 'path' | 'body', index: number, field: string, value: any) => {
+    const params = type === 'query' ? formData.queryParameters : 
+                   type === 'path' ? formData.pathParameters : formData.bodyParameters;
+    const updatedParams = [...(params || [])];
+    updatedParams[index] = { ...updatedParams[index], [field]: value };
+    
+    if (type === 'query') {
+      setFormData({...formData, queryParameters: updatedParams});
+    } else if (type === 'path') {
+      setFormData({...formData, pathParameters: updatedParams});
+    } else {
+      setFormData({...formData, bodyParameters: updatedParams});
+    }
+  };
+
+  const removeParameter = (type: 'query' | 'path' | 'body', index: number) => {
+    const params = type === 'query' ? formData.queryParameters : 
+                   type === 'path' ? formData.pathParameters : formData.bodyParameters;
+    const updatedParams = (params || []).filter((_, i) => i !== index);
+    
+    if (type === 'query') {
+      setFormData({...formData, queryParameters: updatedParams});
+    } else if (type === 'path') {
+      setFormData({...formData, pathParameters: updatedParams});
+    } else {
+      setFormData({...formData, bodyParameters: updatedParams});
+    }
+  };
+
+  const addHeader = () => {
+    const newHeader: APIHeader = {
+      name: "",
+      required: false,
+      description: "",
+      example: ""
+    };
+    setFormData({...formData, headers: [...(formData.headers || []), newHeader]});
+  };
+
+  const updateHeader = (index: number, field: string, value: any) => {
+    const updatedHeaders = [...(formData.headers || [])];
+    updatedHeaders[index] = { ...updatedHeaders[index], [field]: value };
+    setFormData({...formData, headers: updatedHeaders});
+  };
+
+  const removeHeader = (index: number) => {
+    const updatedHeaders = (formData.headers || []).filter((_, i) => i !== index);
+    setFormData({...formData, headers: updatedHeaders});
+  };
+
+  const addResponse = () => {
+    const newResponse: APIResponse = {
+      statusCode: 200,
+      description: "",
+      schema: "",
+      example: ""
+    };
+    setFormData({...formData, responses: [...(formData.responses || []), newResponse]});
+  };
+
+  const updateResponse = (index: number, field: string, value: any) => {
+    const updatedResponses = [...(formData.responses || [])];
+    updatedResponses[index] = { ...updatedResponses[index], [field]: value };
+    setFormData({...formData, responses: updatedResponses});
+  };
+
+  const removeResponse = (index: number) => {
+    const updatedResponses = (formData.responses || []).filter((_, i) => i !== index);
+    setFormData({...formData, responses: updatedResponses});
+  };
+
   return (
-    <DialogContent className="max-w-2xl">
+    <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>{api ? 'Edit API' : 'Create New API'}</DialogTitle>
+        <DialogTitle>{api ? 'Edit API Configuration' : 'Create New API'}</DialogTitle>
         <DialogDescription>
-          {api ? 'Update the API endpoint configuration' : 'Add a new API endpoint to the developer portal'}
+          {api ? 'Update the complete API endpoint configuration' : 'Configure all aspects of the new API endpoint'}
         </DialogDescription>
       </DialogHeader>
       
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="api-name">API Name</Label>
-          <Input
-            id="api-name"
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
-            placeholder="e.g., Generate OAuth Token"
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="api-method">HTTP Method</Label>
-          <Select value={formData.method} onValueChange={(value) => setFormData({...formData, method: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="GET">GET</SelectItem>
-              <SelectItem value="POST">POST</SelectItem>
-              <SelectItem value="PUT">PUT</SelectItem>
-              <SelectItem value="DELETE">DELETE</SelectItem>
-              <SelectItem value="PATCH">PATCH</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label htmlFor="api-path">API Path</Label>
-          <Input
-            id="api-path"
-            value={formData.path}
-            onChange={(e) => setFormData({...formData, path: e.target.value})}
-            placeholder="e.g., /api/oauth/token"
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="api-category">Category</Label>
-          <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+      <Tabs value={configTab} onValueChange={setConfigTab}>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="basic">Basic</TabsTrigger>
+          <TabsTrigger value="parameters">Parameters</TabsTrigger>
+          <TabsTrigger value="headers">Headers</TabsTrigger>
+          <TabsTrigger value="responses">Responses</TabsTrigger>
+          <TabsTrigger value="examples">Examples</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic" className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="api-name">API Name</Label>
+              <Input
+                id="api-name"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                placeholder="e.g., Generate OAuth Token"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="api-method">HTTP Method</Label>
+              <Select value={formData.method} onValueChange={(value) => setFormData({...formData, method: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="GET">GET</SelectItem>
+                  <SelectItem value="POST">POST</SelectItem>
+                  <SelectItem value="PUT">PUT</SelectItem>
+                  <SelectItem value="DELETE">DELETE</SelectItem>
+                  <SelectItem value="PATCH">PATCH</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="api-path">API Path</Label>
+              <Input
+                id="api-path"
+                value={formData.path}
+                onChange={(e) => setFormData({...formData, path: e.target.value})}
+                placeholder="e.g., /api/oauth/token"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="api-category">Category</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="col-span-2">
+              <Label htmlFor="api-summary">Summary</Label>
+              <Input
+                id="api-summary"
+                value={formData.summary}
+                onChange={(e) => setFormData({...formData, summary: e.target.value})}
+                placeholder="Brief one-line summary"
+              />
+            </div>
+            
+            <div className="col-span-2">
+              <Label htmlFor="api-description">Description</Label>
+              <Textarea
+                id="api-description"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Detailed description of what this API does..."
+              />
+            </div>
+            
+            <div className="col-span-2">
+              <Label htmlFor="api-tags">Tags (comma-separated)</Label>
+              <Input
+                id="api-tags"
+                value={(formData.tags || []).join(", ")}
+                onChange={(e) => setFormData({...formData, tags: e.target.value.split(",").map(t => t.trim())})}
+                placeholder="e.g., payments, authentication, banking"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={formData.requiresAuth}
+                onChange={(e) => setFormData({...formData, requiresAuth: e.target.checked})}
+                className="rounded"
+              />
+              <span className="text-sm">Requires Authentication</span>
+            </label>
+            
+            {formData.requiresAuth && (
+              <div>
+                <Label htmlFor="auth-type">Auth Type</Label>
+                <Select value={formData.authType} onValueChange={(value) => setFormData({...formData, authType: value as any})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bearer">Bearer Token</SelectItem>
+                    <SelectItem value="apiKey">API Key</SelectItem>
+                    <SelectItem value="oauth2">OAuth 2.0</SelectItem>
+                    <SelectItem value="basic">Basic Auth</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="parameters" className="space-y-4">
+          <div className="space-y-6">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Query Parameters</h3>
+                <Button size="sm" onClick={() => addParameter('query')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Query Parameter
+                </Button>
+              </div>
+              {(formData.queryParameters || []).map((param, index) => (
+                <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-3">
+                    <Label>Name</Label>
+                    <Input
+                      value={param.name}
+                      onChange={(e) => updateParameter('query', index, 'name', e.target.value)}
+                      placeholder="Parameter name"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Type</Label>
+                    <Select value={param.type} onValueChange={(value) => updateParameter('query', index, 'type', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="string">String</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="boolean">Boolean</SelectItem>
+                        <SelectItem value="array">Array</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-3">
+                    <Label>Description</Label>
+                    <Input
+                      value={param.description}
+                      onChange={(e) => updateParameter('query', index, 'description', e.target.value)}
+                      placeholder="Description"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Example</Label>
+                    <Input
+                      value={param.example}
+                      onChange={(e) => updateParameter('query', index, 'example', e.target.value)}
+                      placeholder="Example value"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={param.required}
+                        onChange={(e) => updateParameter('query', index, 'required', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-xs">Req</span>
+                    </label>
+                  </div>
+                  <div className="col-span-1">
+                    <Button size="sm" variant="ghost" onClick={() => removeParameter('query', index)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="col-span-2">
-          <Label htmlFor="api-description">Description</Label>
-          <Textarea
-            id="api-description"
-            value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-            placeholder="Brief description of what this API does..."
-          />
-        </div>
-        
-        <div className="col-span-2">
-          <Label htmlFor="api-documentation">Documentation</Label>
-          <Textarea
-            id="api-documentation"
-            rows={4}
-            value={formData.documentation}
-            onChange={(e) => setFormData({...formData, documentation: e.target.value})}
-            placeholder="Detailed documentation for this API endpoint..."
-          />
-        </div>
-      </div>
-      
-      <div className="flex items-center justify-between pt-4">
-        <div className="flex items-center space-x-4">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={formData.requiresAuth}
-              onChange={(e) => setFormData({...formData, requiresAuth: e.target.checked})}
-              className="rounded"
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Path Parameters</h3>
+                <Button size="sm" onClick={() => addParameter('path')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Path Parameter
+                </Button>
+              </div>
+              {(formData.pathParameters || []).map((param, index) => (
+                <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-3">
+                    <Label>Name</Label>
+                    <Input
+                      value={param.name}
+                      onChange={(e) => updateParameter('path', index, 'name', e.target.value)}
+                      placeholder="Parameter name"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Type</Label>
+                    <Select value={param.type} onValueChange={(value) => updateParameter('path', index, 'type', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="string">String</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-3">
+                    <Label>Description</Label>
+                    <Input
+                      value={param.description}
+                      onChange={(e) => updateParameter('path', index, 'description', e.target.value)}
+                      placeholder="Description"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Example</Label>
+                    <Input
+                      value={param.example}
+                      onChange={(e) => updateParameter('path', index, 'example', e.target.value)}
+                      placeholder="Example value"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={param.required}
+                        onChange={(e) => updateParameter('path', index, 'required', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-xs">Req</span>
+                    </label>
+                  </div>
+                  <div className="col-span-1">
+                    <Button size="sm" variant="ghost" onClick={() => removeParameter('path', index)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Body Parameters</h3>
+                <Button size="sm" onClick={() => addParameter('body')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Body Parameter
+                </Button>
+              </div>
+              {(formData.bodyParameters || []).map((param, index) => (
+                <div key={index} className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-3">
+                    <Label>Name</Label>
+                    <Input
+                      value={param.name}
+                      onChange={(e) => updateParameter('body', index, 'name', e.target.value)}
+                      placeholder="Parameter name"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Type</Label>
+                    <Select value={param.type} onValueChange={(value) => updateParameter('body', index, 'type', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="string">String</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="boolean">Boolean</SelectItem>
+                        <SelectItem value="object">Object</SelectItem>
+                        <SelectItem value="array">Array</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-3">
+                    <Label>Description</Label>
+                    <Input
+                      value={param.description}
+                      onChange={(e) => updateParameter('body', index, 'description', e.target.value)}
+                      placeholder="Description"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Example</Label>
+                    <Input
+                      value={param.example}
+                      onChange={(e) => updateParameter('body', index, 'example', e.target.value)}
+                      placeholder="Example value"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={param.required}
+                        onChange={(e) => updateParameter('body', index, 'required', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-xs">Req</span>
+                    </label>
+                  </div>
+                  <div className="col-span-1">
+                    <Button size="sm" variant="ghost" onClick={() => removeParameter('body', index)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="headers" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Request Headers</h3>
+            <Button size="sm" onClick={addHeader}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Header
+            </Button>
+          </div>
+          {(formData.headers || []).map((header, index) => (
+            <div key={index} className="grid grid-cols-12 gap-2 items-end">
+              <div className="col-span-3">
+                <Label>Header Name</Label>
+                <Input
+                  value={header.name}
+                  onChange={(e) => updateHeader(index, 'name', e.target.value)}
+                  placeholder="e.g., Authorization"
+                />
+              </div>
+              <div className="col-span-4">
+                <Label>Description</Label>
+                <Input
+                  value={header.description}
+                  onChange={(e) => updateHeader(index, 'description', e.target.value)}
+                  placeholder="Header description"
+                />
+              </div>
+              <div className="col-span-3">
+                <Label>Example</Label>
+                <Input
+                  value={header.example}
+                  onChange={(e) => updateHeader(index, 'example', e.target.value)}
+                  placeholder="Example value"
+                />
+              </div>
+              <div className="col-span-1">
+                <label className="flex items-center space-x-1">
+                  <input
+                    type="checkbox"
+                    checked={header.required}
+                    onChange={(e) => updateHeader(index, 'required', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-xs">Req</span>
+                </label>
+              </div>
+              <div className="col-span-1">
+                <Button size="sm" variant="ghost" onClick={() => removeHeader(index)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="responses" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">API Responses</h3>
+            <Button size="sm" onClick={addResponse}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Response
+            </Button>
+          </div>
+          {(formData.responses || []).map((response, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-4">
+              <div className="grid grid-cols-12 gap-2 items-end">
+                <div className="col-span-2">
+                  <Label>Status Code</Label>
+                  <Input
+                    type="number"
+                    value={response.statusCode}
+                    onChange={(e) => updateResponse(index, 'statusCode', parseInt(e.target.value))}
+                    placeholder="200"
+                  />
+                </div>
+                <div className="col-span-8">
+                  <Label>Description</Label>
+                  <Input
+                    value={response.description}
+                    onChange={(e) => updateResponse(index, 'description', e.target.value)}
+                    placeholder="Response description"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Button size="sm" variant="ghost" onClick={() => removeResponse(index)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <Label>Response Schema</Label>
+                <Textarea
+                  value={response.schema}
+                  onChange={(e) => updateResponse(index, 'schema', e.target.value)}
+                  placeholder='{"field": "type", ...}'
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label>Example Response</Label>
+                <Textarea
+                  value={response.example}
+                  onChange={(e) => updateResponse(index, 'example', e.target.value)}
+                  placeholder='{"field": "value", ...}'
+                  rows={3}
+                />
+              </div>
+            </div>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="examples" className="space-y-4">
+          <div>
+            <Label htmlFor="request-example">Request Example</Label>
+            <Textarea
+              id="request-example"
+              value={formData.requestExample}
+              onChange={(e) => setFormData({...formData, requestExample: e.target.value})}
+              placeholder="JSON request example"
+              rows={8}
             />
-            <span className="text-sm">Requires Authentication</span>
-          </label>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
-            <Save className="w-4 h-4 mr-2" />
-            {api ? 'Update' : 'Create'}
-          </Button>
-        </div>
+          </div>
+          <div>
+            <Label htmlFor="response-example">Response Example</Label>
+            <Textarea
+              id="response-example"
+              value={formData.responseExample}
+              onChange={(e) => setFormData({...formData, responseExample: e.target.value})}
+              placeholder="JSON response example"
+              rows={8}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="rate-limit">Rate Limit (per minute)</Label>
+              <Input
+                id="rate-limit"
+                type="number"
+                value={formData.rateLimit}
+                onChange={(e) => setFormData({...formData, rateLimit: parseInt(e.target.value)})}
+                placeholder="100"
+              />
+            </div>
+            <div>
+              <Label htmlFor="timeout">Timeout (milliseconds)</Label>
+              <Input
+                id="timeout"
+                type="number"
+                value={formData.timeout}
+                onChange={(e) => setFormData({...formData, timeout: parseInt(e.target.value)})}
+                placeholder="30000"
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({...formData, status: value as any})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="deprecated">Deprecated</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="api-documentation">Documentation</Label>
+            <Textarea
+              id="api-documentation"
+              rows={6}
+              value={formData.documentation}
+              onChange={(e) => setFormData({...formData, documentation: e.target.value})}
+              placeholder="Detailed documentation for this API endpoint..."
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      <div className="flex items-center justify-end space-x-2 pt-4 border-t">
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button onClick={handleSave} className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+          <Save className="w-4 h-4 mr-2" />
+          {api ? 'Update API' : 'Create API'}
+        </Button>
       </div>
     </DialogContent>
   );
