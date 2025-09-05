@@ -1169,28 +1169,35 @@ export default function Sandbox() {
               {/* Left Panel - API Configuration */}
               <div className="lg:col-span-1 space-y-6">
                 {/* Selected API Info */}
-                <Card data-testid="card-selected-api">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {getCategoryIcon(selectedEndpoint.category)}
+                <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200 shadow-lg" data-testid="card-selected-api">
+                  <CardHeader className="bg-gradient-to-r from-purple-100 to-blue-100 border-b border-purple-200">
+                    <CardTitle className="flex items-center gap-2 text-purple-800">
+                      <div className="p-1 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 text-white">
+                        {getCategoryIcon(selectedEndpoint.category)}
+                      </div>
                       Selected API
                     </CardTitle>
                   </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <h3 className="font-medium">{selectedEndpoint.name}</h3>
-                      <p className="text-sm text-muted-foreground">
+                      <h3 className="font-medium text-purple-900">{selectedEndpoint.name}</h3>
+                      <p className="text-sm text-purple-600">
                         {selectedEndpoint.description}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={selectedEndpoint.method === 'GET' ? 'secondary' : 'default'}>
+                      <Badge className={`${
+                        selectedEndpoint.method === 'GET' ? 'bg-blue-600 text-white' :
+                        selectedEndpoint.method === 'POST' ? 'bg-green-600 text-white' :
+                        selectedEndpoint.method === 'PUT' ? 'bg-orange-600 text-white' :
+                        'bg-red-600 text-white'
+                      }`}>
                         {selectedEndpoint.method}
                       </Badge>
-                      <Badge variant="outline">{selectedEndpoint.category}</Badge>
+                      <Badge variant="outline" className="border-purple-300 text-purple-700">{selectedEndpoint.category}</Badge>
                     </div>
-                    <div className="text-xs font-mono bg-muted/50 p-2 rounded">
+                    <div className="text-xs font-mono bg-purple-100 text-purple-800 p-2 rounded border border-purple-200">
                       {selectedEndpoint.path}
                     </div>
                   </div>
@@ -1199,10 +1206,12 @@ export default function Sandbox() {
 
               {/* API Configuration */}
               {selectedEndpoint.requiresAuth && (
-                <Card data-testid="card-auth-token">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="w-5 h-5" />
+                <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 shadow-lg" data-testid="card-auth-token">
+                  <CardHeader className="bg-gradient-to-r from-amber-100 to-yellow-100 border-b border-amber-200">
+                    <CardTitle className="flex items-center gap-2 text-amber-800">
+                      <div className="p-1 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500">
+                        <Shield className="w-4 h-4 text-white" />
+                      </div>
                       Authentication
                     </CardTitle>
                   </CardHeader>
@@ -1235,14 +1244,14 @@ export default function Sandbox() {
 
             {/* Right Panel - Request/Response */}
             <div className="lg:col-span-2">
-              <Card data-testid="card-api-test">
-                <CardHeader>
+              <Card className="bg-gradient-to-br from-white to-purple-50 border-purple-200 shadow-xl" data-testid="card-api-test">
+                <CardHeader className="bg-gradient-to-r from-purple-100 to-blue-100 border-b border-purple-200">
                   <div className="flex items-center justify-between">
-                    <CardTitle>API Test Configuration</CardTitle>
+                    <CardTitle className="text-purple-800">API Test Configuration</CardTitle>
                     <Button
                       onClick={handleTestRequest}
                       disabled={loading}
-                      className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                       data-testid="button-test-api"
                     >
                       {loading ? (
@@ -1261,11 +1270,11 @@ export default function Sandbox() {
                 </CardHeader>
                 <CardContent>
                   <Tabs value={activeTab} onValueChange={setActiveTab} data-testid="tabs-api-test">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="request" data-testid="tab-request">Request</TabsTrigger>
-                      <TabsTrigger value="headers" data-testid="tab-headers">Headers</TabsTrigger>
-                      <TabsTrigger value="parameters" data-testid="tab-parameters">Parameters</TabsTrigger>
-                      <TabsTrigger value="response" data-testid="tab-response">Response</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-4 bg-purple-100 border border-purple-200">
+                      <TabsTrigger value="request" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white text-purple-700" data-testid="tab-request">Request</TabsTrigger>
+                      <TabsTrigger value="headers" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white text-purple-700" data-testid="tab-headers">Headers</TabsTrigger>
+                      <TabsTrigger value="parameters" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white text-purple-700" data-testid="tab-parameters">Parameters</TabsTrigger>
+                      <TabsTrigger value="response" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white text-purple-700" data-testid="tab-response">Response</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="request" className="space-y-4">
@@ -1384,13 +1393,14 @@ export default function Sandbox() {
                               <span className={`font-mono text-sm ${getStatusColor(response.status)}`}>
                                 {response.status} {response.statusText}
                               </span>
-                              <Badge variant="outline" className="text-xs">
+                              <Badge className="text-xs bg-green-100 text-green-700 border-green-300">
                                 {response.responseTime}ms
                               </Badge>
                             </div>
                             <Button
                               variant="outline"
                               size="sm"
+                              className="border-purple-300 text-purple-700 hover:bg-purple-100"
                               onClick={() => copyToClipboard(formatJson(response.data), "Response")}
                               data-testid="button-copy-response"
                             >
@@ -1404,15 +1414,17 @@ export default function Sandbox() {
                               value={formatJson(response.data)}
                               readOnly
                               rows={12}
-                              className="font-mono text-sm"
+                              className="font-mono text-sm bg-gradient-to-br from-gray-50 to-purple-50 border-purple-200"
                               data-testid="textarea-response-body"
                             />
                           </div>
                         </div>
                       ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <Clock className="w-8 h-8 mx-auto mb-2" />
-                          <p>No response yet. Click "Test API" to see results.</p>
+                        <div className="text-center py-8 text-purple-500">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
+                            <Clock className="w-8 h-8 text-purple-600" />
+                          </div>
+                          <p className="text-purple-700 font-medium">No response yet. Click "Test API" to see results.</p>
                         </div>
                       )}
                     </TabsContent>
