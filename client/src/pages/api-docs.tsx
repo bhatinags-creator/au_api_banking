@@ -2092,75 +2092,60 @@ export default function APIDocs() {
                               </h3>
                             )}
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+                            <div className="space-y-4">
                               {endpoints.map((endpoint, index) => (
                                 <motion.div
                                   key={endpoint.id}
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: index * 0.1, duration: 0.3 }}
-                                  whileHover={{ 
-                                    scale: shouldReduceMotion ? 1 : 1.02,
-                                    y: shouldReduceMotion ? 0 : -4,
-                                    transition: { duration: 0.2 }
-                                  }}
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.05, duration: 0.3 }}
                                   className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group"
-                                  style={{ display: 'grid', gridTemplateRows: '1fr auto', minHeight: '280px' }}
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
                                   <div className="p-6">
-                                    <div className="flex items-start justify-between mb-4">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <Badge 
-                                            className={`text-xs font-semibold border-0 px-2.5 py-1 ${
-                                              endpoint.method === 'GET' ? 'bg-green-100 text-green-700 hover:bg-green-200' :
-                                              endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-                                              endpoint.method === 'PUT' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
-                                              endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700 hover:bg-red-200' :
-                                              'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
-                                          >
-                                            {endpoint.method}
-                                          </Badge>
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-4">
+                                        <Badge 
+                                          className={`text-xs font-semibold border-0 px-2.5 py-1 ${
+                                            endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
+                                            endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                                            endpoint.method === 'PUT' ? 'bg-amber-100 text-amber-700' :
+                                            endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700' :
+                                            'bg-gray-100 text-gray-700'
+                                          }`}
+                                        >
+                                          {endpoint.method}
+                                        </Badge>
+                                        <div className="flex-1">
+                                          <h4 className="font-semibold text-lg text-neutrals-800 group-hover:text-[var(--au-primary-700)] transition-colors mb-1">
+                                            {endpoint.title}
+                                          </h4>
+                                          <code className="text-sm text-neutrals-600 bg-neutrals-50 px-2 py-1 rounded font-mono">
+                                            {endpoint.path}
+                                          </code>
                                         </div>
-                                        <h4 className="font-semibold text-lg text-neutrals-800 group-hover:text-[var(--au-primary-700)] transition-colors mb-2">
-                                          {endpoint.title}
-                                        </h4>
-                                        <code className="text-sm text-neutrals-600 bg-neutrals-50 px-2 py-1 rounded font-mono block mb-3 truncate">
-                                          {endpoint.path}
-                                        </code>
-                                        <p className="text-sm text-neutrals-600 line-clamp-2">
-                                          {endpoint.description}
-                                        </p>
-                                      </div>
-                                      <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0" />
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="px-6 pb-6 pt-4 border-t border-neutrals-100">
-                                    <div className="flex items-center justify-between h-8">
-                                      <div className="flex items-center gap-3 text-xs text-neutrals-500">
-                                        {endpoint.security && (
-                                          <div className="flex items-center gap-1.5">
-                                            <Shield className="w-3.5 h-3.5" />
-                                            <span className="font-medium">Secured</span>
-                                          </div>
-                                        )}
-                                        {endpoint.parameters && endpoint.parameters.length > 0 && (
-                                          <div className="flex items-center gap-1.5">
-                                            <Settings className="w-3.5 h-3.5" />
-                                            <span className="font-medium">{endpoint.parameters.length} param{endpoint.parameters.length !== 1 ? 's' : ''}</span>
-                                          </div>
-                                        )}
-                                        {(!endpoint.security && (!endpoint.parameters || endpoint.parameters.length === 0)) && (
-                                          <span className="text-neutrals-400 italic">No requirements</span>
-                                        )}
+                                        <div className="flex items-center gap-4 text-xs text-neutrals-500">
+                                          {endpoint.security && (
+                                            <div className="flex items-center gap-1.5">
+                                              <Shield className="w-3.5 h-3.5" />
+                                              <span className="font-medium">Secured</span>
+                                            </div>
+                                          )}
+                                          {endpoint.parameters && endpoint.parameters.length > 0 && (
+                                            <div className="flex items-center gap-1.5">
+                                              <Settings className="w-3.5 h-3.5" />
+                                              <span className="font-medium">{endpoint.parameters.length} param{endpoint.parameters.length !== 1 ? 's' : ''}</span>
+                                            </div>
+                                          )}
+                                          {(!endpoint.security && (!endpoint.parameters || endpoint.parameters.length === 0)) && (
+                                            <span className="text-neutrals-400 italic">No requirements</span>
+                                          )}
+                                        </div>
                                       </div>
                                       <Button 
                                         size="sm" 
                                         variant="ghost"
-                                        className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-8 px-3 font-medium shrink-0"
+                                        className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-8 px-4 font-medium ml-4"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setSelectedEndpoint(endpoint.id);
@@ -2169,6 +2154,9 @@ export default function APIDocs() {
                                         View Docs
                                       </Button>
                                     </div>
+                                    <p className="text-sm text-neutrals-600 mt-3 ml-20">
+                                      {endpoint.description}
+                                    </p>
                                   </div>
                                 </motion.div>
                               ))}
