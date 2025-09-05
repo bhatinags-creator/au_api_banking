@@ -775,11 +775,11 @@ export default function Sandbox() {
         {currentView === "apis" && selectedGroup && (
           <div className="space-y-6">
             {/* APIs Header with Back Button */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-start gap-4 mb-6">
               <Button 
                 variant="ghost" 
                 onClick={handleBackToGroups}
-                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
+                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)] mt-1"
                 data-testid="button-back-to-groups"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
