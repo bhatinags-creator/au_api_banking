@@ -1434,42 +1434,83 @@ export default function APIDocs() {
                         </motion.div>
                         <motion.div variants={subcategoryVariants} initial="hidden" animate="visible">
                           {subcategory.endpoints.map((endpoint, endIndex) => (
-                            <motion.div
-                              key={endpoint.id}
-                              className={`p-2 pl-4 text-sm cursor-pointer transition-colors ${
-                                selectedEndpoint === endpoint.id
-                                  ? 'bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] font-medium border-r-2 border-[var(--au-primary)]'
-                                  : 'hover:bg-neutrals-50 text-neutrals-600 hover:text-[var(--au-primary-600)]'
-                              }`}
-                              variants={endpointVariants}
-                              whileHover={{ 
-                                scale: shouldReduceMotion ? 1 : 1.02, 
-                                x: shouldReduceMotion ? 0 : 2,
-                                transition: { duration: 0.2 }
-                              }}
-                              whileTap={{ 
-                                scale: shouldReduceMotion ? 1 : 0.98,
-                                transition: { duration: 0.1 }
-                              }}
-                              onClick={() => {
-                                setSelectedEndpoint(endpoint.id);
-                              }}
-                            >
-                              <div className="flex items-center gap-2">
-                                <motion.span 
-                                  className={`px-1.5 py-0.5 text-xs rounded font-mono ${
-                                    endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
-                                    endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
-                                    endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
-                                    'bg-red-100 text-red-700'
+                            <Tooltip key={endpoint.id}>
+                              <TooltipTrigger asChild>
+                                <motion.div
+                                  className={`p-2 pl-4 text-sm cursor-pointer transition-colors ${
+                                    selectedEndpoint === endpoint.id
+                                      ? 'bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] font-medium border-r-2 border-[var(--au-primary)]'
+                                      : 'hover:bg-neutrals-50 text-neutrals-600 hover:text-[var(--au-primary-600)]'
                                   }`}
-                                  whileHover={{ scale: shouldReduceMotion ? 1 : 1.05 }}
+                                  variants={endpointVariants}
+                                  whileHover={{ 
+                                    scale: shouldReduceMotion ? 1 : 1.02, 
+                                    x: shouldReduceMotion ? 0 : 2,
+                                    transition: { duration: 0.2 }
+                                  }}
+                                  whileTap={{ 
+                                    scale: shouldReduceMotion ? 1 : 0.98,
+                                    transition: { duration: 0.1 }
+                                  }}
+                                  onClick={() => {
+                                    setSelectedEndpoint(endpoint.id);
+                                  }}
                                 >
-                                  {endpoint.method}
-                                </motion.span>
-                                <span className="truncate">{endpoint.title}</span>
-                              </div>
-                            </motion.div>
+                                  <div className="flex items-center gap-2">
+                                    <motion.span 
+                                      className={`px-1.5 py-0.5 text-xs rounded font-mono flex-shrink-0 ${
+                                        endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
+                                        endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                                        endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                      }`}
+                                      whileHover={{ scale: shouldReduceMotion ? 1 : 1.05 }}
+                                    >
+                                      {endpoint.method}
+                                    </motion.span>
+                                    <span className="truncate min-w-0">{endpoint.title}</span>
+                                  </div>
+                                </motion.div>
+                              </TooltipTrigger>
+                              <TooltipContent 
+                                side="right" 
+                                align="start"
+                                className="max-w-sm p-3 text-sm"
+                                style={{
+                                  backgroundColor: '#603078',
+                                  color: 'white',
+                                  border: 'none'
+                                }}
+                              >
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <span 
+                                      className={`px-1.5 py-0.5 text-xs rounded font-mono ${
+                                        endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
+                                        endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                                        endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                      }`}
+                                    >
+                                      {endpoint.method}
+                                    </span>
+                                    <span className="font-semibold text-white">{endpoint.title}</span>
+                                  </div>
+                                  <code className="text-xs bg-white/20 px-2 py-1 rounded block text-white">
+                                    {endpoint.path}
+                                  </code>
+                                  <p className="text-xs text-white/90 leading-relaxed">
+                                    {endpoint.description}
+                                  </p>
+                                  {endpoint.security && (
+                                    <div className="flex items-center gap-1 text-xs text-amber-200">
+                                      <Shield className="w-3 h-3" />
+                                      <span>Secured endpoint</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
                           ))}
                         </motion.div>
                       </motion.div>
