@@ -385,40 +385,149 @@ const apiCategories: APICategory[] = [
         ]
       },
       {
+        id: "upi-payout",
+        title: "UPI Payout",
+        endpoints: [
+          {
+            id: "upi-payout-initiate",
+            method: "POST",
+            path: "/upi/payout/initiate",
+            title: "Initiate UPI Payout",
+            description: "Initiate merchant UPI payout to beneficiary Virtual Payment Address",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "merchant_id", type: "string", required: true, description: "Merchant identifier", example: "MERCH001" },
+              { name: "payout_id", type: "string", required: true, description: "Unique payout identifier", example: "PAYOUT123456" },
+              { name: "payee_vpa", type: "string", required: true, description: "Beneficiary VPA", example: "beneficiary@upi" },
+              { name: "amount", type: "number", required: true, description: "Payout amount in INR", example: "500.00" },
+              { name: "purpose", type: "string", required: true, description: "Payment purpose", example: "salary_disbursement" },
+              { name: "remarks", type: "string", required: false, description: "Payment remarks", example: "Monthly salary" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "UPI payout initiated successfully",
+                example: { 
+                  payout_id: "PAYOUT123456", 
+                  status: "initiated", 
+                  amount: 500.00, 
+                  payee_vpa: "beneficiary@upi",
+                  transaction_ref: "AU123456789",
+                  timestamp: "2024-12-01T10:30:00Z"
+                }
+              }
+            ],
+            examples: [{
+              title: "Initiate UPI Payout",
+              request: {
+                merchant_id: "MERCH001",
+                payout_id: "PAYOUT123456",
+                payee_vpa: "beneficiary@upi",
+                amount: 500.00,
+                purpose: "salary_disbursement",
+                remarks: "Monthly salary"
+              },
+              response: {
+                payout_id: "PAYOUT123456",
+                status: "initiated",
+                amount: 500.00,
+                payee_vpa: "beneficiary@upi",
+                transaction_ref: "AU123456789",
+                timestamp: "2024-12-01T10:30:00Z"
+              },
+              curl: `curl -X POST "https://api.aubank.in/upi/payout/initiate" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "merchant_id": "MERCH001",
+    "payout_id": "PAYOUT123456",
+    "payee_vpa": "beneficiary@upi",
+    "amount": 500.00,
+    "purpose": "salary_disbursement",
+    "remarks": "Monthly salary"
+  }'`
+            }]
+          },
+          {
+            id: "upi-payout-status",
+            method: "GET",
+            path: "/upi/payout/status/{payout_id}",
+            title: "Check Payout Status",
+            description: "Check the status of UPI payout transaction",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "payout_id", type: "string", required: true, description: "Payout identifier", example: "PAYOUT123456" },
+              { name: "merchant_id", type: "string", required: true, description: "Merchant identifier", example: "MERCH001" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Payout status retrieved successfully",
+                example: { 
+                  payout_id: "PAYOUT123456", 
+                  status: "success", 
+                  amount: 500.00, 
+                  payee_vpa: "beneficiary@upi",
+                  transaction_ref: "AU123456789",
+                  completed_at: "2024-12-01T10:32:15Z"
+                }
+              }
+            ],
+            examples: [{
+              title: "Check Payout Status",
+              request: { payout_id: "PAYOUT123456", merchant_id: "MERCH001" },
+              response: {
+                payout_id: "PAYOUT123456",
+                status: "success",
+                amount: 500.00,
+                payee_vpa: "beneficiary@upi",
+                transaction_ref: "AU123456789",
+                completed_at: "2024-12-01T10:32:15Z"
+              },
+              curl: `curl -X GET "https://api.aubank.in/upi/payout/status/PAYOUT123456?merchant_id=MERCH001" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"`
+            }]
+          }
+        ]
+      },
+      {
         id: "cnb-payment",
-        title: "CNB Payment",
+        title: "CNB Payout",
         endpoints: [
           {
             id: "cnb-payment-creation",
             method: "POST",
-            path: "/cnb/payment/create",
-            title: "CNB Payment Creation",
-            description: "Create a CNB (Corporate Net Banking) payment transaction",
+            path: "/cnb/payout/create",
+            title: "Create CNB Payout",
+            description: "Create a CNB (Corporate Net Banking) payout transaction",
             security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
             parameters: [
               { name: "uniqueRequestId", type: "string", required: true, description: "Unique request identifier", example: "REQ123456789" },
               { name: "corporateCode", type: "string", required: true, description: "Corporate code", example: "CORP001" },
               { name: "remitterAccountNo", type: "string", required: true, description: "Remitter account number", example: "1234567890123" },
-              { name: "amount", type: "string", required: true, description: "Payment amount", example: "1000.00" },
+              { name: "amount", type: "string", required: true, description: "Payout amount", example: "1000.00" },
               { name: "beneAccNo", type: "string", required: true, description: "Beneficiary account number", example: "9876543210987" },
               { name: "beneName", type: "string", required: true, description: "Beneficiary name", example: "Test Beneficiary" },
-              { name: "ifscCode", type: "string", required: true, description: "IFSC code", example: "AUBL0002086" }
+              { name: "ifscCode", type: "string", required: true, description: "IFSC code", example: "AUBL0002086" },
+              { name: "paymentMode", type: "string", required: true, description: "Payment mode", example: "NEFT" },
+              { name: "purpose", type: "string", required: true, description: "Payment purpose", example: "vendor_payment" }
             ],
             responses: [
               { 
                 status: 201, 
-                description: "CNB payment created successfully",
+                description: "CNB payout created successfully",
                 example: { 
                   payment_id: "pay_123456789", 
                   status: "initiated", 
                   amount: "1000.00", 
                   beneficiary: "Test Beneficiary",
-                  transaction_ref: "TXN123456789"
+                  transaction_ref: "TXN123456789",
+                  utr_number: "UTR123456789"
                 }
               }
             ],
             examples: [{
-              title: "Create CNB Payment",
+              title: "Create CNB Payout",
               request: {
                 uniqueRequestId: "REQ123456789",
                 corporateCode: "CORP001",
@@ -426,16 +535,19 @@ const apiCategories: APICategory[] = [
                 amount: "1000.00",
                 beneAccNo: "9876543210987",
                 beneName: "Test Beneficiary",
-                ifscCode: "AUBL0002086"
+                ifscCode: "AUBL0002086",
+                paymentMode: "NEFT",
+                purpose: "vendor_payment"
               },
               response: {
                 payment_id: "pay_123456789",
                 status: "initiated",
                 amount: "1000.00",
                 beneficiary: "Test Beneficiary",
-                transaction_ref: "TXN123456789"
+                transaction_ref: "TXN123456789",
+                utr_number: "UTR123456789"
               },
-              curl: `curl -X POST "https://api.aubank.in/cnb/payment/create" \\
+              curl: `curl -X POST "https://api.aubank.in/cnb/payout/create" \\
   -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -445,8 +557,334 @@ const apiCategories: APICategory[] = [
     "amount": "1000.00",
     "beneAccNo": "9876543210987",
     "beneName": "Test Beneficiary",
-    "ifscCode": "AUBL0002086"
+    "ifscCode": "AUBL0002086",
+    "paymentMode": "NEFT",
+    "purpose": "vendor_payment"
   }'`
+            }]
+          },
+          {
+            id: "cnb-payout-status",
+            method: "GET",
+            path: "/cnb/payout/status/{payment_id}",
+            title: "Check Payout Status",
+            description: "Check the status of CNB payout transaction",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "payment_id", type: "string", required: true, description: "Payment identifier", example: "pay_123456789" },
+              { name: "corporateCode", type: "string", required: true, description: "Corporate code", example: "CORP001" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Payout status retrieved successfully",
+                example: { 
+                  payment_id: "pay_123456789", 
+                  status: "success", 
+                  amount: "1000.00", 
+                  beneficiary: "Test Beneficiary",
+                  transaction_ref: "TXN123456789",
+                  utr_number: "UTR123456789",
+                  completed_at: "2024-12-01T10:35:20Z"
+                }
+              }
+            ],
+            examples: [{
+              title: "Check CNB Payout Status",
+              request: { payment_id: "pay_123456789", corporateCode: "CORP001" },
+              response: {
+                payment_id: "pay_123456789",
+                status: "success",
+                amount: "1000.00",
+                beneficiary: "Test Beneficiary",
+                transaction_ref: "TXN123456789",
+                utr_number: "UTR123456789",
+                completed_at: "2024-12-01T10:35:20Z"
+              },
+              curl: `curl -X GET "https://api.aubank.in/cnb/payout/status/pay_123456789?corporateCode=CORP001" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"`
+            }]
+          }
+        ]
+      },
+      {
+        id: "bbps",
+        title: "BBPS (Bharat Bill Payment)",
+        endpoints: [
+          {
+            id: "bbps-biller-list",
+            method: "GET",
+            path: "/bbps/billers",
+            title: "Get Biller List",
+            description: "Retrieve list of available billers for BBPS payments",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "category", type: "string", required: false, description: "Biller category", example: "electricity" },
+              { name: "state", type: "string", required: false, description: "State code", example: "MH" },
+              { name: "limit", type: "number", required: false, description: "Number of results", example: "50" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Biller list retrieved successfully",
+                example: { 
+                  billers: [
+                    {
+                      biller_id: "MSEB0001",
+                      biller_name: "Maharashtra State Electricity Board",
+                      category: "electricity",
+                      state: "MH",
+                      validation_params: ["consumer_number"]
+                    }
+                  ],
+                  total_count: 1
+                }
+              }
+            ],
+            examples: [{
+              title: "Get BBPS Billers",
+              request: { category: "electricity", state: "MH" },
+              response: {
+                billers: [
+                  {
+                    biller_id: "MSEB0001",
+                    biller_name: "Maharashtra State Electricity Board",
+                    category: "electricity",
+                    state: "MH",
+                    validation_params: ["consumer_number"]
+                  }
+                ],
+                total_count: 1
+              },
+              curl: `curl -X GET "https://api.aubank.in/bbps/billers?category=electricity&state=MH" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"`
+            }]
+          },
+          {
+            id: "bbps-bill-fetch",
+            method: "POST",
+            path: "/bbps/bill/fetch",
+            title: "Fetch Bill Details",
+            description: "Fetch bill details for a specific biller and consumer",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "biller_id", type: "string", required: true, description: "Biller identifier", example: "MSEB0001" },
+              { name: "consumer_number", type: "string", required: true, description: "Consumer number", example: "123456789012" },
+              { name: "reference_id", type: "string", required: true, description: "Reference identifier", example: "REF123456" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Bill details fetched successfully",
+                example: { 
+                  bill_amount: 2500.50,
+                  due_date: "2024-12-15",
+                  consumer_name: "John Doe",
+                  bill_period: "Nov 2024",
+                  reference_id: "REF123456"
+                }
+              }
+            ],
+            examples: [{
+              title: "Fetch Bill Details",
+              request: {
+                biller_id: "MSEB0001",
+                consumer_number: "123456789012",
+                reference_id: "REF123456"
+              },
+              response: {
+                bill_amount: 2500.50,
+                due_date: "2024-12-15",
+                consumer_name: "John Doe",
+                bill_period: "Nov 2024",
+                reference_id: "REF123456"
+              },
+              curl: `curl -X POST "https://api.aubank.in/bbps/bill/fetch" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "biller_id": "MSEB0001",
+    "consumer_number": "123456789012",
+    "reference_id": "REF123456"
+  }'`
+            }]
+          },
+          {
+            id: "bbps-bill-payment",
+            method: "POST",
+            path: "/bbps/bill/pay",
+            title: "Pay Bill",
+            description: "Make payment for fetched bill through BBPS",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "biller_id", type: "string", required: true, description: "Biller identifier", example: "MSEB0001" },
+              { name: "consumer_number", type: "string", required: true, description: "Consumer number", example: "123456789012" },
+              { name: "amount", type: "number", required: true, description: "Payment amount", example: "2500.50" },
+              { name: "reference_id", type: "string", required: true, description: "Reference identifier", example: "REF123456" },
+              { name: "account_number", type: "string", required: true, description: "Payer account number", example: "1234567890" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Bill payment successful",
+                example: { 
+                  transaction_id: "TXN987654321",
+                  status: "success",
+                  amount: 2500.50,
+                  biller_name: "Maharashtra State Electricity Board",
+                  payment_date: "2024-12-01T10:30:00Z"
+                }
+              }
+            ],
+            examples: [{
+              title: "Pay Bill via BBPS",
+              request: {
+                biller_id: "MSEB0001",
+                consumer_number: "123456789012",
+                amount: 2500.50,
+                reference_id: "REF123456",
+                account_number: "1234567890"
+              },
+              response: {
+                transaction_id: "TXN987654321",
+                status: "success",
+                amount: 2500.50,
+                biller_name: "Maharashtra State Electricity Board",
+                payment_date: "2024-12-01T10:30:00Z"
+              },
+              curl: `curl -X POST "https://api.aubank.in/bbps/bill/pay" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "biller_id": "MSEB0001",
+    "consumer_number": "123456789012",
+    "amount": 2500.50,
+    "reference_id": "REF123456",
+    "account_number": "1234567890"
+  }'`
+            }]
+          }
+        ]
+      },
+      {
+        id: "vam",
+        title: "VAM (Virtual Account Management)",
+        endpoints: [
+          {
+            id: "vam-create-account",
+            method: "POST",
+            path: "/vam/account/create",
+            title: "Create Virtual Account",
+            description: "Create a new virtual account for collection purposes",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "client_code", type: "string", required: true, description: "Client identifier", example: "CLIENT001" },
+              { name: "virtual_account_name", type: "string", required: true, description: "Virtual account name", example: "Customer Collections" },
+              { name: "customer_id", type: "string", required: true, description: "Customer identifier", example: "CUST123456" },
+              { name: "pool_account", type: "string", required: true, description: "Pool account number", example: "1234567890123" },
+              { name: "validity_days", type: "number", required: false, description: "Account validity in days", example: "365" }
+            ],
+            responses: [
+              { 
+                status: 201, 
+                description: "Virtual account created successfully",
+                example: { 
+                  virtual_account_number: "VA123456789012",
+                  virtual_account_name: "Customer Collections",
+                  customer_id: "CUST123456",
+                  status: "active",
+                  created_date: "2024-12-01",
+                  expiry_date: "2025-11-30"
+                }
+              }
+            ],
+            examples: [{
+              title: "Create Virtual Account",
+              request: {
+                client_code: "CLIENT001",
+                virtual_account_name: "Customer Collections",
+                customer_id: "CUST123456",
+                pool_account: "1234567890123",
+                validity_days: 365
+              },
+              response: {
+                virtual_account_number: "VA123456789012",
+                virtual_account_name: "Customer Collections",
+                customer_id: "CUST123456",
+                status: "active",
+                created_date: "2024-12-01",
+                expiry_date: "2025-11-30"
+              },
+              curl: `curl -X POST "https://api.aubank.in/vam/account/create" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "client_code": "CLIENT001",
+    "virtual_account_name": "Customer Collections",
+    "customer_id": "CUST123456",
+    "pool_account": "1234567890123",
+    "validity_days": 365
+  }'`
+            }]
+          },
+          {
+            id: "vam-get-transactions",
+            method: "GET",
+            path: "/vam/transactions/{virtual_account_number}",
+            title: "Get Virtual Account Transactions",
+            description: "Retrieve transactions for a specific virtual account",
+            security: [{ type: "OAuth Token", description: "OAuth 2.0 access token required" }],
+            parameters: [
+              { name: "virtual_account_number", type: "string", required: true, description: "Virtual account number", example: "VA123456789012" },
+              { name: "from_date", type: "string", required: false, description: "Start date (YYYY-MM-DD)", example: "2024-11-01" },
+              { name: "to_date", type: "string", required: false, description: "End date (YYYY-MM-DD)", example: "2024-11-30" },
+              { name: "limit", type: "number", required: false, description: "Number of transactions", example: "100" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Transactions retrieved successfully",
+                example: { 
+                  transactions: [
+                    {
+                      transaction_id: "TXN789012345",
+                      amount: 5000.00,
+                      currency: "INR",
+                      transaction_date: "2024-11-15T14:30:00Z",
+                      remitter_name: "John Doe",
+                      remitter_account: "9876543210987",
+                      utr_number: "UTR123456789"
+                    }
+                  ],
+                  total_amount: 5000.00,
+                  transaction_count: 1
+                }
+              }
+            ],
+            examples: [{
+              title: "Get VAM Transactions",
+              request: {
+                virtual_account_number: "VA123456789012",
+                from_date: "2024-11-01",
+                to_date: "2024-11-30"
+              },
+              response: {
+                transactions: [
+                  {
+                    transaction_id: "TXN789012345",
+                    amount: 5000.00,
+                    currency: "INR",
+                    transaction_date: "2024-11-15T14:30:00Z",
+                    remitter_name: "John Doe",
+                    remitter_account: "9876543210987",
+                    utr_number: "UTR123456789"
+                  }
+                ],
+                total_amount: 5000.00,
+                transaction_count: 1
+              },
+              curl: `curl -X GET "https://api.aubank.in/vam/transactions/VA123456789012?from_date=2024-11-01&to_date=2024-11-30" \\
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"`
             }]
           }
         ]
@@ -780,9 +1218,9 @@ export default function APIDocs() {
   const currentEndpoint = getCurrentEndpoint();
 
   return (
-    <div className="min-h-screen bg-neutrals-50">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--au-bg-soft-1)] via-white to-[var(--au-bg-soft-2)]">
       {/* Header */}
-      <header className="bg-white border-b shadow-sm">
+      <header className="bg-white/90 backdrop-blur-sm border-b border-[var(--au-primary)]/10 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-6">
@@ -794,15 +1232,15 @@ export default function APIDocs() {
               </Link>
               <div className="h-6 w-px bg-neutrals-200 mx-4"></div>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-[var(--au-primary)] to-[var(--au-primary-700)] rounded-lg flex items-center justify-center">
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="text-xl font-bold text-neutrals-900">AU Bank Developer Portal</h1>
+                <h1 className="text-xl font-bold text-[var(--au-primary-700)]">AU Bank Developer Portal</h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm">Sign Up</Button>
-              <Button size="sm" className="bg-primary hover:bg-primary/90">Sign In</Button>
+              <Button size="sm" className="au-btn">Sign In</Button>
             </div>
           </div>
         </div>
@@ -810,7 +1248,7 @@ export default function APIDocs() {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r h-screen overflow-y-auto sticky top-0">
+        <div className="w-64 bg-white/95 backdrop-blur-sm border-r border-[var(--au-primary)]/10 h-screen overflow-y-auto sticky top-0 shadow-xl">
           <div className="p-4">
             <div className="space-y-1">
               <div
@@ -953,11 +1391,11 @@ export default function APIDocs() {
         <div className="flex-1 p-8">
           {selectedCategory === "introduction" && !selectedEndpoint && (
             <div className="max-w-4xl">
-              <div className="bg-white rounded-lg p-8 shadow-sm">
-                <h1 className="text-3xl font-bold text-neutrals-900 mb-4">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-2xl border border-[var(--au-primary)]/10">
+                <h1 className="text-4xl font-bold text-[var(--au-primary-700)] mb-6">
                   Welcome to AU Bank API Banking Portal!
                 </h1>
-                <p className="text-lg text-neutrals-600 mb-8 leading-relaxed">
+                <p className="text-lg text-neutrals-600 mb-8 leading-relaxed max-w-4xl">
                   Equipped with our services inventory and open API platform, we provide you the chance to reach, test and use our AU Bank's digital services. Using these, you now have the power of AU Bank supporting you to develop the next generation of applications. Let's see how you can do it.
                 </p>
 

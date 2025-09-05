@@ -82,6 +82,99 @@ const apiEndpoints: APIEndpoint[] = [
     }
   },
   {
+    id: "upi-payout-initiate",
+    name: "UPI Payout Initiate",
+    method: "POST",
+    path: "https://aubank.tech/uat/upi/payout/initiate",
+    category: "Payments",
+    description: "Initiate merchant UPI payout to beneficiary Virtual Payment Address",
+    requiresAuth: true,
+    sampleRequest: {
+      merchant_id: "MERCH001",
+      payout_id: "PAYOUT" + Date.now(),
+      payee_vpa: "beneficiary@upi",
+      amount: 500.00,
+      purpose: "salary_disbursement",
+      remarks: "Monthly salary payout"
+    }
+  },
+  {
+    id: "upi-payout-status",
+    name: "UPI Payout Status",
+    method: "GET",
+    path: "https://aubank.tech/uat/upi/payout/status/{payout_id}",
+    category: "Payments",
+    description: "Check the status of UPI payout transaction",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  {
+    id: "bbps-biller-list",
+    name: "BBPS Biller List",
+    method: "GET",
+    path: "https://aubank.tech/uat/bbps/billers",
+    category: "Bill Payments",
+    description: "Retrieve list of available billers for BBPS payments",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  {
+    id: "bbps-bill-fetch",
+    name: "BBPS Bill Fetch",
+    method: "POST",
+    path: "https://aubank.tech/uat/bbps/bill/fetch",
+    category: "Bill Payments",
+    description: "Fetch bill details for a specific biller and consumer",
+    requiresAuth: true,
+    sampleRequest: {
+      biller_id: "MSEB0001",
+      consumer_number: "123456789012",
+      reference_id: "REF" + Date.now()
+    }
+  },
+  {
+    id: "bbps-bill-payment",
+    name: "BBPS Bill Payment",
+    method: "POST",
+    path: "https://aubank.tech/uat/bbps/bill/pay",
+    category: "Bill Payments",
+    description: "Make payment for fetched bill through BBPS",
+    requiresAuth: true,
+    sampleRequest: {
+      biller_id: "MSEB0001",
+      consumer_number: "123456789012",
+      amount: 2500.50,
+      reference_id: "REF" + Date.now(),
+      account_number: "1234567890"
+    }
+  },
+  {
+    id: "vam-create-account",
+    name: "VAM Create Virtual Account",
+    method: "POST",
+    path: "https://aubank.tech/uat/vam/account/create",
+    category: "Virtual Accounts",
+    description: "Create a new virtual account for collection purposes",
+    requiresAuth: true,
+    sampleRequest: {
+      client_code: "CLIENT001",
+      virtual_account_name: "Customer Collections",
+      customer_id: "CUST" + Date.now(),
+      pool_account: "1234567890123",
+      validity_days: 365
+    }
+  },
+  {
+    id: "vam-get-transactions",
+    name: "VAM Get Transactions",
+    method: "GET",
+    path: "https://aubank.tech/uat/vam/transactions/{virtual_account_number}",
+    category: "Virtual Accounts",
+    description: "Retrieve transactions for a specific virtual account",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  {
     id: "payment-enquiry",
     name: "Payment Enquiry",
     method: "GET",
