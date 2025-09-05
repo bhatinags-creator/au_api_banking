@@ -1309,7 +1309,7 @@ export default function APIDocs() {
 
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white/95 backdrop-blur-sm border-r border-[var(--au-primary)]/10 h-screen overflow-y-auto sticky top-0 shadow-xl">
+        <div className="w-80 bg-white/95 backdrop-blur-sm border-r border-[var(--au-primary)]/10 h-screen overflow-y-auto sticky top-0 shadow-xl">
           <div className="p-4">
             <div className="space-y-1">
               <motion.div
@@ -1434,18 +1434,18 @@ export default function APIDocs() {
                         </motion.div>
                         <motion.div variants={subcategoryVariants} initial="hidden" animate="visible">
                           {subcategory.endpoints.map((endpoint, endIndex) => (
-                            <Tooltip key={endpoint.id}>
+                            <Tooltip key={endpoint.id} delayDuration={300}>
                               <TooltipTrigger asChild>
                                 <motion.div
-                                  className={`p-2 pl-4 text-sm cursor-pointer transition-colors ${
+                                  className={`px-3 py-3 text-sm cursor-pointer transition-colors rounded-md ${
                                     selectedEndpoint === endpoint.id
                                       ? 'bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] font-medium border-r-2 border-[var(--au-primary)]'
                                       : 'hover:bg-neutrals-50 text-neutrals-600 hover:text-[var(--au-primary-600)]'
                                   }`}
                                   variants={endpointVariants}
                                   whileHover={{ 
-                                    scale: shouldReduceMotion ? 1 : 1.02, 
-                                    x: shouldReduceMotion ? 0 : 2,
+                                    scale: shouldReduceMotion ? 1 : 1.01, 
+                                    x: shouldReduceMotion ? 0 : 1,
                                     transition: { duration: 0.2 }
                                   }}
                                   whileTap={{ 
@@ -1456,7 +1456,7 @@ export default function APIDocs() {
                                     setSelectedEndpoint(endpoint.id);
                                   }}
                                 >
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-start gap-2">
                                     <motion.span 
                                       className={`px-1.5 py-0.5 text-xs rounded font-mono flex-shrink-0 ${
                                         endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
@@ -1468,18 +1468,29 @@ export default function APIDocs() {
                                     >
                                       {endpoint.method}
                                     </motion.span>
-                                    <span className="truncate min-w-0">{endpoint.title}</span>
+                                    <span 
+                                      className="text-sm leading-tight break-words hyphens-auto flex-1 min-w-0"
+                                      style={{ 
+                                        wordBreak: 'break-word',
+                                        overflowWrap: 'break-word',
+                                        lineHeight: '1.3'
+                                      }}
+                                    >
+                                      {endpoint.title}
+                                    </span>
                                   </div>
                                 </motion.div>
                               </TooltipTrigger>
                               <TooltipContent 
                                 side="right" 
-                                align="start"
-                                className="max-w-sm p-3 text-sm"
+                                align="center"
+                                sideOffset={10}
+                                className="max-w-xs p-3 text-sm z-50 shadow-xl"
                                 style={{
                                   backgroundColor: '#603078',
                                   color: 'white',
-                                  border: 'none'
+                                  border: 'none',
+                                  borderRadius: '8px'
                                 }}
                               >
                                 <div className="space-y-2">
