@@ -219,7 +219,10 @@ const apiEndpoints: APIEndpoint[] = [
     category: "Bill Payments",
     description: "Check BBPS payment status",
     requiresAuth: true,
-    sampleRequest: null
+    sampleRequest: {
+      reference_id: "REF987654321",
+      customer_mobile: "9876543210"
+    }
   },
   // Additional Card APIs
   {
@@ -464,7 +467,23 @@ export default function Sandbox() {
     if (endpoint.path.includes('{account_id}')) {
       pathParamsObj.account_id = "acc_123456789";
     }
+    if (endpoint.path.includes('{transaction_id}')) {
+      pathParamsObj.transaction_id = "TXN123456789";
+    }
+    if (endpoint.path.includes('{payout_id}')) {
+      pathParamsObj.payout_id = "PAYOUT987654321";
+    }
     setPathParams(JSON.stringify(pathParamsObj, null, 2));
+    
+    // Set query parameters for GET endpoints with sample data
+    if (endpoint.method === "GET" && endpoint.sampleRequest) {
+      const queryParamsString = Object.entries(endpoint.sampleRequest)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&');
+      setQueryParams(queryParamsString);
+    } else {
+      setQueryParams("");
+    }
     
     setResponse(null);
   };
