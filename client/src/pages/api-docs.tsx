@@ -2104,7 +2104,12 @@ export default function APIDocs() {
                                     y: shouldReduceMotion ? 0 : -4,
                                     transition: { duration: 0.2 }
                                   }}
-                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group h-72 flex flex-col"
+                                  className="bg-white rounded-lg border border-neutrals-200 hover:border-[var(--au-primary)]/30 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                                  style={{
+                                    height: '280px',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                  }}
                                   onClick={() => setSelectedEndpoint(endpoint.id)}
                                 >
                                   <div className="p-6 flex-1">
@@ -2137,8 +2142,8 @@ export default function APIDocs() {
                                     </div>
                                   </div>
                                   
-                                  <div className="px-6 pb-6 pt-4 border-t border-neutrals-100">
-                                    <div className="flex items-center justify-between h-8">
+                                  <div className="px-6 pb-6 pt-4 border-t border-neutrals-100" style={{marginTop: 'auto'}}>
+                                    <div className="flex items-center justify-between" style={{height: '32px', alignItems: 'center'}}>
                                       <div className="flex items-center gap-3 text-xs text-neutrals-500">
                                         {endpoint.security && (
                                           <div className="flex items-center gap-1.5">
