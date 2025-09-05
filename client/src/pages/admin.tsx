@@ -53,7 +53,7 @@ export default function AdminPanel() {
   const [apis, setApis] = useState<APIEndpoint[]>([]);
   const [categories, setCategories] = useState<APICategory[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [editingApi, setEditingApi] = useState<APIEndpoint | null>(null);
   const [editingCategory, setEditingCategory] = useState<APICategory | null>(null);
