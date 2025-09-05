@@ -10,6 +10,15 @@ import { ArrowLeft, Play, Copy, Settings, Database, CreditCard, Shield, Clock, C
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
+// Import category images
+import accountsImage from "@assets/generated_images/Banking_accounts_interface_illustration_1018d030.png";
+import paymentsImage from "@assets/generated_images/Digital_payment_processing_illustration_31b268b5.png";
+import authImage from "@assets/generated_images/Authentication_security_illustration_a4d4ed72.png";
+import kycImage from "@assets/generated_images/KYC_verification_illustration_dd95e58f.png";
+import billPaymentsImage from "@assets/generated_images/Bill_payments_illustration_5074064f.png";
+import cardsImage from "@assets/generated_images/Credit_cards_illustration_0309072a.png";
+import loansImage from "@assets/generated_images/Loan_services_illustration_f6b3efc8.png";
+
 interface APIEndpoint {
   id: string;
   name: string;
@@ -562,6 +571,16 @@ const categoryIcons = {
   Loans: Database
 };
 
+const categoryImages = {
+  Authentication: authImage,
+  Payments: paymentsImage,
+  Accounts: accountsImage,
+  KYC: kycImage,
+  "Bill Payments": billPaymentsImage,
+  Cards: cardsImage,
+  Loans: loansImage
+};
+
 export default function Sandbox() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint>(apiEndpoints[0]);
   const [requestBody, setRequestBody] = useState("");
@@ -994,17 +1013,28 @@ export default function Sandbox() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {getApiGroups().map(group => {
                 const IconComponent = group.icon;
+                const groupImage = categoryImages[group.name as keyof typeof categoryImages];
                 return (
                   <Card 
                     key={group.name}
-                    className="cursor-pointer hover:shadow-xl hover:shadow-[var(--au-primary)]/20 transition-all duration-300 hover:scale-105 border-2 hover:border-[var(--au-primary)]/30 bg-gradient-to-br from-white to-purple-50/30 dark:from-neutrals-800 dark:to-purple-950/10"
+                    className="cursor-pointer hover:shadow-xl hover:shadow-[var(--au-primary)]/20 transition-all duration-300 hover:scale-105 border-2 hover:border-[var(--au-primary)]/30 bg-gradient-to-br from-white to-purple-50/30 dark:from-neutrals-800 dark:to-purple-950/10 overflow-hidden"
                     onClick={() => handleGroupSelect(group.name)}
                     data-testid={`card-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
                   >
-                    <CardHeader className="text-center">
-                      <div className="mx-auto w-20 h-20 bg-gradient-to-br from-[var(--au-primary)]/20 to-purple-600/20 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-                        <IconComponent className="w-10 h-10 text-[var(--au-primary)]" />
+                    {/* Category Image */}
+                    <div className="relative h-32 w-full overflow-hidden">
+                      <img 
+                        src={groupImage} 
+                        alt={`${group.name} illustration`}
+                        className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent"></div>
+                      <div className="absolute bottom-2 right-2 w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center shadow-md">
+                        <IconComponent className="w-5 h-5 text-[var(--au-primary)]" />
                       </div>
+                    </div>
+                    
+                    <CardHeader className="text-center">
                       <CardTitle className="text-xl text-[var(--au-primary)] font-bold">{group.name}</CardTitle>
                       <CardDescription className="text-purple-600/70 font-medium">
                         {group.endpoints.length} API{group.endpoints.length !== 1 ? 's' : ''} available
