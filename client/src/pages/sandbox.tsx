@@ -686,11 +686,6 @@ export default function Sandbox() {
                 Back to Home
               </Button>
             </Link>
-            <div>
-              <p className="text-neutrals-600 dark:text-neutrals-400">
-                Test and explore AU Bank APIs in a safe sandbox environment
-              </p>
-            </div>
           </div>
           <Badge variant="secondary" className="text-sm">
             Sandbox Environment
