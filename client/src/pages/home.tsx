@@ -130,6 +130,58 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+
+  // Generate search suggestions
+  const generateSuggestions = (query: string) => {
+    if (!query || query.length < 2) return [];
+    
+    const suggestions = new Set<string>();
+    const queryLower = query.toLowerCase();
+    
+    // Add category suggestions
+    apiCategories.forEach(category => {
+      if (category.title.toLowerCase().includes(queryLower)) {
+        suggestions.add(category.title);
+      }
+      // Add relevant keywords from descriptions
+      const words = category.description.toLowerCase().split(' ');
+      words.forEach(word => {
+        if (word.length > 3 && word.includes(queryLower)) {
+          suggestions.add(word.charAt(0).toUpperCase() + word.slice(1));
+        }
+      });
+    });
+    
+    // Add featured API suggestions
+    featuredApis.forEach(api => {
+      if (api.title.toLowerCase().includes(queryLower)) {
+        suggestions.add(api.title);
+      }
+      if (api.category.toLowerCase().includes(queryLower)) {
+        suggestions.add(api.category);
+      }
+    });
+    
+    // Add common banking API keywords
+    const commonKeywords = [
+      'Payment', 'Authentication', 'OAuth', 'Banking', 'Account', 'Balance', 
+      'Transaction', 'Transfer', 'KYC', 'Verification', 'Security', 'API',
+      'Corporate', 'Business', 'Personal', 'Deposit', 'Withdrawal', 'NEFT',
+      'RTGS', 'IMPS', 'UPI', 'Credit', 'Debit', 'Loan', 'Investment'
+    ];
+    
+    commonKeywords.forEach(keyword => {
+      if (keyword.toLowerCase().includes(queryLower)) {
+        suggestions.add(keyword);
+      }
+    });
+    
+    return Array.from(suggestions).slice(0, 8); // Limit to 8 suggestions
+  };
+
+  const suggestions = generateSuggestions(searchQuery);
 
   // Filter APIs based on search query
   const filteredApiCategories = apiCategories.filter(category =>
@@ -147,6 +199,53 @@ export default function Home() {
 
   const hasSearchResults = searchQuery !== "" && (filteredApiCategories.length > 0 || filteredFeaturedApis.length > 0);
   const showNoResults = searchQuery !== "" && filteredApiCategories.length === 0 && filteredFeaturedApis.length === 0;
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    setSelectedSuggestionIndex(-1);
+    setTimeout(() => {
+      document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === 'Enter' && searchQuery) {
+        setShowSuggestions(false);
+        document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0) {
+          handleSuggestionClick(suggestions[selectedSuggestionIndex]);
+        } else if (searchQuery) {
+          setShowSuggestions(false);
+          document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -232,20 +331,69 @@ export default function Home() {
       <div className="bg-neutrals-50 py-3">
         <div className="container mx-auto px-4">
           <div className="relative max-w-md ml-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutrals-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutrals-400 w-4 h-4 z-10" />
             <Input
               type="text"
-              placeholder="Search APIs by Name, Description..."
+              placeholder="Search APIs by Name, Category, Keywords..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && searchQuery) {
-                document.getElementById('search-results')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(e.target.value.length >= 2);
+                setSelectedSuggestionIndex(-1);
+              }}
+              onKeyDown={handleKeyDown}
+              onFocus={() => {
+                if (searchQuery.length >= 2) {
+                  setShowSuggestions(true);
+                }
+              }}
+              onBlur={(e) => {
+                // Delay hiding suggestions to allow clicking
+                setTimeout(() => {
+                  setShowSuggestions(false);
+                  setSelectedSuggestionIndex(-1);
+                }, 150);
+              }}
               className="pl-10 text-sm"
               data-testid="input-search-apis"
             />
+            
+            {/* Search Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg mt-1 z-20 max-h-64 overflow-y-auto">
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className={`px-4 py-3 cursor-pointer flex items-center gap-3 hover:bg-gray-50 transition-colors ${
+                      index === selectedSuggestionIndex ? 'bg-blue-50 border-l-2 border-blue-500' : ''
+                    }`}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                  >
+                    <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span className="text-sm text-gray-700">{suggestion}</span>
+                    {suggestion.includes('API') && (
+                      <Badge variant="outline" className="ml-auto text-xs">
+                        API
+                      </Badge>
+                    )}
+                    {apiCategories.some(cat => cat.title === suggestion) && (
+                      <Badge variant="outline" className="ml-auto text-xs bg-blue-50 text-blue-600">
+                        Category
+                      </Badge>
+                    )}
+                    {featuredApis.some(api => api.title === suggestion) && (
+                      <Badge variant="outline" className="ml-auto text-xs bg-green-50 text-green-600">
+                        Featured
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+                <div className="px-4 py-2 border-t bg-gray-50 text-xs text-gray-500">
+                  Use ↑↓ arrows to navigate, Enter to select, Esc to close
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
