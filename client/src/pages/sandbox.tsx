@@ -785,11 +785,6 @@ export default function Sandbox() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Categories
               </Button>
-              <Badge 
-                className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
-              >
-                Sandbox Environment
-              </Badge>
             </div>
 
             {/* Page Title */}
