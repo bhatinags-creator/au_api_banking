@@ -8,7 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Play, Copy, Settings, Database, CreditCard, Shield, Clock, CheckCircle, XCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ArrowLeft, Play, Copy, Settings, Database, CreditCard, Shield, Clock, CheckCircle, XCircle, AlertCircle, Eye, EyeOff, Search, Filter, Star, History } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -203,6 +205,168 @@ const apiEndpoints: APIEndpoint[] = [
     description: "Retrieve account transaction history",
     requiresAuth: true,
     sampleRequest: null
+  },
+  // Additional KYC APIs
+  {
+    id: "kyc-document-upload",
+    name: "KYC Document Upload",
+    method: "POST",
+    path: "https://aubank.tech/uat/kyc/documents/upload",
+    category: "KYC",
+    description: "Upload KYC documents for verification",
+    requiresAuth: true,
+    sampleRequest: {
+      document_type: "aadhaar",
+      customer_id: "CUST001"
+    }
+  },
+  {
+    id: "kyc-status-check",
+    name: "KYC Status Check",
+    method: "GET",
+    path: "https://aubank.tech/uat/kyc/status/{customer_id}",
+    category: "KYC",
+    description: "Check KYC verification status",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  {
+    id: "kyc-video-verification",
+    name: "KYC Video Verification",
+    method: "POST",
+    path: "https://aubank.tech/uat/kyc/video-verification",
+    category: "KYC",
+    description: "Initiate video KYC verification",
+    requiresAuth: true,
+    sampleRequest: {
+      customer_id: "CUST001",
+      scheduled_time: "2024-01-15T10:00:00Z"
+    }
+  },
+  // Additional Bill Payment APIs
+  {
+    id: "bbps-bill-payment",
+    name: "BBPS Bill Payment",
+    method: "POST",
+    path: "https://aubank.tech/uat/bbps/bill/payment",
+    category: "Bill Payments",
+    description: "Process BBPS bill payment",
+    requiresAuth: true,
+    sampleRequest: {
+      biller_id: "BILLER001",
+      customer_params: ["9876543210"],
+      amount: 500.00
+    }
+  },
+  {
+    id: "bbps-payment-status",
+    name: "BBPS Payment Status",
+    method: "GET",
+    path: "https://aubank.tech/uat/bbps/payment/status/{payment_id}",
+    category: "Bill Payments",
+    description: "Check BBPS payment status",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  // Additional Card APIs
+  {
+    id: "card-balance",
+    name: "Card Balance",
+    method: "GET",
+    path: "https://aubank.tech/uat/cards/{card_id}/balance",
+    category: "Cards",
+    description: "Get credit/debit card balance",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  {
+    id: "card-transactions",
+    name: "Card Transactions",
+    method: "GET",
+    path: "https://aubank.tech/uat/cards/{card_id}/transactions",
+    category: "Cards",
+    description: "Get card transaction history",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  {
+    id: "card-block",
+    name: "Block Card",
+    method: "PUT",
+    path: "https://aubank.tech/uat/cards/{card_id}/block",
+    category: "Cards",
+    description: "Block credit/debit card",
+    requiresAuth: true,
+    sampleRequest: {
+      reason: "lost_stolen",
+      remarks: "Card reported as lost"
+    }
+  },
+  // Additional Account APIs
+  {
+    id: "account-statement",
+    name: "Account Statement",
+    method: "GET",
+    path: "https://aubank.tech/uat/accounts/{account_id}/statement",
+    category: "Accounts",
+    description: "Generate account statement",
+    requiresAuth: true,
+    sampleRequest: null
+  },
+  {
+    id: "fund-transfer",
+    name: "Fund Transfer",
+    method: "POST",
+    path: "https://aubank.tech/uat/accounts/fund-transfer",
+    category: "Accounts",
+    description: "Transfer funds between accounts",
+    requiresAuth: true,
+    sampleRequest: {
+      from_account: "1234567890",
+      to_account: "0987654321",
+      amount: 1000.00,
+      purpose: "transfer"
+    }
+  },
+  // Additional Loan APIs
+  {
+    id: "loan-eligibility",
+    name: "Loan Eligibility",
+    method: "POST",
+    path: "https://aubank.tech/uat/loans/eligibility",
+    category: "Loans",
+    description: "Check loan eligibility",
+    requiresAuth: true,
+    sampleRequest: {
+      customer_id: "CUST001",
+      loan_type: "personal",
+      requested_amount: 500000
+    }
+  },
+  {
+    id: "loan-application",
+    name: "Loan Application",
+    method: "POST",
+    path: "https://aubank.tech/uat/loans/application",
+    category: "Loans",
+    description: "Submit loan application",
+    requiresAuth: true,
+    sampleRequest: {
+      customer_id: "CUST001",
+      loan_type: "personal",
+      amount: 300000,
+      tenure: 24
+    }
+  },
+  {
+    id: "loan-status",
+    name: "Loan Status",
+    method: "GET",
+    path: "https://aubank.tech/uat/loans/{loan_id}/status",
+    category: "Loans",
+    description: "Check loan application status",
+    requiresAuth: true,
+    sampleRequest: null
   }
 ];
 
@@ -210,7 +374,10 @@ const categoryIcons = {
   Authentication: Shield,
   Payments: CreditCard,
   Accounts: Database,
-  KYC: Settings
+  KYC: Settings,
+  "Bill Payments": CreditCard,
+  Cards: CreditCard,
+  Loans: Database
 };
 
 export default function Sandbox() {
@@ -225,17 +392,70 @@ export default function Sandbox() {
   const [testHistory, setTestHistory] = useState<TestHistory[]>([]);
   const [showApiToken, setShowApiToken] = useState(false);
   const [activeTab, setActiveTab] = useState("request");
+  
+  // Enhanced API selector state
+  const [endpointDialogOpen, setEndpointDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [recentlyUsed, setRecentlyUsed] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  
   const { toast } = useToast();
 
   useEffect(() => {
     handleEndpointChange(selectedEndpoint.id);
   }, [selectedEndpoint]);
 
+  // Enhanced endpoint selection helpers
+  const getFilteredEndpoints = () => {
+    let filtered = apiEndpoints;
+    
+    // Filter by category
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(endpoint => endpoint.category === selectedCategory);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(endpoint => 
+        endpoint.name.toLowerCase().includes(query) ||
+        endpoint.description.toLowerCase().includes(query) ||
+        endpoint.path.toLowerCase().includes(query) ||
+        endpoint.method.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  };
+
+  const getCategories = () => {
+    const categories = [...new Set(apiEndpoints.map(endpoint => endpoint.category))];
+    return categories.sort();
+  };
+
+  const addToRecentlyUsed = (endpointId: string) => {
+    setRecentlyUsed(prev => {
+      const filtered = prev.filter(id => id !== endpointId);
+      return [endpointId, ...filtered].slice(0, 5); // Keep only 5 recent items
+    });
+  };
+
+  const toggleFavorite = (endpointId: string) => {
+    setFavorites(prev => 
+      prev.includes(endpointId) 
+        ? prev.filter(id => id !== endpointId)
+        : [...prev, endpointId]
+    );
+  };
+
   const handleEndpointChange = (endpointId: string) => {
     const endpoint = apiEndpoints.find(e => e.id === endpointId);
     if (!endpoint) return;
     
     setSelectedEndpoint(endpoint);
+    addToRecentlyUsed(endpointId);
+    setEndpointDialogOpen(false);
     
     // Update request body with sample data
     if (endpoint.sampleRequest) {
@@ -745,7 +965,7 @@ export default function Sandbox() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Panel - API Selection & Configuration */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Endpoint Selection */}
+            {/* Enhanced Endpoint Selection */}
             <Card data-testid="card-endpoint-selection">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -757,27 +977,172 @@ export default function Sandbox() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Select value={selectedEndpoint.id} onValueChange={handleEndpointChange}>
-                  <SelectTrigger data-testid="select-endpoint">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {apiEndpoints.map((endpoint) => (
-                      <SelectItem key={endpoint.id} value={endpoint.id}>
-                        <div className="flex items-center gap-2">
-                          {getCategoryIcon(endpoint.category)}
-                          <span>{endpoint.name}</span>
-                          <Badge 
-                            variant={endpoint.method === 'GET' ? 'secondary' : 'default'} 
-                            className="text-xs"
-                          >
-                            {endpoint.method}
-                          </Badge>
+                <Dialog open={endpointDialogOpen} onOpenChange={setEndpointDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-between h-auto p-3"
+                      data-testid="button-select-endpoint"
+                    >
+                      <div className="flex items-center gap-2 text-left">
+                        {getCategoryIcon(selectedEndpoint.category)}
+                        <div>
+                          <div className="font-medium">{selectedEndpoint.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {selectedEndpoint.method} • {selectedEndpoint.category}
+                          </div>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </div>
+                      <Search className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh]">
+                    <DialogHeader>
+                      <DialogTitle>Select API Endpoint</DialogTitle>
+                      <DialogDescription>
+                        Search and select from {apiEndpoints.length} available API endpoints
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                      {/* Search and Filter Controls */}
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Search endpoints, methods, or descriptions..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full"
+                            data-testid="input-search-endpoints"
+                          />
+                        </div>
+                        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                          <SelectTrigger className="w-48" data-testid="select-category-filter">
+                            <Filter className="w-4 h-4 mr-2" />
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            {getCategories().map(category => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Recently Used Section */}
+                      {recentlyUsed.length > 0 && (
+                        <div>
+                          <h4 className="flex items-center gap-2 text-sm font-medium mb-2">
+                            <History className="w-4 h-4" />
+                            Recently Used
+                          </h4>
+                          <div className="space-y-1">
+                            {recentlyUsed.slice(0, 3).map(endpointId => {
+                              const endpoint = apiEndpoints.find(e => e.id === endpointId);
+                              if (!endpoint) return null;
+                              return (
+                                <Button
+                                  key={endpoint.id}
+                                  variant="ghost"
+                                  className="w-full justify-start h-auto p-3"
+                                  onClick={() => handleEndpointChange(endpoint.id)}
+                                  data-testid={`button-recent-${endpoint.id}`}
+                                >
+                                  <div className="flex items-center gap-3 w-full">
+                                    {getCategoryIcon(endpoint.category)}
+                                    <div className="flex-1 text-left">
+                                      <div className="font-medium">{endpoint.name}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        {endpoint.method} • {endpoint.category}
+                                      </div>
+                                    </div>
+                                    <Badge variant="outline" className="text-xs">
+                                      {endpoint.method}
+                                    </Badge>
+                                  </div>
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* API Endpoints List */}
+                      <div className="max-h-96 overflow-y-auto">
+                        <Command>
+                          <CommandList>
+                            <CommandEmpty>
+                              No endpoints found matching your search.
+                            </CommandEmpty>
+                            {getCategories().map(category => {
+                              const categoryEndpoints = getFilteredEndpoints().filter(
+                                endpoint => endpoint.category === category
+                              );
+                              
+                              if (categoryEndpoints.length === 0) return null;
+                              
+                              return (
+                                <CommandGroup key={category} heading={category}>
+                                  {categoryEndpoints.map(endpoint => (
+                                    <CommandItem
+                                      key={endpoint.id}
+                                      value={endpoint.id}
+                                      onSelect={() => handleEndpointChange(endpoint.id)}
+                                      className="cursor-pointer"
+                                      data-testid={`item-endpoint-${endpoint.id}`}
+                                    >
+                                      <div className="flex items-center gap-3 w-full">
+                                        {getCategoryIcon(endpoint.category)}
+                                        <div className="flex-1">
+                                          <div className="font-medium">{endpoint.name}</div>
+                                          <div className="text-sm text-muted-foreground">
+                                            {endpoint.description}
+                                          </div>
+                                          <div className="text-xs text-muted-foreground mt-1">
+                                            {endpoint.path}
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Badge 
+                                            variant={endpoint.method === 'GET' ? 'secondary' : 'default'}
+                                            className="text-xs"
+                                          >
+                                            {endpoint.method}
+                                          </Badge>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleFavorite(endpoint.id);
+                                            }}
+                                            className="h-6 w-6 p-0"
+                                            data-testid={`button-favorite-${endpoint.id}`}
+                                          >
+                                            <Star 
+                                              className={`w-4 h-4 ${
+                                                favorites.includes(endpoint.id) 
+                                                  ? 'fill-yellow-400 text-yellow-400' 
+                                                  : 'text-muted-foreground'
+                                              }`} 
+                                            />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              );
+                            })}
+                          </CommandList>
+                        </Command>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 
                 {selectedEndpoint && (
                   <div className="mt-4 p-3 bg-neutrals-50 dark:bg-neutrals-800 rounded-lg">
