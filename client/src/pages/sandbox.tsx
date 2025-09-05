@@ -485,6 +485,142 @@ export default function Sandbox() {
             }
           }
         };
+
+      case "upi-payout-initiate":
+        const upiPayoutData = body ? JSON.parse(body) : {};
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            payout_id: upiPayoutData.payout_id || "PAYOUT" + Date.now(),
+            status: "initiated",
+            amount: upiPayoutData.amount || 500.00,
+            payee_vpa: upiPayoutData.payee_vpa || "beneficiary@upi",
+            transaction_ref: "AU" + Date.now(),
+            timestamp: new Date().toISOString()
+          }
+        };
+
+      case "upi-payout-status":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            payout_id: "PAYOUT123456",
+            status: "success",
+            amount: 500.00,
+            payee_vpa: "beneficiary@upi",
+            transaction_ref: "AU123456789",
+            completed_at: new Date().toISOString()
+          }
+        };
+
+      case "bbps-biller-list":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            billers: [
+              {
+                biller_id: "MSEB0001",
+                biller_name: "Maharashtra State Electricity Board",
+                category: "electricity",
+                state: "MH",
+                validation_params: ["consumer_number"]
+              },
+              {
+                biller_id: "TATA0001",
+                biller_name: "Tata Power",
+                category: "electricity",
+                state: "MH",
+                validation_params: ["consumer_number"]
+              }
+            ],
+            total_count: 2
+          }
+        };
+
+      case "bbps-bill-fetch":
+        const billData = body ? JSON.parse(body) : {};
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            bill_amount: 2500.50,
+            due_date: "2024-12-15",
+            consumer_name: "John Doe",
+            bill_period: "Nov 2024",
+            reference_id: billData.reference_id || "REF123456",
+            biller_name: "Maharashtra State Electricity Board"
+          }
+        };
+
+      case "bbps-bill-payment":
+        const paymentBillData = body ? JSON.parse(body) : {};
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            transaction_id: "TXN" + Date.now(),
+            status: "success",
+            amount: paymentBillData.amount || 2500.50,
+            biller_name: "Maharashtra State Electricity Board",
+            payment_date: new Date().toISOString(),
+            confirmation_number: "CONF" + Date.now()
+          }
+        };
+
+      case "vam-create-account":
+        const vamData = body ? JSON.parse(body) : {};
+        return {
+          status: 201,
+          statusText: "Created",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            virtual_account_number: "VA" + Date.now(),
+            virtual_account_name: vamData.virtual_account_name || "Customer Collections",
+            customer_id: vamData.customer_id || "CUST123456",
+            status: "active",
+            created_date: new Date().toISOString().split('T')[0],
+            expiry_date: new Date(Date.now() + (vamData.validity_days || 365) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          }
+        };
+
+      case "vam-get-transactions":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            transactions: [
+              {
+                transaction_id: "TXN" + Date.now(),
+                amount: 5000.00,
+                currency: "INR",
+                transaction_date: new Date().toISOString(),
+                remitter_name: "John Doe",
+                remitter_account: "9876543210987",
+                utr_number: "UTR" + Date.now()
+              },
+              {
+                transaction_id: "TXN" + (Date.now() - 86400000),
+                amount: 2500.00,
+                currency: "INR",
+                transaction_date: new Date(Date.now() - 86400000).toISOString(),
+                remitter_name: "Jane Smith",
+                remitter_account: "1234567890123",
+                utr_number: "UTR" + (Date.now() - 86400000)
+              }
+            ],
+            total_amount: 7500.00,
+            transaction_count: 2
+          }
+        };
         
       default:
         return {
