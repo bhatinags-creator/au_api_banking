@@ -2145,14 +2145,14 @@ export default function APIDocs() {
                                   <div 
                                     className="px-6 pb-6 pt-4 border-t border-neutrals-100" 
                                     style={{
-                                      marginTop: 'auto',
                                       position: 'absolute',
                                       bottom: 0,
                                       left: 0,
                                       right: 0,
                                       backgroundColor: 'white',
                                       borderBottomLeftRadius: '0.5rem',
-                                      borderBottomRightRadius: '0.5rem'
+                                      borderBottomRightRadius: '0.5rem',
+                                      zIndex: 1
                                     }}
                                   >
                                     <div className="flex items-center justify-between" style={{height: '32px', alignItems: 'center'}}>
