@@ -1321,6 +1321,44 @@ export default function APIDocs() {
                 Payments
               </div>
               
+              {/* Payment Subcategories */}
+              {selectedCategory === "payments" && (
+                <div className="ml-4 border-l-2 border-[var(--au-primary)]/20">
+                  {apiCategories.find(c => c.id === "payments")?.subcategories?.map((subcategory) => (
+                    <div key={subcategory.id} className="ml-4">
+                      <div className="py-2 px-3 text-sm font-medium text-[var(--au-primary-600)] border-b border-neutrals-100">
+                        {subcategory.title}
+                      </div>
+                      {subcategory.endpoints.map((endpoint) => (
+                        <div
+                          key={endpoint.id}
+                          className={`p-2 pl-4 text-sm cursor-pointer transition-colors ${
+                            selectedEndpoint === endpoint.id
+                              ? 'bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] font-medium border-r-2 border-[var(--au-primary)]'
+                              : 'hover:bg-neutrals-50 text-neutrals-600 hover:text-[var(--au-primary-600)]'
+                          }`}
+                          onClick={() => {
+                            setSelectedEndpoint(endpoint.id);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={`px-1.5 py-0.5 text-xs rounded font-mono ${
+                              endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
+                              endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                              endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {endpoint.method}
+                            </span>
+                            <span className="truncate">{endpoint.title}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               <div
                 className={`p-3 rounded cursor-pointer transition-colors ${
                   selectedCategory === "accounts-deposits" 
