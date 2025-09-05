@@ -2136,8 +2136,8 @@ export default function APIDocs() {
                                       <ChevronRight className="w-5 h-5 text-neutrals-400 group-hover:text-[var(--au-primary)] transition-colors ml-2 flex-shrink-0" />
                                     </div>
                                     
-                                    <div className="flex items-center justify-between pt-4 border-t border-neutrals-100">
-                                      <div className="flex items-center gap-3 text-xs text-neutrals-500">
+                                    <div className="flex items-center justify-between pt-4 border-t border-neutrals-100 min-h-[2.5rem]">
+                                      <div className="flex items-center gap-3 text-xs text-neutrals-500 flex-1">
                                         {endpoint.security && (
                                           <div className="flex items-center gap-1.5">
                                             <Shield className="w-3.5 h-3.5" />
@@ -2157,7 +2157,7 @@ export default function APIDocs() {
                                       <Button 
                                         size="sm" 
                                         variant="ghost"
-                                        className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-7 px-3"
+                                        className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-8 px-3 ml-3 flex-shrink-0"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setSelectedEndpoint(endpoint.id);
