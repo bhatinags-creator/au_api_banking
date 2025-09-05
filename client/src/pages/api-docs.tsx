@@ -1555,6 +1555,97 @@ export default function APIDocs() {
               </motion.div>
             </div>
             
+            {/* Selected Endpoint Details */}
+            {selectedEndpoint && currentEndpoint && (
+              <div className="mt-6 pt-4 border-t border-[var(--au-primary)]/20">
+                <motion.div 
+                  className="bg-gradient-to-r from-[var(--au-primary)]/5 to-purple-50/50 rounded-lg p-4 border border-[var(--au-primary)]/10"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-[var(--au-primary-700)] text-sm">SELECTED API</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedEndpoint(null)}
+                      className="h-6 w-6 p-0 hover:bg-[var(--au-primary)]/10"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge 
+                          className={`text-xs font-mono ${
+                            currentEndpoint.method === 'GET' ? 'bg-green-100 text-green-700 border-green-200' :
+                            currentEndpoint.method === 'POST' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                            currentEndpoint.method === 'PUT' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                            currentEndpoint.method === 'DELETE' ? 'bg-red-100 text-red-700 border-red-200' :
+                            'bg-gray-100 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          {currentEndpoint.method}
+                        </Badge>
+                      </div>
+                      <h4 className="font-medium text-[var(--au-primary-800)] text-sm mb-1">{currentEndpoint.title}</h4>
+                      <code className="text-xs bg-white/70 px-2 py-1 rounded border text-[var(--au-primary-600)] block truncate">
+                        {currentEndpoint.path}
+                      </code>
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs text-neutrals-600 leading-relaxed">
+                        {currentEndpoint.description}
+                      </p>
+                    </div>
+                    
+                    {currentEndpoint.security && (
+                      <div className="flex items-center gap-2 text-xs text-amber-700">
+                        <Shield className="w-3 h-3" />
+                        <span>Secured</span>
+                      </div>
+                    )}
+                    
+                    {currentEndpoint.parameters && currentEndpoint.parameters.length > 0 && (
+                      <div>
+                        <div className="text-xs font-medium text-[var(--au-primary-700)] mb-2">Parameters ({currentEndpoint.parameters.length})</div>
+                        <div className="space-y-1">
+                          {currentEndpoint.parameters.slice(0, 3).map((param, index) => (
+                            <div key={index} className="flex items-center justify-between text-xs">
+                              <span className="font-mono text-[var(--au-primary-600)]">{param.name}</span>
+                              <Badge variant="outline" className="text-xs h-4">
+                                {param.type}
+                              </Badge>
+                            </div>
+                          ))}
+                          {currentEndpoint.parameters.length > 3 && (
+                            <div className="text-xs text-neutrals-500">
+                              +{currentEndpoint.parameters.length - 3} more...
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <Button 
+                      size="sm" 
+                      className="w-full mt-3 bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90 text-white text-xs"
+                      onClick={() => {
+                        // Scroll to main content area or handle detailed view
+                        document.querySelector('.flex-1')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      View Full Details
+                    </Button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+            
             <div className="mt-8 pt-4 border-t border-neutrals-200">
               <div className="flex items-center gap-2 p-3 text-neutrals-700 font-medium">
                 <span className="text-lg">📚</span>
