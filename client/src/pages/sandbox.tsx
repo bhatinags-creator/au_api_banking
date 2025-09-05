@@ -1146,29 +1146,36 @@ export default function Sandbox() {
         )}
 
         {currentView === "test" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Panel - API Configuration */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Selected API Info */}
-              <Card data-testid="card-selected-api">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
+          <div className="space-y-6">
+            {/* Top Navigation Bar */}
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToApis}
+                className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
+                data-testid="button-back-to-apis"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to {selectedGroup} APIs
+              </Button>
+              <Badge 
+                className="text-sm bg-[var(--au-primary)]/10 text-[var(--au-primary)] border-[var(--au-primary)]/20"
+              >
+                API Testing Environment
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Panel - API Configuration */}
+              <div className="lg:col-span-1 space-y-6">
+                {/* Selected API Info */}
+                <Card data-testid="card-selected-api">
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       {getCategoryIcon(selectedEndpoint.category)}
                       Selected API
                     </CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={handleBackToApis}
-                      className="hover:bg-[var(--au-primary)]/10 hover:text-[var(--au-primary)]"
-                      data-testid="button-back-to-apis"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
-                  </div>
-                </CardHeader>
+                  </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div>
@@ -1414,6 +1421,7 @@ export default function Sandbox() {
               </Card>
             </div>
           </div>
+        </div>
         )}
       </div>
     </div>
