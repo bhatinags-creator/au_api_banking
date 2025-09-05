@@ -2137,7 +2137,7 @@ export default function APIDocs() {
                                     </div>
                                     
                                     <div className="pt-4 border-t border-neutrals-100">
-                                      <div className="flex items-center justify-between">
+                                      <div className="flex items-center justify-between h-8">
                                         <div className="flex items-center gap-3 text-xs text-neutrals-500">
                                           {endpoint.security && (
                                             <div className="flex items-center gap-1.5">
@@ -2152,13 +2152,13 @@ export default function APIDocs() {
                                             </div>
                                           )}
                                           {(!endpoint.security && (!endpoint.parameters || endpoint.parameters.length === 0)) && (
-                                            <span className="text-neutrals-400 italic">No auth required</span>
+                                            <span className="text-neutrals-400 italic">No requirements</span>
                                           )}
                                         </div>
                                         <Button 
                                           size="sm" 
                                           variant="ghost"
-                                          className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-8 px-3 font-medium"
+                                          className="text-[var(--au-primary)] hover:bg-[var(--au-primary)]/10 h-8 px-3 font-medium shrink-0"
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             setSelectedEndpoint(endpoint.id);
