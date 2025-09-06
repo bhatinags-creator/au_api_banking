@@ -1390,7 +1390,7 @@ export default function APIDocs() {
               </motion.div>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "payments" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1401,11 +1401,17 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "payments" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("payments");
+                  setSelectedCategory(selectedCategory === "payments" ? null : "payments");
                   setSelectedEndpoint(null);
                 }}
               >
-                Payments
+                <span>Payments</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "payments" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               {/* Payment Subcategories */}
