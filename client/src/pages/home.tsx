@@ -34,26 +34,26 @@ import { Link } from "wouter";
 const heroSlides = [
   {
     id: 1,
-    title: "Fulfill all your banking needs with API integration",
-    subtitle: "Avail AU Bank smart features for your business",
-    features: ["Financial Data Integration", "Smooth Transactions", "Integrated Solution"],
-    cta: "Know More About Business Banking",
+    title: "Internal API Development & Testing Platform",
+    subtitle: "AU Bank's comprehensive internal development environment",
+    features: ["Internal API Access", "Development Tools", "Team Collaboration"],
+    cta: "Access Internal Resources",
     bgColor: "from-pink-200 to-pink-300"
   },
   {
     id: 2,
-    title: "Make smooth business payments without any worries",
-    subtitle: "Start API Banking with AU Bank to scale your business",
-    features: ["Real-time Processing", "Secure Transactions", "24/7 Availability"],
-    cta: "Know More About Payments",
+    title: "Internal Payment Systems & Transaction APIs",
+    subtitle: "Comprehensive internal payment processing and testing",
+    features: ["Internal Testing", "Secure Development", "24/7 Monitoring"],
+    cta: "Access Payment Systems",
     bgColor: "from-blue-600 to-blue-700"
   },
   {
     id: 3,
-    title: "Build powerful fintech solutions with our comprehensive APIs",
-    subtitle: "Transform your business with digital banking integration",
-    features: ["Developer-First Design", "Complete Documentation", "Sandbox Testing"],
-    cta: "Explore All APIs",
+    title: "Internal Development Tools & API Management",
+    subtitle: "Advanced tools for AU Bank's internal development teams",
+    features: ["Internal APIs", "Developer Resources", "Testing Environment"],
+    cta: "Access Dev Tools",
     bgColor: "from-green-600 to-green-700"
   }
 ];
@@ -600,7 +600,7 @@ export default function Home() {
           
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-base text-neutrals-600 mb-4">
-              Signup to AU Bank API Banking Portal Sandbox environment to start your journey. Upgrade to UAT environment for end-to-end real-time testing, post your NDA with us. Go-live with integration to production environment.
+              Access AU Bank's internal development environments. Use Sandbox for internal testing, UAT for team validation, and Production for internal system integration.
             </p>
             <p className="text-sm text-neutrals-500">
               *Disclaimer: Access to UAT & Production environment is subject to business approvals, NDA and other agreements, and is at the sole discretion of AU Bank.
@@ -855,7 +855,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-neutrals-800 mt-8 pt-8 text-center text-sm text-neutrals-400">
-            <p>&copy; 2024 AU Small Finance Bank. All rights reserved. | Privacy Policy | Terms of Service</p>
+            <p>&copy; 2024 AU Bank Internal Developer Portal. All rights reserved. | Internal Use Only | Privacy Policy</p>
             <div className="mt-2">
               <Link href="/admin" className="text-neutrals-500 hover:text-white transition-colors text-xs">
                 Admin Access
