@@ -16,10 +16,10 @@ import SignIn from "@/pages/signin";
 import AdminPanel from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
-function Router() {
+// Protected Route component
+function ProtectedRoute({ component: Component, ...rest }: any) {
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Show loading screen while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
@@ -34,36 +34,40 @@ function Router() {
     );
   }
 
+  if (!isAuthenticated) {
+    window.location.href = '/signin';
+    return null;
+  }
+
+  return <Component {...rest} />;
+}
+
+function Router() {
   return (
     <Switch>
-      {/* Public routes - accessible without authentication */}
+      {/* Public routes - no auth check needed */}
       <Route path="/signin" component={SignIn} />
       <Route path="/signup" component={SignUp} />
       <Route path="/register" component={CorporateRegistration} />
       <Route path="/docs" component={APIDocs} />
+      <Route path="/" component={Home} />
       
-      {/* Protected routes - redirect to signin if not authenticated */}
-      {isAuthenticated ? (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/apis" component={ApiExplorer} />
-          <Route path="/sandbox" component={Sandbox} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/admin" component={AdminPanel} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          {/* Redirect all other routes to signin for unauthenticated users */}
-          <Route path="/:rest*">
-            {() => {
-              window.location.href = '/signin';
-              return null;
-            }}
-          </Route>
-        </>
-      )}
+      {/* Protected routes - auth check only when accessed */}
+      <Route path="/dashboard">
+        {() => <ProtectedRoute component={Dashboard} />}
+      </Route>
+      <Route path="/apis">
+        {() => <ProtectedRoute component={ApiExplorer} />}
+      </Route>
+      <Route path="/sandbox">
+        {() => <ProtectedRoute component={Sandbox} />}
+      </Route>
+      <Route path="/analytics">
+        {() => <ProtectedRoute component={Analytics} />}
+      </Route>
+      <Route path="/admin">
+        {() => <ProtectedRoute component={AdminPanel} />}
+      </Route>
       
       <Route component={NotFound} />
     </Switch>

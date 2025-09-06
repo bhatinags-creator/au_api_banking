@@ -1069,7 +1069,7 @@ const apiCategories: APICategory[] = [
 ];
 
 export default function APIDocs() {
-  const [selectedCategory, setSelectedCategory] = useState("introduction");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>("introduction");
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<string[]>(["introduction", "security"]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1314,7 +1314,7 @@ export default function APIDocs() {
           <div className="p-4">
             <div className="space-y-1">
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "introduction" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1325,15 +1325,21 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "introduction" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("introduction");
+                  setSelectedCategory(selectedCategory === "introduction" ? null : "introduction");
                   setSelectedEndpoint(null);
                 }}
               >
-                Introduction
+                <span>Introduction</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "introduction" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "security" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1344,15 +1350,21 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "security" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("security");
+                  setSelectedCategory(selectedCategory === "security" ? null : "security");
                   setSelectedEndpoint(null);
                 }}
               >
-                Security
+                <span>Security</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "security" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "building-blocks" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1363,15 +1375,21 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "building-blocks" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("building-blocks");
+                  setSelectedCategory(selectedCategory === "building-blocks" ? null : "building-blocks");
                   setSelectedEndpoint(null);
                 }}
               >
-                Building Blocks
+                <span>Building Blocks</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "building-blocks" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "loans-and-cards" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1382,11 +1400,17 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "loans-and-cards" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("loans-and-cards");
+                  setSelectedCategory(selectedCategory === "loans-and-cards" ? null : "loans-and-cards");
                   setSelectedEndpoint(null);
                 }}
               >
-                Loans and Cards
+                <span>Loans and Cards</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "loans-and-cards" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               <motion.div
@@ -1560,7 +1584,7 @@ export default function APIDocs() {
               </AnimatePresence>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "accounts-deposits" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1571,15 +1595,21 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "accounts-deposits" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("accounts-deposits");
+                  setSelectedCategory(selectedCategory === "accounts-deposits" ? null : "accounts-deposits");
                   setSelectedEndpoint(null);
                 }}
               >
-                Accounts and Deposits
+                <span>Accounts and Deposits</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "accounts-deposits" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "business-banking" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1590,15 +1620,21 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "business-banking" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("business-banking");
+                  setSelectedCategory(selectedCategory === "business-banking" ? null : "business-banking");
                   setSelectedEndpoint(null);
                 }}
               >
-                Business Banking
+                <span>Business Banking</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "business-banking" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "trade-services" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1609,15 +1645,21 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "trade-services" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("trade-services");
+                  setSelectedCategory(selectedCategory === "trade-services" ? null : "trade-services");
                   setSelectedEndpoint(null);
                 }}
               >
-                Trade Services
+                <span>Trade Services</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "trade-services" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
               
               <motion.div
-                className={`p-3 rounded cursor-pointer transition-colors ${
+                className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
                   selectedCategory === "corporate-api-suite" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
@@ -1628,11 +1670,17 @@ export default function APIDocs() {
                 whileTap="tap"
                 animate={selectedCategory === "corporate-api-suite" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory("corporate-api-suite");
+                  setSelectedCategory(selectedCategory === "corporate-api-suite" ? null : "corporate-api-suite");
                   setSelectedEndpoint(null);
                 }}
               >
-                Corporate API Suite
+                <span>Corporate API Suite</span>
+                <motion.div
+                  animate={{ rotate: selectedCategory === "corporate-api-suite" ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </motion.div>
               </motion.div>
             </div>
             
