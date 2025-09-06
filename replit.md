@@ -1,6 +1,6 @@
 # Overview
 
-This is a REST API Banking Portal built with a modern full-stack architecture. The application provides a banking API interface with a React frontend and Express backend, designed for developers to explore and interact with banking APIs. The project features a clean, professional UI with shadcn/ui components and implements a robust database layer using Drizzle ORM with PostgreSQL.
+This is the AU Bank Developer Portal (Internal Users) built with a modern full-stack architecture. The application provides internal banking API interfaces with a React frontend and Express backend, designed specifically for AU Bank's internal development teams and employees. The project features a clean, professional UI with shadcn/ui components and implements a robust database layer using Drizzle ORM with PostgreSQL.
 
 # User Preferences
 
