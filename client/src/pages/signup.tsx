@@ -586,7 +586,7 @@ export default function SignUp() {
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
                 <h1 className="text-xl font-bold text-neutrals-900">
-                  AU Bank Developer Portal
+                  AU Bank Developer Portal (Internal)
                 </h1>
               </div>
             </Link>

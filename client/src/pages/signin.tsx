@@ -129,7 +129,7 @@ export default function SignIn() {
                   <Building2 className="w-5 h-5 text-white" />
                 </div>
                 <h1 className="text-xl font-bold text-neutrals-900">
-                  AU Bank Developer Portal
+                  AU Bank Developer Portal (Internal)
                 </h1>
               </div>
             </Link>
@@ -152,7 +152,7 @@ export default function SignIn() {
               <Shield className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to your developer account</p>
+            <p className="text-gray-600">Sign in to your internal developer account</p>
           </div>
 
           <Card>
