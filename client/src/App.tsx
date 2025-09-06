@@ -36,10 +36,11 @@ function Router() {
 
   return (
     <Switch>
-      {/* Public routes */}
+      {/* Public routes - accessible without authentication */}
       <Route path="/signin" component={SignIn} />
       <Route path="/signup" component={SignUp} />
       <Route path="/register" component={CorporateRegistration} />
+      <Route path="/docs" component={APIDocs} />
       
       {/* Protected routes - redirect to signin if not authenticated */}
       {isAuthenticated ? (
@@ -47,7 +48,6 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/apis" component={ApiExplorer} />
-          <Route path="/docs" component={APIDocs} />
           <Route path="/sandbox" component={Sandbox} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/admin" component={AdminPanel} />
@@ -55,7 +55,6 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
-          <Route path="/docs" component={APIDocs} />
           {/* Redirect all other routes to signin for unauthenticated users */}
           <Route path="/:rest*">
             {() => {
