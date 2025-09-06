@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -15,8 +15,8 @@ import {
   AlertCircle,
   CheckCircle
 } from "lucide-react";
-import { Link } from "wouter";
-import { useToast } from "@/hooks/use-toast";
+import { Link, useLocation } from "wouter";
+import { useAuth, useLogin } from "@/hooks/useAuth";
 
 interface SignInFormData {
   email: string;
@@ -31,10 +31,18 @@ export default function SignIn() {
     rememberMe: false
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<SignInFormData>>({});
+  const [, setLocation] = useLocation();
   
-  const { toast } = useToast();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const loginMutation = useLogin();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      setLocation('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, setLocation]);
 
   const updateFormData = (field: keyof SignInFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -67,55 +75,46 @@ export default function SignIn() {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fix the errors and try again.",
-        variant: "destructive"
-      });
       return;
     }
 
-    setIsLoading(true);
-
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock authentication logic
-      if (formData.email === "demo@aubank.in" && formData.password === "demo123") {
-        toast({
-          title: "Welcome back!",
-          description: "Successfully signed in to your developer account."
-        });
-        // In production, redirect to dashboard
-        console.log("Sign in successful:", formData);
-      } else {
-        throw new Error("Invalid credentials");
-      }
-    } catch (error) {
-      toast({
-        title: "Sign In Failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive"
+      await loginMutation.mutateAsync({
+        email: formData.email,
+        password: formData.password
       });
-    } finally {
-      setIsLoading(false);
+      
+      // Redirect to dashboard on success
+      setLocation('/dashboard');
+    } catch (error) {
+      // Error handling is done in the mutation
+      console.error('Login error:', error);
     }
   };
 
   const handleForgotPassword = () => {
-    toast({
-      title: "Password Reset",
-      description: "Password reset instructions will be sent to your email address."
-    });
+    // In production, this would integrate with AU Bank's password reset system
+    alert('Please contact your system administrator for password reset.');
   };
 
   const handleSSOLogin = (provider: string) => {
-    toast({
-      title: `${provider} Login`,
-      description: `Redirecting to ${provider} for authentication...`
-    });
+    // In production, this would integrate with AU Bank's SSO
+    alert(`${provider} SSO integration will be available in the next release.`);
   };
+
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)] to-[var(--au-primary)]/80 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -157,15 +156,15 @@ export default function SignIn() {
 
           <Card>
             <CardContent className="p-8">
-              {/* Demo Credentials Notice */}
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              {/* Production Notice */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800">Demo Credentials</span>
+                  <Shield className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-800">Internal Access Only</span>
                 </div>
-                <div className="text-sm text-blue-700">
-                  <p>Email: <code className="bg-white px-1 rounded">demo@aubank.in</code></p>
-                  <p>Password: <code className="bg-white px-1 rounded">demo123</code></p>
+                <div className="text-sm text-purple-700">
+                  <p>This portal is exclusively for AU Bank internal development teams.</p>
+                  <p>Please use your corporate credentials to access the system.</p>
                 </div>
               </div>
 
@@ -248,11 +247,11 @@ export default function SignIn() {
 
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={loginMutation.isPending || authLoading}
                   className="w-full bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90 h-11"
                   data-testid="button-signin"
                 >
-                  {isLoading ? (
+                  {loginMutation.isPending ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       Signing in...
@@ -340,7 +339,7 @@ export default function SignIn() {
             <p className="text-sm text-gray-600 mb-4">Need help accessing your account?</p>
             <div className="flex justify-center space-x-4 text-sm">
               <button 
-                onClick={() => toast({ title: "Contact Support", description: "Support team will contact you within 24 hours." })}
+                onClick={() => alert("Support team will contact you within 24 hours.")}
                 className="text-[var(--au-primary)] hover:underline"
                 data-testid="link-contact-support"
               >
