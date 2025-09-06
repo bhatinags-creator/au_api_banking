@@ -113,7 +113,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAgent: req.get('User-Agent')
       });
 
-      req.session = undefined;
+      if (req.session) {
+        req.session.userId = undefined;
+        req.session.developerId = undefined;
+      }
       res.json({ message: 'Logged out successfully' });
     } catch (error) {
       console.error('Logout error:', error);

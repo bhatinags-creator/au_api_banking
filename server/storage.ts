@@ -79,6 +79,8 @@ export class MemStorage implements IStorage {
   private apiEndpoints: Map<string, ApiEndpoint>;
   private apiUsage: Map<string, ApiUsage>;
   private corporateRegistrations: Map<string, CorporateRegistration>;
+  private auditLogs: Map<string, AuditLog>;
+  private apiTokens: Map<string, ApiToken>;
 
   constructor() {
     this.users = new Map();
@@ -87,6 +89,8 @@ export class MemStorage implements IStorage {
     this.apiEndpoints = new Map();
     this.apiUsage = new Map();
     this.corporateRegistrations = new Map();
+    this.auditLogs = new Map();
+    this.apiTokens = new Map();
     
     // Seed with sample API endpoints
     this.seedApiEndpoints();
@@ -161,7 +165,13 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
     const user: User = { 
-      ...insertUser, 
+      ...insertUser,
+      firstName: insertUser.firstName || null,
+      lastName: insertUser.lastName || null,
+      department: insertUser.department || null,
+      employeeId: insertUser.employeeId || null,
+      role: insertUser.role || 'developer',
+      isActive: insertUser.isActive ?? true,
       id, 
       lastLoginAt: null, 
       createdAt: new Date(), 
@@ -223,8 +233,13 @@ export class MemStorage implements IStorage {
     const apiKey = `au_dev_${randomUUID().replace(/-/g, '')}`;
     const developer: Developer = { 
       ...insertDeveloper,
+      department: insertDeveloper.department || null,
+      team: insertDeveloper.team || null,
+      projectsAssigned: insertDeveloper.projectsAssigned || null,
+      permissions: insertDeveloper.permissions || null,
       id, 
       apiKey,
+      isVerified: false,
       lastActiveAt: null,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -342,7 +357,13 @@ export class MemStorage implements IStorage {
   async createApiEndpoint(insertEndpoint: InsertApiEndpoint): Promise<ApiEndpoint> {
     const id = randomUUID();
     const endpoint: ApiEndpoint = { 
-      ...insertEndpoint, 
+      ...insertEndpoint,
+      version: insertEndpoint.version || 'v1',
+      parameters: insertEndpoint.parameters || [],
+      responseSchema: insertEndpoint.responseSchema || {},
+      rateLimits: insertEndpoint.rateLimits || {},
+      requiredPermissions: insertEndpoint.requiredPermissions || [],
+      isInternal: insertEndpoint.isInternal ?? true,
       isActive: insertEndpoint.isActive ?? true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -386,6 +407,88 @@ export class MemStorage implements IStorage {
     const updated = { ...existing, ...updateData };
     this.apiUsage.set(id, updated);
     return updated;
+  }
+
+  async getApiUsageStats(developerId: string, environment?: string): Promise<any> {
+    const usage = Array.from(this.apiUsage.values())
+      .filter(u => u.developerId === developerId && (!environment || u.environment === environment));
+    
+    return {
+      totalRequests: usage.reduce((sum, u) => sum + u.requestCount, 0),
+      totalErrors: usage.reduce((sum, u) => sum + u.errorCount, 0),
+      avgResponseTime: usage.length > 0 ? usage.reduce((sum, u) => sum + u.totalResponseTime, 0) / usage.length : 0
+    };
+  }
+
+  // Audit Log operations
+  async createAuditLog(logData: InsertAuditLog): Promise<AuditLog> {
+    const id = randomUUID();
+    const auditLog: AuditLog = {
+      ...logData,
+      userId: logData.userId || null,
+      resource: logData.resource || null,
+      resourceId: logData.resourceId || null,
+      ipAddress: logData.ipAddress || null,
+      userAgent: logData.userAgent || null,
+      details: logData.details || {},
+      id,
+      timestamp: new Date()
+    };
+    this.auditLogs.set(id, auditLog);
+    return auditLog;
+  }
+
+  async getAuditLogs(userId?: string, limit?: number): Promise<AuditLog[]> {
+    let logs = Array.from(this.auditLogs.values());
+    if (userId) {
+      logs = logs.filter(log => log.userId === userId);
+    }
+    logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return limit ? logs.slice(0, limit) : logs;
+  }
+
+  // API Token operations
+  async createApiToken(tokenData: InsertApiToken): Promise<ApiToken> {
+    const id = randomUUID();
+    const token = `au_token_${randomUUID().replace(/-/g, '')}`;
+    const apiToken: ApiToken = {
+      ...tokenData,
+      id,
+      token,
+      permissions: tokenData.permissions || {},
+      expiresAt: tokenData.expiresAt || null,
+      isActive: tokenData.isActive ?? true,
+      environment: tokenData.environment || 'sandbox',
+      lastUsedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.apiTokens.set(id, apiToken);
+    return apiToken;
+  }
+
+  async getApiToken(token: string): Promise<ApiToken | undefined> {
+    return Array.from(this.apiTokens.values()).find(t => t.token === token);
+  }
+
+  async getApiTokensByDeveloper(developerId: string): Promise<ApiToken[]> {
+    return Array.from(this.apiTokens.values()).filter(t => t.developerId === developerId);
+  }
+
+  async revokeApiToken(id: string): Promise<boolean> {
+    const token = this.apiTokens.get(id);
+    if (!token) return false;
+    token.isActive = false;
+    this.apiTokens.set(id, token);
+    return true;
+  }
+
+  async updateTokenLastUsed(token: string): Promise<void> {
+    const apiToken = Array.from(this.apiTokens.values()).find(t => t.token === token);
+    if (apiToken) {
+      apiToken.lastUsedAt = new Date();
+      this.apiTokens.set(apiToken.id, apiToken);
+    }
   }
 }
 
@@ -633,48 +736,6 @@ export class DatabaseStorage implements IStorage {
     return result[0] || { totalRequests: 0, totalSuccess: 0, totalErrors: 0, avgResponseTime: 0 };
   }
 
-  // Stub implementations for audit logs and API tokens in memory storage
-  async createAuditLog(logData: InsertAuditLog): Promise<AuditLog> {
-    const id = randomUUID();
-    return { ...logData, id, timestamp: new Date() };
-  }
-
-  async getAuditLogs(userId?: string, limit = 100): Promise<AuditLog[]> {
-    return [];
-  }
-
-  async createApiToken(tokenData: InsertApiToken): Promise<ApiToken> {
-    const id = randomUUID();
-    const token = `au_token_${randomUUID().replace(/-/g, '')}`;
-    return {
-      ...tokenData,
-      id,
-      token,
-      lastUsedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-  }
-
-  async getApiToken(token: string): Promise<ApiToken | undefined> {
-    return undefined;
-  }
-
-  async getApiTokensByDeveloper(developerId: string): Promise<ApiToken[]> {
-    return [];
-  }
-
-  async revokeApiToken(id: string): Promise<boolean> {
-    return true;
-  }
-
-  async updateTokenLastUsed(token: string): Promise<void> {
-    // No-op for memory storage
-  }
-
-  async getApiUsageStats(developerId: string, environment = 'sandbox'): Promise<any> {
-    return { totalRequests: 0, totalSuccess: 0, totalErrors: 0, avgResponseTime: 0 };
-  }
 
   // Audit log operations
   async createAuditLog(logData: InsertAuditLog): Promise<AuditLog> {
@@ -686,13 +747,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAuditLogs(userId?: string, limit = 100): Promise<AuditLog[]> {
-    const query = db.select().from(auditLogs);
-    
     if (userId) {
-      query = query.where(eq(auditLogs.userId, userId));
+      return await db.select().from(auditLogs)
+        .where(eq(auditLogs.userId, userId))
+        .orderBy(desc(auditLogs.timestamp))
+        .limit(limit);
     }
     
-    return await query
+    return await db.select().from(auditLogs)
       .orderBy(desc(auditLogs.timestamp))
       .limit(limit);
   }

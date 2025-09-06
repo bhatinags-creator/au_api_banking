@@ -12,11 +12,15 @@ declare global {
         role: string;
         developerId?: string;
       };
-      session?: {
-        userId?: string;
-        developerId?: string;
-      };
     }
+  }
+}
+
+// Extend session data type
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+    developerId?: string;
   }
 }
 
@@ -37,7 +41,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const user = await storage.getUser(userId);
     if (!user || !user.isActive) {
       // Clear invalid session
-      req.session = undefined;
+      if (req.session) {
+        req.session.userId = undefined;
+        req.session.developerId = undefined;
+      }
       return res.status(401).json({ 
         error: 'Invalid session',
         message: 'User not found or inactive'
@@ -223,7 +230,7 @@ export const createRateLimiter = (windowMs: number, maxRequests: number) => {
   const requests = new Map<string, number[]>();
   
   return (req: Request, res: Response, next: NextFunction) => {
-    const key = req.user?.id || req.ip;
+    const key = req.user?.id || req.ip || 'unknown';
     const now = Date.now();
     const windowStart = now - windowMs;
     
