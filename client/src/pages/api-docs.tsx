@@ -1077,6 +1077,7 @@ export default function APIDocs() {
   const [showForm, setShowForm] = useState(false);
   const [registrationStep, setRegistrationStep] = useState(1);
   const [otpSent, setOtpSent] = useState(false);
+  const [expandedSubcategories, setExpandedSubcategories] = useState<{ [key: string]: boolean }>({});
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -1425,15 +1426,35 @@ export default function APIDocs() {
                         custom={subIndex}
                       >
                         <motion.div 
-                          className="py-2 px-3 text-sm font-medium text-[var(--au-primary-600)] border-b border-neutrals-100"
+                          className="py-2 px-3 text-sm font-medium text-[var(--au-primary-600)] border-b border-neutrals-100 cursor-pointer hover:bg-neutrals-50 transition-colors flex items-center justify-between"
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: subIndex * 0.1, duration: 0.3 }}
+                          onClick={() => {
+                            setExpandedSubcategories(prev => ({
+                              ...prev,
+                              [subcategory.id]: !prev[subcategory.id]
+                            }));
+                          }}
                         >
-                          {subcategory.title}
+                          <span>{subcategory.title}</span>
+                          <motion.div
+                            animate={{ rotate: expandedSubcategories[subcategory.id] ? 90 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </motion.div>
                         </motion.div>
-                        <motion.div variants={subcategoryVariants} initial="hidden" animate="visible">
-                          {subcategory.endpoints.map((endpoint, endIndex) => (
+                        <AnimatePresence>
+                          {expandedSubcategories[subcategory.id] && (
+                            <motion.div 
+                              variants={subcategoryVariants} 
+                              initial="hidden" 
+                              animate="visible"
+                              exit="hidden"
+                              className="overflow-hidden"
+                            >
+                              {subcategory.endpoints.map((endpoint, endIndex) => (
                             <Tooltip key={endpoint.id} delayDuration={300}>
                               <TooltipTrigger asChild>
                                 <motion.div
@@ -1522,8 +1543,10 @@ export default function APIDocs() {
                                 </div>
                               </TooltipContent>
                             </Tooltip>
-                          ))}
-                        </motion.div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </motion.div>
                     ))}
                   </motion.div>
