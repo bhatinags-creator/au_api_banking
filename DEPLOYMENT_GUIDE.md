@@ -1,15 +1,16 @@
-# AU Small Finance Bank - API Banking Portal
+# AU Bank Developer Portal (Internal Users)
 ## Deployment Guide & Documentation
 
 ### Project Overview
-This is a comprehensive REST API Banking Portal built with modern full-stack architecture, featuring:
+This is the internal AU Bank Developer Portal built with modern full-stack architecture, designed specifically for AU Bank's internal development teams and employees. This portal features:
 - React 18 + TypeScript frontend with Vite
 - Express.js backend with TypeScript
 - PostgreSQL database with Drizzle ORM
-- AU Bank's official purple branding (#603078)
-- Complete developer authentication system
-- Interactive API sandbox and testing tools
-- Admin panel for API management
+- AU Bank's official purple branding (#603078) for internal use
+- Internal developer authentication system
+- Interactive API sandbox and internal testing tools
+- Admin panel for internal API management
+- Internal-only resources and documentation
 
 ---
 
@@ -77,10 +78,10 @@ Create a `.env` file in your project root with the following variables:
 
 ```env
 # Database Configuration
-DATABASE_URL=postgresql://username:password@localhost:5432/au_bank_portal
+DATABASE_URL=postgresql://username:password@localhost:5432/au_bank_internal_portal
 PGHOST=localhost
 PGPORT=5432
-PGDATABASE=au_bank_portal
+PGDATABASE=au_bank_internal_portal
 PGUSER=your_username
 PGPASSWORD=your_password
 
@@ -109,7 +110,7 @@ NODE_ENV=development
 1. **Install PostgreSQL** on your PC
 2. **Create a database:**
    ```sql
-   CREATE DATABASE au_bank_portal;
+   CREATE DATABASE au_bank_internal_portal;
    ```
 3. **Update your DATABASE_URL** in the `.env` file
 4. **Run migrations:**
@@ -223,28 +224,28 @@ au-bank-portal/
 
 ## Key Features
 
-### 1. Developer Authentication System
-- Complete sign-up wizard (4 steps)
-- Professional sign-in page
-- Demo credentials for testing
-- Session management
+### 1. Internal Developer Authentication System
+- Internal user sign-up wizard (4 steps)
+- Professional sign-in page for AU Bank employees
+- Internal demo credentials for testing
+- Secure session management
 
-### 2. API Banking Portal
-- Interactive API documentation
-- Comprehensive sandbox for testing
-- 100+ configurable endpoints
-- Real-time API testing
+### 2. Internal API Portal
+- Internal API documentation and resources
+- Comprehensive sandbox for internal testing
+- 100+ internal API endpoints
+- Real-time internal API testing
 
-### 3. Admin Panel
-- API endpoint management
-- Parameter configuration
-- User management
-- Analytics dashboard
+### 3. Internal Admin Panel
+- Internal API endpoint management
+- Parameter configuration for internal use
+- Internal user management
+- Internal analytics dashboard
 
-### 4. Modern UI/UX
-- AU Bank's official purple branding
-- Responsive design
-- Custom illustrations
+### 4. Internal UI/UX
+- AU Bank's official purple branding for internal use
+- Responsive design optimized for internal teams
+- Custom illustrations for internal workflows
 - Professional gradients and animations
 
 ### 5. Technical Architecture
@@ -322,6 +323,7 @@ For technical support or questions about this deployment:
 - Test individual components separately
 
 **Deployment Date:** $(date)
-**Project Version:** 1.0.0
+**Project Version:** 1.0.0 (Internal)
+**Target Users:** AU Bank Internal Development Teams
 **Node.js Version:** 18+
 **Database:** PostgreSQL with Drizzle ORM
