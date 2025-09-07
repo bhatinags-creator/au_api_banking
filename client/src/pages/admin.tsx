@@ -29,7 +29,11 @@ import {
   Globe,
   ChevronUp,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  CreditCard,
+  Building2,
+  FileCheck,
+  Layers
 } from "lucide-react";
 
 interface APIParameter {
@@ -119,6 +123,22 @@ export default function AdminPanel() {
   const [selectedCategory, setSelectedCategory] = useState<APICategory | null>(null);
   
   const { toast } = useToast();
+
+  // Icon mapping function for categories
+  const getIconComponent = (iconName: string) => {
+    const iconMap = {
+      'Shield': Shield,
+      'CreditCard': CreditCard,
+      'Database': Database,
+      'Building2': Building2,
+      'FileCheck': FileCheck,
+      'Layers': Layers,
+      'Users': Users,
+      'Activity': Activity,
+      'Settings': Settings
+    };
+    return iconMap[iconName as keyof typeof iconMap] || Database;
+  };
 
   // Admin authentication with API login
   const handleAdminLogin = async () => {
@@ -804,7 +824,7 @@ export default function AdminPanel() {
           <TabsContent value="categories" className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Hierarchical API Management</h2>
+                <h2 className="text-2xl font-bold">API Categories</h2>
                 <p className="text-muted-foreground">Manage categories and their APIs with full documentation</p>
               </div>
               <div className="flex gap-2">
@@ -823,35 +843,23 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((category) => {
                 const categoryApis = apis.filter(api => (api as any).categoryId === category.id);
+                const IconComponent = getIconComponent(category.icon);
                 return (
-                  <Card key={category.id} className="overflow-hidden">
-                    <div 
-                      className="flex items-center justify-between p-6 cursor-pointer hover:bg-muted/25 transition-colors"
-                      onClick={() => {
-                        const newExpanded = new Set(expandedCategories);
-                        if (newExpanded.has(category.id)) {
-                          newExpanded.delete(category.id);
-                        } else {
-                          newExpanded.add(category.id);
-                        }
-                        setExpandedCategories(newExpanded);
-                      }}
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div 
-                          className="w-12 h-12 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: `${category.color}20` }}
-                        >
-                          <Database className="w-6 h-6" style={{ color: category.color }} />
+                  <Card key={category.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-1">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                          <IconComponent className="w-8 h-8 text-[var(--au-primary)]" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-[var(--au-primary)]">{category.name}</h3>
-                          <p className="text-sm text-muted-foreground">{category.description}</p>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <span className="text-sm font-medium">{categoryApis.length} APIs</span>
+                        <div className="flex-1">
+                          <CardTitle className="text-xl font-bold text-neutrals-800">{category.name}</CardTitle>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs bg-[var(--au-primary)]/10">
+                              {categoryApis.length} APIs
+                            </Badge>
                             <Badge 
                               variant={(category as any).is_active ? "default" : "secondary"}
                               className="text-xs"
@@ -861,115 +869,87 @@ export default function AdminPanel() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: Edit category
-                          }}
-                          data-testid={`button-edit-category-${category.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // TODO: Delete category
-                          }}
-                          data-testid={`button-delete-category-${category.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                        {expandedCategories.has(category.id) ? (
-                          <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                        )}
-                      </div>
-                    </div>
-                    
-                    {expandedCategories.has(category.id) && (
-                      <div className="border-t bg-muted/10">
-                        {categoryApis.length === 0 ? (
-                          <div className="p-6 text-center text-muted-foreground">
-                            <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p>No APIs in this category</p>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="mt-2"
-                              onClick={() => setShowApiDialog(true)}
-                            >
-                              Add First API
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="p-4 space-y-3">
-                            {categoryApis.map((api) => (
-                              <div 
-                                key={api.id} 
-                                className="flex items-center justify-between p-4 bg-background rounded-lg border cursor-pointer hover:bg-muted/25 transition-colors"
-                                onClick={() => {
-                                  setSelectedApi(api);
-                                  setShowApiDetailsDialog(true);
-                                }}
-                              >
-                                <div className="flex items-center space-x-4">
-                                  <Badge variant={
-                                    api.method === 'GET' ? 'default' :
-                                    api.method === 'POST' ? 'destructive' :
-                                    api.method === 'PUT' ? 'secondary' : 'outline'
-                                  }>
-                                    {api.method}
-                                  </Badge>
-                                  <div>
-                                    <h4 className="font-medium text-[var(--au-primary)]">{api.name}</h4>
-                                    <p className="text-sm text-muted-foreground">{api.summary}</p>
-                                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">{api.path}</code>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Badge 
-                                    variant={api.status === 'active' ? 'default' : 'secondary'}
-                                    className="text-xs"
-                                  >
-                                    {api.status}
-                                  </Badge>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setEditingApi(api);
-                                      setShowApiDialog(true);
-                                    }}
-                                    data-testid={`button-edit-api-${api.id}`}
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteApi(api.id);
-                                    }}
-                                    data-testid={`button-delete-api-${api.id}`}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                                </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-neutrals-600 leading-relaxed text-base mb-4">
+                        {category.description}
+                      </p>
+                      
+                      {categoryApis.length > 0 ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-[var(--au-primary-700)]">Key APIs:</p>
+                          <div className="grid gap-1">
+                            {categoryApis.slice(0, 3).map((api, apiIndex) => (
+                              <div key={apiIndex} className="flex items-center justify-between text-xs">
+                                <span className="font-mono text-neutrals-700 truncate">{api.name}</span>
+                                <Badge variant="outline" className="text-xs h-5 ml-2 flex-shrink-0">
+                                  {api.method}
+                                </Badge>
                               </div>
                             ))}
+                            {categoryApis.length > 3 && (
+                              <p className="text-xs text-neutrals-500">+{categoryApis.length - 3} more APIs</p>
+                            )}
                           </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <Database className="w-8 h-8 mx-auto mb-2 opacity-50 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">No APIs in this category</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowApiDialog(true);
+                            }}
+                          >
+                            Add First API
+                          </Button>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: Edit category
+                            }}
+                            data-testid={`button-edit-category-${category.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: Delete category
+                            }}
+                            data-testid={`button-delete-category-${category.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
+                        {categoryApis.length > 0 && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: View all APIs in category
+                            }}
+                          >
+                            View All
+                          </Button>
                         )}
                       </div>
-                    )}
+                    </CardContent>
                   </Card>
                 );
               })}
