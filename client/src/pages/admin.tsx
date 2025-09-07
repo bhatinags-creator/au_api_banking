@@ -1948,33 +1948,52 @@ export default function AdminPanel() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={async (e) => {
+                              onClick={(e) => {
                                 e.stopPropagation();
-                                // Load fresh API data from database
-                                try {
-                                  const response = await fetch(`/api/admin/apis/${api.id}`, {
-                                    credentials: 'include'
-                                  });
-                                  if (response.ok) {
-                                    const freshApiData = await response.json();
-                                    // Transform database structure to component structure
-                                    const transformedApi = {
-                                      ...freshApiData,
-                                      queryParameters: freshApiData.parameters?.filter((p: any) => p.paramType === 'query') || [],
-                                      pathParameters: freshApiData.parameters?.filter((p: any) => p.paramType === 'path') || [],
-                                      bodyParameters: freshApiData.parameters?.filter((p: any) => p.paramType === 'body') || [],
-                                      headers: Array.isArray(freshApiData.headers) ? freshApiData.headers : [],
-                                      responses: Array.isArray(freshApiData.responses) ? freshApiData.responses : []
-                                    };
-                                    setEditingApi(transformedApi);
-                                  } else {
-                                    // Fallback to existing data
-                                    setEditingApi(api);
-                                  }
-                                } catch (error) {
-                                  console.error('Error loading fresh API data:', error);
-                                  setEditingApi(api);
-                                }
+                                // Use existing API data and transform it properly for the edit dialog
+                                const transformedApi = {
+                                  ...api,
+                                  // Ensure all required fields are present with proper default values
+                                  queryParameters: api.queryParameters || [],
+                                  pathParameters: api.pathParameters || [],
+                                  bodyParameters: api.bodyParameters || [],
+                                  headers: api.headers || [
+                                    { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+                                    { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+                                  ],
+                                  responses: api.responses || [{
+                                    statusCode: 200,
+                                    description: "Success response",
+                                    schema: JSON.stringify({
+                                      "accountId": "ACC123456",
+                                      "balance": 50000.75,
+                                      "currency": "INR",
+                                      "status": "active"
+                                    }, null, 2),
+                                    example: JSON.stringify({
+                                      "accountId": "ACC123456",
+                                      "balance": 50000.75,
+                                      "currency": "INR",
+                                      "status": "active"
+                                    }, null, 2)
+                                  }],
+                                  requestExample: api.requestExample || JSON.stringify({
+                                    "accountId": "ACC123456"
+                                  }, null, 2),
+                                  responseExample: api.responseExample || JSON.stringify({
+                                    "accountId": "ACC123456",
+                                    "balance": 50000.75,
+                                    "currency": "INR",
+                                    "status": "active"
+                                  }, null, 2),
+                                  tags: api.tags || [],
+                                  rateLimit: api.rateLimit || 100,
+                                  timeout: api.timeout || 30000,
+                                  documentation: api.documentation || api.description || ""
+                                };
+                                
+                                console.log('🔧 EDIT - Setting API data for edit:', transformedApi);
+                                setEditingApi(transformedApi);
                                 setShowApiDialog(true);
                               }}
                             >
