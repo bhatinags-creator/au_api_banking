@@ -61,39 +61,98 @@ const heroSlides = [
 const apiCategories = [
   {
     icon: Shield,
-    title: "Building Blocks",
+    title: "Customer",
     description: "Essential APIs for integrating with core banking services. Run checks and validations using fundamental APIs such as KYC verification, account validation, and identity checks.",
-    color: "text-blue-600"
-  },
-  {
-    icon: Building2,
-    title: "Business Banking",
-    description: "Empower your corporate banking with seamless APIs for efficient transactions, cash deposits, smart reconciliation, and personalized management systems.",
-    color: "text-green-600"
+    color: "text-blue-600",
+    apiCount: 9,
+    apis: [
+      { name: "Customer 360 Service", method: "POST", endpoint: "/customer360service" },
+      { name: "Customer Dedupe", method: "POST", endpoint: "/customerdedupe" },
+      { name: "CKYC Search", method: "POST", endpoint: "/CKYCSearch" },
+      { name: "Customer Image Upload", method: "POST", endpoint: "/CustomerImageMnt" },
+      { name: "POSIDEX - Fetch UCIC", method: "POST", endpoint: "/fetchUcic" },
+      { name: "Update Customer Details", method: "POST", endpoint: "/UpdateCustomerDetails" },
+      { name: "Aadhar Vault - Insert Token", method: "POST", endpoint: "/insertToken" },
+      { name: "Aadhar Vault - Get Value", method: "GET", endpoint: "/getValue" },
+      { name: "CIBIL Service", method: "POST", endpoint: "/ConsumerCIBILService" }
+    ]
   },
   {
     icon: CreditCard,
-    title: "Payments & UPI",
-    description: "Industry-leading payment APIs to introduce tailored payment services. Multiple payment options to integrate your services with the outside world.",
-    color: "text-orange-600"
+    title: "Loans",
+    description: "Comprehensive loan management APIs for personal loans, home loans, and business financing with automated approval workflows and real-time status tracking.",
+    color: "text-green-600",
+    apiCount: 6,
+    apis: [
+      { name: "Loan Application", method: "POST", endpoint: "/loan/apply" },
+      { name: "Loan Status Inquiry", method: "GET", endpoint: "/loan/status" },
+      { name: "EMI Calculator", method: "POST", endpoint: "/loan/emi-calculator" },
+      { name: "Loan Prepayment", method: "POST", endpoint: "/loan/prepayment" },
+      { name: "Document Upload", method: "POST", endpoint: "/loan/documents" },
+      { name: "Eligibility Check", method: "POST", endpoint: "/loan/eligibility" }
+    ]
   },
   {
     icon: Database,
-    title: "Accounts and Deposits",
+    title: "Liabilities",
     description: "Enable customers to invest and bank with you by integrating savings accounts, corporate accounts, fixed deposits, and recurring deposit services.",
-    color: "text-purple-600"
+    color: "text-purple-600",
+    apiCount: 7,
+    apis: [
+      { name: "Account Balance Inquiry", method: "GET", endpoint: "/account/balance" },
+      { name: "Account Transaction History", method: "GET", endpoint: "/account/transactions" },
+      { name: "Fixed Deposit Creation", method: "POST", endpoint: "/fd/create" },
+      { name: "FD Maturity Details", method: "GET", endpoint: "/fd/maturity" },
+      { name: "Recurring Deposit", method: "POST", endpoint: "/rd/create" },
+      { name: "Account Statement", method: "GET", endpoint: "/account/statement" },
+      { name: "Interest Calculation", method: "POST", endpoint: "/account/interest" }
+    ]
+  },
+  {
+    icon: Building2,
+    title: "Cards",
+    description: "Empower your corporate banking with seamless APIs for credit card management, debit card services, and card transaction processing.",
+    color: "text-orange-600",
+    apiCount: 8,
+    apis: [
+      { name: "Card Application", method: "POST", endpoint: "/card/apply" },
+      { name: "Card Status Inquiry", method: "GET", endpoint: "/card/status" },
+      { name: "Card Block/Unblock", method: "PUT", endpoint: "/card/block-unblock" },
+      { name: "Card Transaction History", method: "GET", endpoint: "/card/transactions" },
+      { name: "Card PIN Services", method: "POST", endpoint: "/card/pin" },
+      { name: "Card Limit Management", method: "PUT", endpoint: "/card/limit" },
+      { name: "Virtual Card Creation", method: "POST", endpoint: "/card/virtual" },
+      { name: "Card Rewards Inquiry", method: "GET", endpoint: "/card/rewards" }
+    ]
   },
   {
     icon: FileCheck,
     title: "Trade Services",
     description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
-    color: "text-pink-600"
+    color: "text-pink-600",
+    apiCount: 5,
+    apis: [
+      { name: "Letter of Credit", method: "POST", endpoint: "/trade/lc" },
+      { name: "Bank Guarantee", method: "POST", endpoint: "/trade/bg" },
+      { name: "Export Financing", method: "POST", endpoint: "/trade/export-finance" },
+      { name: "Import Financing", method: "POST", endpoint: "/trade/import-finance" },
+      { name: "Trade Document Processing", method: "POST", endpoint: "/trade/documents" }
+    ]
   },
   {
     icon: Layers,
     title: "Corporate API Suite",
     description: "A curated collection of APIs specially selected to cater to evolving corporate client needs, studied after careful analysis of corporate journeys.",
-    color: "text-indigo-600"
+    color: "text-indigo-600",
+    apiCount: 6,
+    apis: [
+      { name: "Corporate Onboarding", method: "POST", endpoint: "/corporate/onboard" },
+      { name: "Bulk Payment Processing", method: "POST", endpoint: "/corporate/bulk-payments" },
+      { name: "Virtual Account Management", method: "POST", endpoint: "/corporate/vam" },
+      { name: "Corporate Account Opening", method: "POST", endpoint: "/corporate/account" },
+      { name: "Cash Management Services", method: "GET", endpoint: "/corporate/cash-mgmt" },
+      { name: "Reconciliation Services", method: "POST", endpoint: "/corporate/reconciliation" }
+    ]
   }
 ];
 
@@ -101,30 +160,62 @@ const featuredApis = [
   {
     title: "CNB Payment Creation",
     category: "Payments",
+    method: "POST",
+    endpoint: "/cnb/payment",
     description: "Comprehensive payment creation API supporting NEFT, RTGS, and IMPS transactions with real-time status tracking and reconciliation.",
     icon: CreditCard,
-    color: "text-orange-600"
+    color: "text-orange-600",
+    features: ["Real-time Status", "Multi-channel Support", "Reconciliation"]
   },
   {
     title: "Account Balance Inquiry",
     category: "Accounts",
+    method: "GET", 
+    endpoint: "/account/balance",
     description: "Real-time account balance and transaction history APIs for seamless financial data integration and account management.",
     icon: Database,
-    color: "text-purple-600"
+    color: "text-purple-600",
+    features: ["Real-time Data", "Transaction History", "Multi-account Support"]
   },
   {
     title: "OAuth Authentication",
     category: "Security",
+    method: "POST",
+    endpoint: "/oauth/token",
     description: "Secure OAuth 2.0 implementation for API authentication with token management and refresh capabilities for enterprise security.",
     icon: Shield,
-    color: "text-blue-600"
+    color: "text-blue-600",
+    features: ["OAuth 2.0", "Token Refresh", "Enterprise Security"]
   },
   {
-    title: "Corporate Onboarding",
-    category: "Business Banking",
-    description: "Streamlined corporate registration and KYC verification APIs with document upload and verification workflow automation.",
+    title: "Customer 360 Service",
+    category: "Customer Management",
+    method: "POST",
+    endpoint: "/customer360service",
+    description: "Comprehensive customer information API providing complete customer profile, account details, and relationship information in a single call.",
+    icon: Users,
+    color: "text-emerald-600",
+    features: ["Complete Profile", "Account Details", "Relationship Data"]
+  },
+  {
+    title: "Virtual Account Management",
+    category: "Corporate Banking",
+    method: "POST",
+    endpoint: "/vam/create",
+    description: "Advanced virtual account management for corporate clients with automated reconciliation and real-time transaction tracking.",
     icon: Building2,
-    color: "text-green-600"
+    color: "text-green-600",
+    features: ["Auto Reconciliation", "Real-time Tracking", "Corporate Focus"]
+  },
+  {
+    title: "UPI Payment Services",
+    category: "Digital Payments",
+    method: "POST",
+    endpoint: "/upi/payment",
+    description: "Complete UPI ecosystem integration with VPA validation, QR code generation, and seamless P2P/P2M payment processing.",
+    icon: Zap,
+    color: "text-yellow-600",
+    features: ["VPA Validation", "QR Generation", "P2P/P2M Support"]
   }
 ];
 
@@ -745,13 +836,34 @@ export default function Home() {
                         <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                           <IconComponent className={`w-8 h-8 ${category.color}`} />
                         </div>
-                        <CardTitle className="text-xl font-bold text-neutrals-800">{category.title}</CardTitle>
+                        <div className="flex-1">
+                          <CardTitle className="text-xl font-bold text-neutrals-800">{category.title}</CardTitle>
+                          <Badge variant="outline" className="mt-1 text-xs bg-[var(--au-primary)]/10">
+                            {category.apiCount} APIs
+                          </Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-neutrals-600 leading-relaxed text-base">
+                      <p className="text-neutrals-600 leading-relaxed text-base mb-4">
                         {category.description}
                       </p>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-[var(--au-primary-700)]">Key APIs:</p>
+                        <div className="grid gap-1">
+                          {category.apis.slice(0, 3).map((api, apiIndex) => (
+                            <div key={apiIndex} className="flex items-center justify-between text-xs">
+                              <span className="font-mono text-neutrals-700 truncate">{api.name}</span>
+                              <Badge variant="outline" className="text-xs h-5 ml-2 flex-shrink-0">
+                                {api.method}
+                              </Badge>
+                            </div>
+                          ))}
+                          {category.apis.length > 3 && (
+                            <p className="text-xs text-neutrals-500">+{category.apis.length - 3} more APIs</p>
+                          )}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -759,9 +871,11 @@ export default function Home() {
             </div>
             
             <div className="text-center mt-12">
-              <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-                BROWSE ALL APIs
-              </Button>
+              <Link href="/api-docs">
+                <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                  BROWSE ALL APIs
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
@@ -786,18 +900,34 @@ export default function Home() {
                         <div className="w-16 h-16 bg-gradient-to-br from-[var(--au-primary)]/10 to-[var(--au-primary)]/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                           <IconComponent className={`w-8 h-8 ${api.color}`} />
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <CardTitle className="text-xl font-bold mb-3 text-neutrals-800">{api.title}</CardTitle>
-                          <Badge variant="secondary" className="text-sm px-3 py-1 bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] border-0">
-                            {api.category}
-                          </Badge>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="secondary" className="text-sm px-3 py-1 bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] border-0">
+                              {api.category}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {api.method}
+                            </Badge>
+                          </div>
+                          <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 font-mono">
+                            {api.endpoint}
+                          </code>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-neutrals-600 leading-relaxed text-base">
+                      <p className="text-neutrals-600 leading-relaxed text-base mb-4">
                         {api.description}
                       </p>
+                      <div className="flex flex-wrap gap-1">
+                        {api.features.map((feature, featureIndex) => (
+                          <span key={featureIndex} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-[var(--au-primary)]/5 text-[var(--au-primary-700)] border border-[var(--au-primary)]/20">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 );
