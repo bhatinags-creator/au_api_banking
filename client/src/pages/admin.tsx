@@ -96,6 +96,11 @@ export default function AdminPanel() {
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [apiConfigTab, setApiConfigTab] = useState("basic");
   
+  // Hierarchical navigation state
+  const [currentView, setCurrentView] = useState<'categories' | 'apis' | 'api-details'>('categories');
+  const [selectedCategory, setSelectedCategory] = useState<APICategory | null>(null);
+  const [selectedApi, setSelectedApi] = useState<APIEndpoint | null>(null);
+  
   const { toast } = useToast();
 
   // Simple admin authentication
@@ -700,26 +705,14 @@ export default function AdminPanel() {
 
       <div className="container mx-auto p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="apis" className="flex items-center gap-2">
-              <Code className="w-4 h-4" />
-              APIs
-            </TabsTrigger>
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Categories
-            </TabsTrigger>
-            <TabsTrigger value="documentation" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Docs
-            </TabsTrigger>
-            <TabsTrigger value="sandbox" className="flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              Sandbox
+              Categories & APIs
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
