@@ -626,22 +626,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/apis/:id", authenticate, requireRole(['admin']), async (req, res) => {
-    try {
-      const apiId = req.params.id;
-      const api = await storage.getApiEndpointById(apiId);
-      
-      if (!api) {
-        return res.status(404).json({ error: "API not found" });
-      }
-      
-      res.json(api);
-    } catch (error) {
-      console.error('Get API error:', error);
-      res.status(500).json({ error: "Failed to fetch API" });
-    }
-  });
-
   app.post("/api/admin/apis", authenticate, requireRole(['admin']), async (req, res) => {
     try {
       const apiData = req.body;

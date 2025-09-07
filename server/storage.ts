@@ -53,7 +53,6 @@ export interface IStorage {
   getAllApiEndpoints(): Promise<ApiEndpoint[]>;
   getApiEndpointsByCategory(category: string): Promise<ApiEndpoint[]>;
   createApiEndpoint(endpoint: InsertApiEndpoint): Promise<ApiEndpoint>;
-  getApiEndpointById(id: string): Promise<ApiEndpoint | undefined>;
   updateApiEndpoint(id: string, endpoint: UpdateApiEndpoint): Promise<ApiEndpoint | undefined>;
   deleteApiEndpoint(id: string): Promise<boolean>;
   
@@ -442,10 +441,6 @@ export class MemStorage implements IStorage {
     return endpoint;
   }
 
-  async getApiEndpointById(id: string): Promise<ApiEndpoint | undefined> {
-    return this.apiEndpoints.get(id);
-  }
-
   async updateApiEndpoint(id: string, updateData: UpdateApiEndpoint): Promise<ApiEndpoint | undefined> {
     const existing = this.apiEndpoints.get(id);
     if (!existing) return undefined;
@@ -808,46 +803,6 @@ export class DatabaseStorage implements IStorage {
       .values(endpointData)
       .returning();
     return endpoint;
-  }
-
-  async getApiEndpointById(id: string): Promise<ApiEndpoint | undefined> {
-    try {
-      const [endpoint] = await db
-        .select()
-        .from(apiEndpoints)
-        .where(and(eq(apiEndpoints.id, id), eq(apiEndpoints.isActive, true)));
-      return endpoint;
-    } catch (error) {
-      console.error('Database error in getApiEndpointById:', error);
-      throw new Error('Failed to get API endpoint');
-    }
-  }
-
-  async updateApiEndpoint(id: string, updateData: UpdateApiEndpoint): Promise<ApiEndpoint | undefined> {
-    try {
-      const [updated] = await db
-        .update(apiEndpoints)
-        .set({ ...updateData, updatedAt: new Date() })
-        .where(eq(apiEndpoints.id, id))
-        .returning();
-      return updated;
-    } catch (error) {
-      console.error('Database error in updateApiEndpoint:', error);
-      throw new Error('Failed to update API endpoint');
-    }
-  }
-
-  async deleteApiEndpoint(id: string): Promise<boolean> {
-    try {
-      const result = await db
-        .update(apiEndpoints)
-        .set({ isActive: false, updatedAt: new Date() })
-        .where(eq(apiEndpoints.id, id));
-      return (result.rowCount ?? 0) > 0;
-    } catch (error) {
-      console.error('Database error in deleteApiEndpoint:', error);
-      throw new Error('Failed to delete API endpoint');
-    }
   }
 
   // API Usage operations
