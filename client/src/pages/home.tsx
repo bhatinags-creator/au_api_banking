@@ -298,6 +298,11 @@ export default function Home() {
             }));
             
             console.log('✅ NEW HIERARCHICAL CATEGORIES:', transformedCategories.map(c => c.title));
+            console.log('📊 DETAILED CATEGORIES WITH APIS:', transformedCategories.map(c => ({
+              title: c.title,
+              apiCount: c.apiCount,
+              apis: c.apis.map(api => ({ name: api.name, method: api.method }))
+            })));
             setDynamicApiCategories(transformedCategories);
           } else {
             // Fallback: try to map individual arrays
@@ -972,19 +977,51 @@ export default function Home() {
                       <p className="text-neutrals-600 leading-relaxed text-base mb-4">
                         {category.description}
                       </p>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <p className="text-sm font-medium text-[var(--au-primary-700)]">Key APIs:</p>
-                        <div className="grid gap-1">
-                          {category.apis.slice(0, 3).map((api, apiIndex) => (
-                            <div key={apiIndex} className="flex items-center justify-between text-xs">
-                              <span className="font-mono text-neutrals-700 truncate">{api.name}</span>
-                              <Badge variant="outline" className="text-xs h-5 ml-2 flex-shrink-0">
-                                {api.method}
-                              </Badge>
+                        <div className="grid gap-3">
+                          {category.apis.slice(0, 2).map((api, apiIndex) => (
+                            <div key={apiIndex} className="bg-gradient-to-r from-[var(--au-primary)]/5 to-blue-50/30 rounded-lg p-3 border border-[var(--au-primary)]/10">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-semibold text-sm text-neutrals-800 truncate">{api.name}</span>
+                                <Badge variant="outline" className="text-xs h-5 ml-2 flex-shrink-0 bg-white">
+                                  {api.method}
+                                </Badge>
+                              </div>
+                              {api.endpoint && (
+                                <div className="text-xs font-mono text-[var(--au-primary)]/70 bg-white/60 px-2 py-1 rounded mb-2">
+                                  {api.endpoint}
+                                </div>
+                              )}
+                              {api.description && (
+                                <p className="text-xs text-neutrals-600 leading-relaxed">
+                                  {api.description.length > 80 ? `${api.description.substring(0, 80)}...` : api.description}
+                                </p>
+                              )}
+                              {api.sandbox && api.sandbox.enabled && (
+                                <div className="flex items-center gap-1 mt-2">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <span className="text-xs text-green-700 font-medium">Sandbox Available</span>
+                                </div>
+                              )}
                             </div>
                           ))}
-                          {category.apis.length > 3 && (
-                            <p className="text-xs text-neutrals-500">+{category.apis.length - 3} more APIs</p>
+                          {category.apis.length > 2 && (
+                            <div className="text-center">
+                              <p className="text-xs text-neutrals-500 mb-2">+{category.apis.length - 2} more APIs available</p>
+                              <Link href="/apis">
+                                <Button size="sm" variant="outline" className="text-xs h-7">
+                                  View All APIs
+                                  <ArrowRight className="w-3 h-3 ml-1" />
+                                </Button>
+                              </Link>
+                            </div>
+                          )}
+                          {category.apis.length === 0 && (
+                            <div className="text-center py-3 text-neutrals-400">
+                              <Database className="w-6 h-6 mx-auto mb-1 opacity-50" />
+                              <p className="text-xs">No APIs configured yet</p>
+                            </div>
                           )}
                         </div>
                       </div>
