@@ -151,17 +151,58 @@ export default function AdminPanel() {
 
   const loadAdminData = async () => {
     try {
-      console.log('🔧 ADMIN - Loading hierarchical data from backend...');
+      console.log('🔧 ADMIN - Loading admin data from backend...');
       
-      // Load hierarchical data from the same endpoint as home page
+      // Try to load from admin API first, fallback to hierarchical if that fails
+      const apisResponse = await fetch('/api/admin/apis', { credentials: 'include' });
+      
+      if (apisResponse.ok) {
+        const allApis = await apisResponse.json();
+        console.log('🔧 ADMIN - Loaded', allApis.length, 'APIs from admin endpoint');
+        
+        // Transform database API data to component structure 
+        const transformedApis: APIEndpoint[] = allApis.map((api: any) => ({
+          id: api.id,
+          name: api.name,
+          method: api.method,
+          path: api.path,
+          category: api.category,
+          description: api.description,
+          summary: api.summary || api.description,
+          requiresAuth: api.requiresAuth !== undefined ? api.requiresAuth : true,
+          authType: api.authType || 'bearer',
+          queryParameters: Array.isArray(api.parameters) ? api.parameters.filter((p: any) => p.paramType === 'query') : [],
+          pathParameters: Array.isArray(api.parameters) ? api.parameters.filter((p: any) => p.paramType === 'path') : [],
+          bodyParameters: Array.isArray(api.parameters) ? api.parameters.filter((p: any) => p.paramType === 'body') : [],
+          headers: Array.isArray(api.headers) ? api.headers : [
+            { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
+          ],
+          responses: Array.isArray(api.responses) ? api.responses : [{
+            statusCode: 200,
+            description: "Success response",
+            schema: JSON.stringify({ status: "success" }, null, 2),
+            example: JSON.stringify({ status: "success" }, null, 2)
+          }],
+          requestExample: api.requestExample || '{}',
+          responseExample: api.responseExample || JSON.stringify({ status: "success" }, null, 2),
+          status: api.status || 'active',
+          tags: api.tags || [],
+          rateLimit: api.rateLimit || 100,
+          timeout: api.timeout || 30000,
+          documentation: api.documentation || api.description || ""
+        }));
+        
+        setApis(transformedApis);
+        console.log('🔧 ADMIN - Processed', transformedApis.length, 'APIs for admin panel');
+      } else {
+        console.log('🔧 ADMIN - Admin API failed, using fallback data');
+        setApis([]);
+      }
+      
+      // Load hierarchical data for categories
       const categoriesResponse = await fetch('/api/categories');
-      
       if (categoriesResponse.ok) {
         const hierarchicalData = await categoriesResponse.json();
-        
-        console.log('🔧 ADMIN - Loaded', hierarchicalData.length, 'hierarchical categories');
-        
-        // Transform hierarchical data for admin panel
         const adminCategories: APICategory[] = hierarchicalData.map((cat: any) => ({
           id: cat.id,
           name: cat.name,
@@ -170,75 +211,139 @@ export default function AdminPanel() {
           color: cat.color,
           endpoints: cat.apis ? cat.apis.map((api: any) => api.id) : []
         }));
-        
         setCategories(adminCategories);
-        
-        // Extract all APIs from hierarchical structure with full documentation
-        const allApis: APIEndpoint[] = [];
-        hierarchicalData.forEach((cat: any) => {
-          if (cat.apis && cat.apis.length > 0) {
-            cat.apis.forEach((api: any) => {
-              // Properly transform database structure to component structure
-              const parameters = api.parameters || [];
-              const queryParameters = parameters.filter((p: any) => p.paramType === 'query' || (!p.paramType && api.method === 'GET'));
-              const pathParameters = parameters.filter((p: any) => p.paramType === 'path');
-              const bodyParameters = parameters.filter((p: any) => p.paramType === 'body' || (!p.paramType && api.method !== 'GET'));
-              
-              // Transform headers with proper structure
-              const headers = Array.isArray(api.headers) ? api.headers : [
-                { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-                { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-              ];
-              
-              // Transform responses with proper structure  
-              const responses = Array.isArray(api.responses) ? api.responses : [{
-                statusCode: 200,
-                description: "Success response", 
-                schema: JSON.stringify(api.responseSchema || {
-                  "accountId": "ACC123456",
-                  "balance": 50000.75,
-                  "currency": "INR", 
-                  "status": "active"
-                }, null, 2),
-                example: JSON.stringify(api.responseSchema || {
-                  "accountId": "ACC123456",
-                  "balance": 50000.75,
-                  "currency": "INR",
-                  "status": "active"
-                }, null, 2)
-              }];
-              
-              allApis.push({
-                id: api.id,
-                name: api.name,
-                method: api.method,
-                path: api.path,
-                category: api.category,
-                description: api.description,
-                summary: api.summary || api.description,
-                requiresAuth: api.requiresAuth !== undefined ? api.requiresAuth : true,
-                authType: api.authType || 'bearer',
-                queryParameters,
-                pathParameters,
-                bodyParameters,
-                headers,
-                responses,
-                requestExample: api.parameters ? JSON.stringify(
-                  api.parameters.reduce((acc: any, p: any) => ({ ...acc, [p.name]: p.example || `<${p.type}>` }), {}),
-                  null, 2
-                ) : '{}',
-                responseExample: JSON.stringify(api.responseSchema || {}, null, 2),
-                status: api.status || 'active',
-                tags: api.tags || [],
-                rateLimit: api.rateLimits?.sandbox || 100,
-                timeout: api.timeout || 30000
-              });
-            });
-          }
+      }
+      
+      // Set default users
+      setUsers([
+        {
+          id: "1",
+          username: "admin",
+          email: "admin@aubank.in",
+          role: "super_admin",
+          lastLogin: "2024-12-05T10:30:00Z",
+          status: "active"
+        }
+      ]);
+      
+    } catch (error) {
+      console.error('🔧 ADMIN - Error loading admin data:', error);
+      toast({
+        title: "Loading Error",
+        description: "Failed to load admin data. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Fallback to empty state on error
+      setCategories([]);
+      setApis([]);
+      setUsers([{
+        id: "1",
+        username: "admin",
+        email: "admin@aubank.in",
+        role: "super_admin",
+        lastLogin: "2024-12-05T10:30:00Z",
+        status: "active"
+      }]);
+    }
+  };
+
+  // API Management Functions
+  const handleSaveApi = async (apiData: Partial<APIEndpoint>) => {
+    try {
+      if (editingApi) {
+        // Update existing API
+        const response = await fetch(`/api/admin/apis/${editingApi.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(apiData),
         });
-        
-        // Add the original static categories to show all categories in admin
-        const originalCategories: APICategory[] = [
+
+        if (response.ok) {
+          const updatedApi = await response.json();
+          setApis(apis.map(api => api.id === editingApi.id ? updatedApi : api));
+          toast({ title: "API Updated", description: "API endpoint has been successfully updated" });
+        } else {
+          const error = await response.json();
+          toast({ 
+            title: "Update Failed", 
+            description: error.message || "Failed to update API endpoint",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        // Create new API
+        const response = await fetch('/api/admin/apis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            ...apiData,
+            status: 'active'
+          }),
+        });
+
+        if (response.ok) {
+          const newApi = await response.json();
+          setApis([...apis, newApi]);
+          toast({ title: "API Created", description: "New API endpoint has been created and saved" });
+        } else {
+          const error = await response.json();
+          toast({ 
+            title: "Creation Failed", 
+            description: error.message || "Failed to create API endpoint",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
+      setEditingApi(null);
+      setShowApiDialog(false);
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteApi = async (apiId: string) => {
+    try {
+      const response = await fetch(`/api/admin/apis/${apiId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setApis(apis.filter(api => api.id !== apiId));
+        toast({ title: "API Deleted", description: "API endpoint has been removed" });
+      } else {
+        const error = await response.json();
+        toast({ 
+          title: "Delete Failed", 
+          description: error.message || "Failed to delete API endpoint",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Static categories list for admin panel
+  const staticCategories: APICategory[] = [
           {
             id: "customer",
             name: "Customer",
@@ -1301,6 +1406,27 @@ export default function AdminPanel() {
         status: "active"
       }
     ]);
+    
+    } catch (error) {
+      console.error('🔧 ADMIN - Error loading admin data:', error);
+      toast({
+        title: "Loading Error",
+        description: "Failed to load admin data. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Fallback to empty state on error
+      setCategories([]);
+      setApis([]);
+      setUsers([{
+        id: "1",
+        username: "admin",
+        email: "admin@aubank.in",
+        role: "super_admin",
+        lastLogin: "2024-12-05T10:30:00Z",
+        status: "active"
+      }]);
+    }
   };
 
   // API Management Functions
