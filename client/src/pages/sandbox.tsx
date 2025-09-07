@@ -1092,10 +1092,11 @@ export default function Sandbox() {
           statusText: "OK",
           headers: { "Content-Type": "application/json" },
           data: {
-            access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhdWJhbmtfZGV2ZWxvcGVyIiwiaWF0IjoxNjc4ODg2NDAwLCJleHAiOjE2Nzg4OTAwMDB9.simulated_token_signature",
+            access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhdWJhbmtfZGV2ZWxvcGVyIiwiaWF0IjoxNjc4ODg2NDAwLCJleHAiOjE2Nzg4OTAwMDB9.simulated_signature",
             token_type: "Bearer",
             expires_in: 3600,
-            scope: "payment_read payment_write account_read kyc_read"
+            client_id: "au_bank_client",
+            organization_name: "au-bank-internal"
           }
         };
       
@@ -1107,22 +1108,12 @@ export default function Sandbox() {
             statusText: "Created",
             headers: { "Content-Type": "application/json" },
             data: {
-              payment_id: "pay_" + Date.now(),
-              status: "INITIATED",
-              unique_request_id: paymentData.uniqueRequestId || "REQ" + Date.now(),
+              payment_id: "pay_123456789",
+              status: "initiated",
               amount: paymentData.amount || "1000.00",
-              currency: paymentData.payableCurrency || "INR",
-              beneficiary_name: paymentData.beneName || "Test Beneficiary",
-              beneficiary_account: paymentData.beneAccNo || "9876543210987",
-              ifsc_code: paymentData.ifscCode || "AUBL0002086",
-              payment_mode: paymentData.paymentMethodName || "NEFT",
-              corporate_code: paymentData.corporateCode || "CORP001",
-              remitter_account: paymentData.remitterAccountNo || "1234567890123",
-              transaction_ref: "TXN" + Date.now(),
-              utr_number: "UTR" + Date.now(),
-              created_at: new Date().toISOString(),
-              estimated_completion: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-              message: "Payment initiated successfully - This is a simulated response"
+              beneficiary: paymentData.beneName || "Test Beneficiary",
+              transaction_ref: "TXN123456789",
+              utr_number: "UTR123456789"
             }
           };
         } catch (error) {
@@ -1143,14 +1134,13 @@ export default function Sandbox() {
           statusText: "OK",
           headers: { "Content-Type": "application/json" },
           data: {
-            transaction_id: "TXN" + Date.now(),
-            status: "COMPLETED",
+            payment_id: "pay_123456789",
+            status: "success",
             amount: "1000.00",
-            currency: "INR",
-            beneficiary_name: "Test Beneficiary",
-            processed_at: new Date().toISOString(),
-            mode: "NEFT",
-            message: "Simulated payment enquiry response"
+            beneficiary: "Test Beneficiary",
+            transaction_ref: "TXN123456789",
+            utr_number: "UTR123456789",
+            completed_at: "2024-12-01T10:35:20Z"
           }
         };
 
@@ -1160,17 +1150,18 @@ export default function Sandbox() {
           status: 200,
           statusText: "OK",
           headers: { "Content-Type": "application/json" },
-          data: {
-            status: "SUCCESS",
-            customer_exists: existingCustomer,
-            customer_id: existingCustomer ? `CUST${Date.now()}` : null,
-            message: existingCustomer ? "Existing customer found (simulated)" : "No existing customer found (simulated)",
-            search_criteria: {
-              mobile: "XXXXX67890",
-              pan: "ABCDE1234F",
-              aadhaar: "XXXXXXXXXXXX5678"
-            },
-            timestamp: new Date().toISOString()
+          data: existingCustomer ? {
+            MatchFound: [{
+              CustomerResponse: {
+                CustomerBasicInquiry: {
+                  CustomerFullName: "Pradeep Singh",
+                  CustomerId: 23689739,
+                  MobileNumber: "8223072358"
+                }
+              }
+            }]
+          } : {
+            MatchFound: []
           }
         };
 
@@ -1188,8 +1179,7 @@ export default function Sandbox() {
               currency: "INR"
             },
             last_updated: new Date().toISOString(),
-            status: "ACTIVE",
-            message: "Simulated account balance response"
+            status: "ACTIVE"
           }
         };
 
@@ -1205,25 +1195,16 @@ export default function Sandbox() {
                 transaction_id: "txn_001",
                 type: "CREDIT",
                 amount: 5000.00,
-                description: "Salary Credit (Simulated)",
+                description: "Salary Credit",
                 date: "2024-12-01",
                 balance_after: 25750.50
-              },
-              {
-                transaction_id: "txn_002",
-                type: "DEBIT",
-                amount: 250.00,
-                description: "ATM Withdrawal (Simulated)",
-                date: "2024-11-30",
-                balance_after: 20750.50
               }
             ],
             pagination: {
               page: 1,
               total_pages: 5,
               total_transactions: 47
-            },
-            message: "Simulated transaction history"
+            }
           }
         };
 
@@ -1233,13 +1214,16 @@ export default function Sandbox() {
           statusText: "Created",
           headers: { "Content-Type": "application/json" },
           data: {
-            application_id: `app_corp_${Date.now()}`,
+            application_id: "app_corp_123456789",
             status: "under_review",
             company_name: "Tech Solutions Pvt Ltd",
+            business_type: "Private Limited",
+            registration_number: "CIN123456789",
+            contact_email: "contact@techsolutions.com",
+            contact_phone: "+919876543210",
             estimated_approval_time: "3-5 business days",
             submitted_at: new Date().toISOString(),
-            reference_id: `REF${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-            message: "Corporate registration submitted successfully (simulated)"
+            reference_id: "REFABC123DEF"
           }
         };
 
@@ -1299,12 +1283,13 @@ export default function Sandbox() {
           statusText: "Created",
           headers: { "Content-Type": "application/json" },
           data: {
-            vam_id: `VAM${Date.now()}`,
-            virtual_account_number: `VA${Date.now().toString().slice(-12)}`,
+            vam_id: "VAM123456789012",
+            virtual_account_number: "VA123456789012",
+            customer_id: "cust_789",
+            purpose: "collection",
             status: "ACTIVE",
             valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            created_at: new Date().toISOString(),
-            message: "Virtual account created successfully (simulated)"
+            created_at: new Date().toISOString()
           }
         };
 
@@ -1320,13 +1305,14 @@ export default function Sandbox() {
               amount: 5000.00,
               currency: "INR",
               transaction_date: new Date().toISOString(),
-              remitter_name: "John Doe (Simulated)",
+              remitter_name: "John Doe",
               remitter_account: "9876543210987",
               utr_number: "UTR123456789"
             }],
             total_amount: 5000.00,
             transaction_count: 1,
-            message: "Simulated VAM transaction data"
+            from_date: "2024-11-01",
+            to_date: "2024-11-30"
           }
         };
 
@@ -1405,10 +1391,10 @@ export default function Sandbox() {
           statusText: "OK",
           headers: { "Content-Type": "application/json" },
           data: { 
-            message: `Simulated response for ${endpoint.name}`,
+            status: "success",
+            message: `Response for ${endpoint.name}`,
             endpoint_id: endpoint.id,
-            timestamp: new Date().toISOString(),
-            note: "This is a simulated API response for testing purposes"
+            timestamp: new Date().toISOString()
           }
         };
     }
