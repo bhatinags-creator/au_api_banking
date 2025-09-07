@@ -1004,6 +1004,14 @@ export default function Sandbox() {
         headers["Authorization"] = `Bearer ${apiToken}`;
       }
       
+      // Add API key for sandbox authentication
+      if (apiToken) {
+        headers["X-API-Key"] = apiToken;
+      } else {
+        // Use a default sandbox API key for testing
+        headers["X-API-Key"] = "demo_api_key";
+      }
+      
       const options: RequestInit = {
         method: selectedEndpoint.method,
         headers,
@@ -1013,15 +1021,24 @@ export default function Sandbox() {
         options.body = requestBody;
       }
       
-      // Simulate API call (since we don't have real AU Bank access in sandbox)
-      const simulatedResponse = await simulateAPICall(selectedEndpoint, options.body);
+      // Make real API call to backend sandbox endpoints
+      const backendUrl = getBackendApiUrl(selectedEndpoint, finalUrl);
+      const response = await fetch(backendUrl, options);
       const responseTime = Date.now() - startTime;
       
+      let responseData;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await response.json();
+      } else {
+        responseData = await response.text();
+      }
+      
       const apiResponse: APIResponse = {
-        status: simulatedResponse.status,
-        statusText: simulatedResponse.statusText,
-        headers: simulatedResponse.headers,
-        data: simulatedResponse.data,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries([...response.headers.entries()]),
+        data: responseData,
         responseTime,
         timestamp: new Date().toISOString()
       };
@@ -1072,68 +1089,63 @@ export default function Sandbox() {
     }
   };
 
-  const simulateAPICall = async (endpoint: APIEndpoint, body: any): Promise<any> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+  // Map sandbox API endpoints to backend routes
+  const getBackendApiUrl = (endpoint: APIEndpoint, finalUrl: string): string => {
+    const baseUrl = window.location.origin;
     
     switch (endpoint.id) {
       case "oauth-token":
-        return {
-          status: 200,
-          statusText: "OK",
-          headers: { "Content-Type": "application/json" },
-          data: {
-            access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-            token_type: "Bearer",
-            expires_in: 3600,
-            scope: "payment_read payment_write"
-          }
-        };
+        return `${baseUrl}/api/sandbox/oauth/accesstoken`;
       
       case "cnb-payment":
-        try {
-          const paymentData = body ? JSON.parse(body) : {};
-          return {
-            status: 201,
-            statusText: "Created",
-            headers: { "Content-Type": "application/json" },
-            data: {
-              payment_id: "pay_" + Date.now(),
-              status: "INITIATED",
-              unique_request_id: paymentData.uniqueRequestId || "REQ" + Date.now(),
-              amount: paymentData.amount || "1000.00",
-              currency: paymentData.payableCurrency || "INR",
-              beneficiary_name: paymentData.beneName || "Test Beneficiary",
-              beneficiary_account: paymentData.beneAccNo || "9876543210987",
-              ifsc_code: paymentData.ifscCode || "AUBL0002086",
-              payment_mode: paymentData.paymentMethodName || "NEFT",
-              corporate_code: paymentData.corporateCode || "CORP001",
-              remitter_account: paymentData.remitterAccountNo || "1234567890123",
-              transaction_ref: "TXN" + Date.now(),
-              utr_number: "UTR" + Date.now(),
-              created_at: new Date().toISOString(),
-              estimated_completion: new Date(Date.now() + 2 * 60 * 1000).toISOString()
-            }
-          };
-        } catch (error) {
-          return {
-            status: 400,
-            statusText: "Bad Request",
-            headers: { "Content-Type": "application/json" },
-            data: {
-              error: "Invalid JSON format in request body",
-              message: "Please check your request format and try again"
-            }
-          };
-        }
-        
+        return `${baseUrl}/api/sandbox/CNBPaymentService/paymentCreation`;
+      
+      case "payment-enquiry":
+        return `${baseUrl}/api/sandbox/paymentEnquiry`;
+      
+      case "customer-dedupe":
+        return `${baseUrl}/api/sandbox/Customer/customerDedupe`;
+      
+      case "account-balance":
+        return `${baseUrl}/api/sandbox/accounts/balance`;
+      
+      case "account-transactions":
+        return `${baseUrl}/api/sandbox/accounts/transactions`;
+      
+      case "corporate-registration":
+        return `${baseUrl}/api/sandbox/business/corporate/register`;
+      
+      case "fund-transfer":
+        return `${baseUrl}/api/sandbox/payments/fund-transfer`;
+      
+      case "bulk-payment":
+        return `${baseUrl}/api/sandbox/payments/bulk`;
+      
+      case "payment-status":
+        return `${baseUrl}/api/sandbox/payments/status`;
+      
+      case "vam-create":
+        return `${baseUrl}/api/sandbox/vam/create`;
+      
+      case "vam-transactions":
+        return `${baseUrl}/api/sandbox/vam/transactions`;
+      
+      case "loan-application":
+        return `${baseUrl}/api/sandbox/loans/application`;
+      
+      case "loan-status":
+        return `${baseUrl}/api/sandbox/loans/status`;
+      
+      case "card-application":
+        return `${baseUrl}/api/sandbox/cards/application`;
+      
+      case "card-status":
+        return `${baseUrl}/api/sandbox/cards/status`;
+      
       default:
-        return {
-          status: 200,
-          statusText: "OK",
-          headers: { "Content-Type": "application/json" },
-          data: { message: "Simulated response for " + endpoint.name }
-        };
+        // For generic endpoints, construct from the path
+        const cleanPath = finalUrl.replace(/^\//, ''); // Remove leading slash
+        return `${baseUrl}/api/sandbox/${cleanPath}`;
     }
   };
 

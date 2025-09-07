@@ -123,6 +123,17 @@ export const authenticateApiKey = async (req: Request, res: Response, next: Next
       });
     }
 
+    // Allow sandbox test key for development/testing
+    if (apiKey === 'sandbox_test_key' || apiKey === 'demo_api_key') {
+      req.user = {
+        id: 'sandbox_user',
+        email: 'sandbox@aubank.in',
+        role: 'developer',
+        developerId: 'sandbox_dev'
+      };
+      return next();
+    }
+
     // Check if it's a developer API key
     const developer = await storage.getDeveloperByApiKey(apiKey);
     if (developer) {
@@ -196,6 +207,11 @@ export const requireEnvironmentAccess = (environment: 'sandbox' | 'uat' | 'produ
           error: 'Developer profile required',
           message: 'A developer profile is required to access this environment'
         });
+      }
+
+      // Allow sandbox test user to access sandbox environment
+      if (developerId === 'sandbox_dev' && environment === 'sandbox') {
+        return next();
       }
 
       const developer = await storage.getDeveloper(developerId);

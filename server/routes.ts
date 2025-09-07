@@ -684,6 +684,245 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Customer Dedupe Service (sandbox)
+  app.post("/api/sandbox/Customer/customerDedupe", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { mobile, pan, aadhaar } = req.body;
+    
+    // Simulate customer search logic
+    const existingCustomer = Math.random() > 0.7; // 30% chance of existing customer
+    
+    res.json({
+      "status": "SUCCESS",
+      "customer_exists": existingCustomer,
+      "customer_id": existingCustomer ? `CUST${Date.now()}` : null,
+      "message": existingCustomer ? "Existing customer found" : "No existing customer found",
+      "search_criteria": {
+        mobile: mobile ? mobile.replace(/\d(?=\d{4})/g, 'X') : null,
+        pan: pan ? pan.replace(/.(?=.{4})/g, 'X') : null,
+        aadhaar: aadhaar ? aadhaar.replace(/\d(?=\d{4})/g, 'X') : null
+      },
+      "timestamp": new Date().toISOString()
+    });
+  });
+
+  // Account Balance (sandbox)
+  app.get("/api/sandbox/accounts/balance", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { account_id } = req.query;
+    
+    res.json({
+      "account_id": account_id || "acc_123456789",
+      "account_number": "****1234",
+      "balance": {
+        "available": 25750.50,
+        "ledger": 26000.00,
+        "currency": "INR"
+      },
+      "last_updated": new Date().toISOString(),
+      "status": "ACTIVE"
+    });
+  });
+
+  // Account Transactions (sandbox)
+  app.get("/api/sandbox/accounts/transactions", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { account_id, limit = 10, page = 1 } = req.query;
+    
+    const transactions = Array.from({ length: parseInt(limit as string) }, (_, i) => ({
+      transaction_id: `txn_${Date.now()}_${i}`,
+      type: Math.random() > 0.5 ? "CREDIT" : "DEBIT",
+      amount: parseFloat((Math.random() * 10000).toFixed(2)),
+      description: ["Salary Credit", "Online Purchase", "ATM Withdrawal", "UPI Payment"][Math.floor(Math.random() * 4)],
+      date: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+      balance_after: 25750.50 + (Math.random() * 1000)
+    }));
+    
+    res.json({
+      "account_id": account_id || "acc_123456789",
+      "transactions": transactions,
+      "pagination": {
+        "page": parseInt(page as string),
+        "total_pages": 5,
+        "total_transactions": 47
+      }
+    });
+  });
+
+  // Corporate Registration (sandbox)
+  app.post("/api/sandbox/business/corporate/register", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { company_name, business_type, registration_number, contact_email, contact_phone } = req.body;
+    
+    res.json({
+      "application_id": `app_corp_${Date.now()}`,
+      "status": "under_review",
+      "company_name": company_name,
+      "business_type": business_type,
+      "registration_number": registration_number,
+      "contact_email": contact_email,
+      "contact_phone": contact_phone,
+      "estimated_approval_time": "3-5 business days",
+      "submitted_at": new Date().toISOString(),
+      "reference_id": `REF${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    });
+  });
+
+  // Fund Transfer (sandbox)
+  app.post("/api/sandbox/payments/fund-transfer", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { from_account, to_account, amount, purpose } = req.body;
+    
+    res.json({
+      "transfer_id": `FT${Date.now()}`,
+      "status": "INITIATED",
+      "from_account": from_account,
+      "to_account": to_account,
+      "amount": amount,
+      "currency": "INR",
+      "purpose": purpose,
+      "reference_number": `REF${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+      "estimated_completion": new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      "timestamp": new Date().toISOString()
+    });
+  });
+
+  // Bulk Payment (sandbox)
+  app.post("/api/sandbox/payments/bulk", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { payments, batch_name } = req.body;
+    
+    const batchId = `BATCH${Date.now()}`;
+    const processedPayments = payments?.map((payment: any, index: number) => ({
+      payment_id: `PAY${Date.now()}_${index}`,
+      beneficiary_account: payment.beneficiary_account,
+      amount: payment.amount,
+      status: Math.random() > 0.9 ? "FAILED" : "SUCCESS",
+      reference: `REF${Math.random().toString(36).substr(2, 6).toUpperCase()}`
+    })) || [];
+    
+    res.json({
+      "batch_id": batchId,
+      "batch_name": batch_name,
+      "total_payments": processedPayments.length,
+      "successful_payments": processedPayments.filter((p: any) => p.status === "SUCCESS").length,
+      "failed_payments": processedPayments.filter((p: any) => p.status === "FAILED").length,
+      "payments": processedPayments,
+      "status": "PROCESSING",
+      "created_at": new Date().toISOString()
+    });
+  });
+
+  // Payment Status (sandbox)
+  app.get("/api/sandbox/payments/status", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { payment_id, transaction_id } = req.query;
+    
+    res.json({
+      "payment_id": payment_id || transaction_id,
+      "status": ["INITIATED", "PROCESSING", "COMPLETED", "FAILED"][Math.floor(Math.random() * 4)],
+      "amount": "1000.00",
+      "currency": "INR",
+      "created_at": new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      "completed_at": new Date().toISOString(),
+      "failure_reason": null
+    });
+  });
+
+  // VAM Create (sandbox)
+  app.post("/api/sandbox/vam/create", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { customer_id, purpose, validity_days } = req.body;
+    
+    res.json({
+      "vam_id": `VAM${Date.now()}`,
+      "virtual_account_number": `VA${Date.now().toString().slice(-12)}`,
+      "customer_id": customer_id,
+      "purpose": purpose,
+      "status": "ACTIVE",
+      "valid_until": new Date(Date.now() + (validity_days || 30) * 24 * 60 * 60 * 1000).toISOString(),
+      "created_at": new Date().toISOString()
+    });
+  });
+
+  // VAM Transactions (sandbox)
+  app.get("/api/sandbox/vam/transactions", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { vam_id, from_date, to_date } = req.query;
+    
+    res.json({
+      "vam_id": vam_id,
+      "transactions": [{
+        "transaction_id": "TXN789012345",
+        "amount": 5000.00,
+        "currency": "INR",
+        "transaction_date": new Date().toISOString(),
+        "remitter_name": "John Doe",
+        "remitter_account": "9876543210987",
+        "utr_number": "UTR123456789"
+      }],
+      "total_amount": 5000.00,
+      "transaction_count": 1,
+      "from_date": from_date,
+      "to_date": to_date
+    });
+  });
+
+  // Loan Application (sandbox)
+  app.post("/api/sandbox/loans/application", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { loan_type, amount, tenure, customer_id } = req.body;
+    
+    res.json({
+      "application_id": `LOAN${Date.now()}`,
+      "loan_type": loan_type,
+      "amount": amount,
+      "tenure": tenure,
+      "customer_id": customer_id,
+      "status": "SUBMITTED",
+      "interest_rate": "9.5%",
+      "processing_fee": amount * 0.01,
+      "estimated_approval_time": "7-10 business days",
+      "submitted_at": new Date().toISOString()
+    });
+  });
+
+  // Loan Status (sandbox)
+  app.get("/api/sandbox/loans/status", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { application_id } = req.query;
+    
+    res.json({
+      "application_id": application_id,
+      "status": ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"][Math.floor(Math.random() * 4)],
+      "loan_amount": "500000.00",
+      "approved_amount": "450000.00",
+      "interest_rate": "9.5%",
+      "tenure": "60 months",
+      "last_updated": new Date().toISOString()
+    });
+  });
+
+  // Card Application (sandbox)
+  app.post("/api/sandbox/cards/application", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { card_type, customer_id, annual_income } = req.body;
+    
+    res.json({
+      "application_id": `CARD${Date.now()}`,
+      "card_type": card_type,
+      "customer_id": customer_id,
+      "annual_income": annual_income,
+      "status": "SUBMITTED",
+      "estimated_approval_time": "5-7 business days",
+      "submitted_at": new Date().toISOString(),
+      "reference_number": `CREF${Math.random().toString(36).substr(2, 8).toUpperCase()}`
+    });
+  });
+
+  // Card Status (sandbox)
+  app.get("/api/sandbox/cards/status", authenticateApiKey, requireEnvironmentAccess('sandbox'), async (req, res) => {
+    const { application_id } = req.query;
+    
+    res.json({
+      "application_id": application_id,
+      "status": ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "CARD_DISPATCHED"][Math.floor(Math.random() * 5)],
+      "card_type": "PREMIUM_CREDIT",
+      "credit_limit": "200000.00",
+      "card_number": "****-****-****-1234",
+      "dispatch_date": new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      "last_updated": new Date().toISOString()
+    });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
