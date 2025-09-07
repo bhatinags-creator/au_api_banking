@@ -1282,26 +1282,96 @@ export default function AdminPanel() {
   };
 
   // API Management Functions
-  const handleSaveApi = (apiData: Partial<APIEndpoint>) => {
-    if (editingApi) {
-      setApis(apis.map(api => api.id === editingApi.id ? { ...api, ...apiData } : api));
-      toast({ title: "API Updated", description: "API endpoint has been successfully updated" });
-    } else {
-      const newApi: APIEndpoint = {
-        ...apiData as APIEndpoint,
-        id: Date.now().toString(),
-        status: 'active'
-      };
-      setApis([...apis, newApi]);
-      toast({ title: "API Created", description: "New API endpoint has been created" });
+  const handleSaveApi = async (apiData: Partial<APIEndpoint>) => {
+    try {
+      if (editingApi) {
+        // Update existing API
+        const response = await fetch(`/api/admin/apis/${editingApi.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(apiData),
+        });
+
+        if (response.ok) {
+          const updatedApi = await response.json();
+          setApis(apis.map(api => api.id === editingApi.id ? updatedApi : api));
+          toast({ title: "API Updated", description: "API endpoint has been successfully updated" });
+        } else {
+          const error = await response.json();
+          toast({ 
+            title: "Update Failed", 
+            description: error.message || "Failed to update API endpoint",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        // Create new API
+        const response = await fetch('/api/admin/apis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...apiData,
+            status: 'active'
+          }),
+        });
+
+        if (response.ok) {
+          const newApi = await response.json();
+          setApis([...apis, newApi]);
+          toast({ title: "API Created", description: "New API endpoint has been created and saved" });
+        } else {
+          const error = await response.json();
+          toast({ 
+            title: "Creation Failed", 
+            description: error.message || "Failed to create API endpoint",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+      
+      setEditingApi(null);
+      setShowApiDialog(false);
+    } catch (error) {
+      console.error('Error saving API:', error);
+      toast({ 
+        title: "Save Failed", 
+        description: "Unable to save API endpoint. Please try again.",
+        variant: "destructive"
+      });
     }
-    setEditingApi(null);
-    setShowApiDialog(false);
   };
 
-  const handleDeleteApi = (apiId: string) => {
-    setApis(apis.filter(api => api.id !== apiId));
-    toast({ title: "API Deleted", description: "API endpoint has been removed" });
+  const handleDeleteApi = async (apiId: string) => {
+    try {
+      const response = await fetch(`/api/admin/apis/${apiId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setApis(apis.filter(api => api.id !== apiId));
+        toast({ title: "API Deleted", description: "API endpoint has been removed" });
+      } else {
+        const error = await response.json();
+        toast({ 
+          title: "Delete Failed", 
+          description: error.message || "Failed to delete API endpoint",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting API:', error);
+      toast({ 
+        title: "Delete Failed", 
+        description: "Unable to delete API endpoint. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Category Management Functions - Production Ready with Backend API
