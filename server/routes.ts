@@ -407,6 +407,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin API and Category Management Routes
   
+  // Public Categories endpoint for main portal (read-only)
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categories = await storage.getAllApiCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  // Public APIs endpoint for main portal (read-only)
+  app.get("/api/apis", async (req, res) => {
+    try {
+      const apis = await storage.getAllApiEndpoints();
+      res.json(apis);
+    } catch (error) {
+      console.error("Error fetching APIs:", error);
+      res.status(500).json({ error: "Failed to fetch APIs" });
+    }
+  });
+
   // Categories management
   app.get("/api/admin/categories", authenticate, requireRole(['admin']), async (req, res) => {
     try {

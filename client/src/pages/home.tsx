@@ -235,10 +235,10 @@ export default function Home() {
     const loadDynamicData = async () => {
       setLoading(true);
       try {
-        // Load categories and APIs from backend
+        // Load categories and APIs from backend (using public endpoints)
         const [categoriesResponse, apisResponse] = await Promise.all([
-          fetch('/api/admin/categories'),
-          fetch('/api/admin/apis')
+          fetch('/api/categories'),
+          fetch('/api/apis')
         ]);
         
         if (categoriesResponse.ok && apisResponse.ok) {
