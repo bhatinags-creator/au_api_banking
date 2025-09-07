@@ -54,28 +54,21 @@ export default function ApiExplorer() {
   
   const categories = categoriesData.length > 0 
     ? categoriesData.map((cat: any) => cat.name.toLowerCase()) 
-    : ["auth", "accounts", "payments", "kyc"];
+    : [];
 
   // Initialize selectedCategory with the first available category
   React.useEffect(() => {
-    if (categories.length > 0 && !selectedCategory) {
-      setSelectedCategory(categories[0]);
+    if (categories.length > 0) {
+      // Force reset and update to the first category when new categories are loaded
+      setSelectedCategory("");  // Clear first
+      setTimeout(() => setSelectedCategory(categories[0]), 0);  // Then set
     }
-  }, [categories, selectedCategory]);
+  }, [categories]);
   
   const filteredEndpoints = endpoints.filter((endpoint: ApiEndpoint) => 
     endpoint.category?.toLowerCase() === selectedCategory
   );
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log('🔍 API EXPLORER DEBUG:');
-    console.log('Selected category:', selectedCategory);
-    console.log('Available categories:', categories);
-    console.log('Total endpoints:', endpoints.length);
-    console.log('Filtered endpoints:', filteredEndpoints.length);
-    console.log('All endpoints:', endpoints.map(e => ({ name: e.name, category: e.category })));
-  }, [selectedCategory, categories, endpoints, filteredEndpoints]);
 
   // Set sample request body when endpoint changes
   React.useEffect(() => {
