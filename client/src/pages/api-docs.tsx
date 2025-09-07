@@ -1290,7 +1290,7 @@ const apiCategories: APICategory[] = [
   },
   {
     id: "accounts-deposits",
-    title: "Accounts and Deposits",
+    title: "Liabilities",
     icon: Database,
     description: "Account management and deposit services",
     endpoints: [
@@ -1401,7 +1401,7 @@ const apiCategories: APICategory[] = [
   },
   {
     id: "business-banking",
-    title: "Business Banking",
+    title: "Cards",
     icon: Building2,
     description: "Corporate and business banking services",
     endpoints: [
@@ -1929,7 +1929,7 @@ export default function APIDocs() {
                   setSelectedEndpoint(null);
                 }}
               >
-                <span>Loans and Cards</span>
+                <span>Loans</span>
                 <motion.div
                   animate={{ rotate: selectedCategory === "loans-and-cards" ? 90 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -2124,7 +2124,7 @@ export default function APIDocs() {
                   setSelectedEndpoint(null);
                 }}
               >
-                <span>Accounts and Deposits</span>
+                <span>Liabilities</span>
                 <motion.div
                   animate={{ rotate: selectedCategory === "accounts-deposits" ? 90 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -2149,7 +2149,7 @@ export default function APIDocs() {
                   setSelectedEndpoint(null);
                 }}
               >
-                <span>Business Banking</span>
+                <span>Cards</span>
                 <motion.div
                   animate={{ rotate: selectedCategory === "business-banking" ? 90 : 0 }}
                   transition={{ duration: 0.2 }}
