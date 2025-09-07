@@ -32,6 +32,33 @@ import {
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
+// Helper functions for transforming backend data
+const getIconComponent = (iconName: string) => {
+  const iconMap: Record<string, any> = {
+    'Shield': Shield,
+    'CreditCard': CreditCard,
+    'Users': Users,
+    'Database': Database,
+    'Building2': Building2,
+    'Banknote': Banknote,
+    'FileCheck': FileCheck,
+    'Target': Target
+  };
+  return iconMap[iconName] || Database;
+};
+
+const mapColorToTailwind = (hexColor: string) => {
+  const colorMap: Record<string, string> = {
+    '#603078': 'text-purple-600',
+    '#2563eb': 'text-blue-600', 
+    '#059669': 'text-emerald-600',
+    '#dc2626': 'text-red-600',
+    '#ea580c': 'text-orange-600',
+    '#65a30d': 'text-lime-600'
+  };
+  return colorMap[hexColor] || 'text-purple-600';
+};
+
 const heroSlides = [
   {
     id: 1,
@@ -245,42 +272,65 @@ export default function Home() {
           const backendCategories = await categoriesResponse.json();
           const backendApis = await apisResponse.json();
           
-          // Calculate API counts per category and map to home format
-          const categoryApiCounts = new Map();
-          backendApis.forEach((api: any) => {
-            const count = categoryApiCounts.get(api.category) || 0;
-            categoryApiCounts.set(api.category, count + 1);
-          });
+          console.log('Backend categories loaded:', backendCategories.length);
+          console.log('Backend APIs loaded:', backendApis.length);
           
-          // Update categories with real data and API counts
-          const updatedCategories = apiCategories.map(category => {
-            const backendCategory = backendCategories.find((bc: any) => bc.name === category.title);
-            const apiCount = categoryApiCounts.get(category.title) || category.apiCount;
+          // If we have hierarchical data from backend, use it completely
+          if (backendCategories.length > 0) {
+            // Transform backend hierarchical data to home page format
+            const transformedCategories = backendCategories.map((backendCategory: any) => ({
+              icon: getIconComponent(backendCategory.icon),
+              title: backendCategory.name,
+              description: backendCategory.description,
+              color: mapColorToTailwind(backendCategory.color),
+              apiCount: backendCategory.apis ? backendCategory.apis.length : 0,
+              apis: backendCategory.apis ? backendCategory.apis.map((api: any) => ({
+                name: api.name,
+                method: api.method,
+                endpoint: api.path,
+                description: api.description,
+                documentation: api.documentation,
+                sandbox: api.sandbox
+              })) : []
+            }));
             
-            if (backendCategory) {
+            setDynamicApiCategories(transformedCategories);
+          } else {
+            // Fallback: try to map individual arrays
+            const categoryApiCounts = new Map();
+            backendApis.forEach((api: any) => {
+              const count = categoryApiCounts.get(api.category) || 0;
+              categoryApiCounts.set(api.category, count + 1);
+            });
+            
+            const updatedCategories = apiCategories.map(category => {
+              const backendCategory = backendCategories.find((bc: any) => bc.name === category.title);
+              const apiCount = categoryApiCounts.get(category.title) || category.apiCount;
+              
+              if (backendCategory) {
+                return {
+                  ...category,
+                  description: backendCategory.description || category.description,
+                  apiCount: apiCount,
+                  apis: backendApis
+                    .filter((api: any) => api.category === category.title)
+                    .map((api: any) => ({
+                      name: api.name,
+                      method: api.method,
+                      endpoint: api.path
+                    }))
+                    .slice(0, 9)
+                };
+              }
+              
               return {
                 ...category,
-                description: backendCategory.description || category.description,
-                apiCount: apiCount,
-                // Update APIs from backend data
-                apis: backendApis
-                  .filter((api: any) => api.category === category.title)
-                  .map((api: any) => ({
-                    name: api.name,
-                    method: api.method,
-                    endpoint: api.path
-                  }))
-                  .slice(0, 9) // Keep only first 9 APIs for display
+                apiCount: apiCount
               };
-            }
+            });
             
-            return {
-              ...category,
-              apiCount: apiCount
-            };
-          });
-          
-          setDynamicApiCategories(updatedCategories);
+            setDynamicApiCategories(updatedCategories);
+          }
         } else {
           console.warn('Failed to load backend data, using fallback static data');
         }
