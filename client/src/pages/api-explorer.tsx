@@ -40,12 +40,12 @@ export default function ApiExplorer() {
   });
 
   // Load categories dynamically from backend
-  const { data: categoriesData = [] } = useQuery({
+  const { data: categoriesData = [] } = useQuery<any[]>({
     queryKey: ["/api/categories"],
   });
   
   const categories = categoriesData.length > 0 
-    ? (categoriesData as any[]).map((cat: any) => cat.name.toLowerCase()) 
+    ? categoriesData.map((cat: any) => cat.name.toLowerCase()) 
     : ["auth", "accounts", "payments", "kyc"];
   
   const filteredEndpoints = endpoints.filter((endpoint: ApiEndpoint) => 
