@@ -2267,20 +2267,20 @@ export default function APIDocs() {
                     {currentEndpoint.parameters && currentEndpoint.parameters.length > 0 && (
                       <div>
                         <div className="text-xs font-medium text-[var(--au-primary-700)] mb-2">Parameters ({currentEndpoint.parameters.length})</div>
-                        <div className="space-y-1">
-                          {currentEndpoint.parameters.slice(0, 3).map((param, index) => (
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {currentEndpoint.parameters.map((param, index) => (
                             <div key={index} className="flex items-center justify-between text-xs">
-                              <span className="font-mono text-[var(--au-primary-600)]">{param.name}</span>
-                              <Badge variant="outline" className="text-xs h-4">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="font-mono text-[var(--au-primary-600)] truncate">{param.name}</span>
+                                {param.required && (
+                                  <span className="text-red-500 text-xs">*</span>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="text-xs h-4 flex-shrink-0">
                                 {param.type}
                               </Badge>
                             </div>
                           ))}
-                          {currentEndpoint.parameters.length > 3 && (
-                            <div className="text-xs text-neutrals-500">
-                              +{currentEndpoint.parameters.length - 3} more...
-                            </div>
-                          )}
                         </div>
                       </div>
                     )}
