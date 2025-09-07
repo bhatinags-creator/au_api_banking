@@ -805,6 +805,33 @@ export class DatabaseStorage implements IStorage {
     return endpoint;
   }
 
+  async updateApiEndpoint(id: string, updateData: UpdateApiEndpoint): Promise<ApiEndpoint | undefined> {
+    try {
+      const [updated] = await db
+        .update(apiEndpoints)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(apiEndpoints.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateApiEndpoint:', error);
+      throw new Error('Failed to update API endpoint');
+    }
+  }
+
+  async deleteApiEndpoint(id: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(apiEndpoints)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(apiEndpoints.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteApiEndpoint:', error);
+      throw new Error('Failed to delete API endpoint');
+    }
+  }
+
   // API Usage operations
   async getApiUsageByDeveloper(developerId: string): Promise<ApiUsage[]> {
     return await db.select().from(apiUsage)
