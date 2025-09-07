@@ -291,18 +291,12 @@ export default function Home() {
                 name: api.name,
                 method: api.method,
                 endpoint: api.path,
-                description: api.description,
+                description: api.description || api.summary || 'No description available',
                 documentation: api.documentation,
-                sandbox: api.sandbox
+                sandbox: api.sandbox || { enabled: false }
               })) : []
             }));
             
-            console.log('✅ NEW HIERARCHICAL CATEGORIES:', transformedCategories.map(c => c.title));
-            console.log('📊 DETAILED CATEGORIES WITH APIS:', transformedCategories.map(c => ({
-              title: c.title,
-              apiCount: c.apiCount,
-              apis: c.apis.map(api => ({ name: api.name, method: api.method }))
-            })));
             setDynamicApiCategories(transformedCategories);
           } else {
             // Fallback: try to map individual arrays
