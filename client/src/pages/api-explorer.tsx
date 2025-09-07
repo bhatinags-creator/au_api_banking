@@ -59,6 +59,16 @@ export default function ApiExplorer() {
     endpoint.category?.toLowerCase() === selectedCategory
   );
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🔍 API EXPLORER DEBUG:');
+    console.log('Selected category:', selectedCategory);
+    console.log('Available categories:', categories);
+    console.log('Total endpoints:', endpoints.length);
+    console.log('Filtered endpoints:', filteredEndpoints.length);
+    console.log('All endpoints:', endpoints.map(e => ({ name: e.name, category: e.category })));
+  }, [selectedCategory, categories, endpoints, filteredEndpoints]);
+
   // Set sample request body when endpoint changes
   React.useEffect(() => {
     if (selectedEndpoint) {
