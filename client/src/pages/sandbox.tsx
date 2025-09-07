@@ -1384,7 +1384,123 @@ export default function Sandbox() {
             message: "Simulated card status response"
           }
         };
+
+      // Customer API endpoints
+      case "customer-360":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" },
+            CustomerResponse: { 
+              CustomerBasicInquiry: { 
+                CustomerFullName: "KIRTI DOSHI", 
+                CustomerId: "22100033", 
+                MobileNumber: "7507396305" 
+              } 
+            }
+          }
+        };
         
+      case "customer-image-upload":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" } }
+        };
+        
+      case "posidex-fetch-ucic":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            Results: { 
+              Customer: [{ 
+                Demographics: { 
+                  UCIC: "998876543", 
+                  Gender: "M", 
+                  Name: "John Doe" 
+                } 
+              }] 
+            }
+          }
+        };
+        
+      case "update-customer-details":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" } }
+        };
+        
+      case "ckyc-search":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { 
+            message: "Success", 
+            error_cd: "000", 
+            ckyc_data: [{ 
+              ckyc_number: "123456789", 
+              full_name: "John Doe", 
+              father_name: "Richard Doe" 
+            }] 
+          }
+        };
+        
+      case "aadhar-insert-token":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { token: "664587294422" }
+        };
+        
+      case "aadhar-get-value":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { value: "655645354422" }
+        };
+        
+      case "aadhar-get-token":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { token: "generated_token_value" }
+        };
+        
+      case "cibil-service":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { 
+            score: 750, 
+            report: "detailed_cibil_report", 
+            status: "success" 
+          }
+        };
+        
+      case "cif-creation":
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { 
+            ResponseCode: "0", 
+            ResponseMessage: "Success", 
+            AccountKey: "22658666" 
+          }
+        };
+      
       default:
         return {
           status: 200,
