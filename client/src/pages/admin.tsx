@@ -26,7 +26,10 @@ import {
   Eye,
   Activity,
   Clock,
-  Globe
+  Globe,
+  ChevronUp,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 
 interface APIParameter {
@@ -106,12 +109,14 @@ export default function AdminPanel() {
   const [editingCategory, setEditingCategory] = useState<APICategory | null>(null);
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedApi, setSelectedApi] = useState<APIEndpoint | null>(null);
+  const [showApiDetailsDialog, setShowApiDetailsDialog] = useState(false);
   const [apiConfigTab, setApiConfigTab] = useState("basic");
   
   // Hierarchical navigation state
   const [currentView, setCurrentView] = useState<'categories' | 'apis' | 'api-details'>('categories');
   const [selectedCategory, setSelectedCategory] = useState<APICategory | null>(null);
-  const [selectedApi, setSelectedApi] = useState<APIEndpoint | null>(null);
   
   const { toast } = useToast();
 
@@ -799,61 +804,175 @@ export default function AdminPanel() {
           <TabsContent value="categories" className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Category Management</h2>
-                <p className="text-muted-foreground">Organize APIs into logical categories</p>
+                <h2 className="text-2xl font-bold">Hierarchical API Management</h2>
+                <p className="text-muted-foreground">Manage categories and their APIs with full documentation</p>
               </div>
-              <Button className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90" data-testid="button-add-category">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Category
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowApiDialog(true)}
+                  data-testid="button-add-api"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add API
+                </Button>
+                <Button className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90" data-testid="button-add-category">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Category
+                </Button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category) => (
-                <Card key={category.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
+            <div className="space-y-4">
+              {categories.map((category) => {
+                const categoryApis = apis.filter(api => (api as any).categoryId === category.id);
+                return (
+                  <Card key={category.id} className="overflow-hidden">
+                    <div 
+                      className="flex items-center justify-between p-6 cursor-pointer hover:bg-muted/25 transition-colors"
+                      onClick={() => {
+                        const newExpanded = new Set(expandedCategories);
+                        if (newExpanded.has(category.id)) {
+                          newExpanded.delete(category.id);
+                        } else {
+                          newExpanded.add(category.id);
+                        }
+                        setExpandedCategories(newExpanded);
+                      }}
+                    >
+                      <div className="flex items-center space-x-4">
                         <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center"
+                          className="w-12 h-12 rounded-lg flex items-center justify-center"
                           style={{ backgroundColor: `${category.color}20` }}
                         >
-                          <Database className="w-5 h-5" style={{ color: category.color }} />
+                          <Database className="w-6 h-6" style={{ color: category.color }} />
                         </div>
                         <div>
-                          <h3 className="font-semibold">{category.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {category.endpoints.length} APIs
-                          </p>
+                          <h3 className="text-lg font-semibold text-[var(--au-primary)]">{category.name}</h3>
+                          <p className="text-sm text-muted-foreground">{category.description}</p>
+                          <div className="flex items-center space-x-4 mt-1">
+                            <span className="text-sm font-medium">{categoryApis.length} APIs</span>
+                            <Badge 
+                              variant={(category as any).is_active ? "default" : "secondary"}
+                              className="text-xs"
+                            >
+                              {(category as any).is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Button variant="ghost" size="sm" data-testid={`button-edit-category-${category.id}`}>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Edit category
+                          }}
+                          data-testid={`button-edit-category-${category.id}`}
+                        >
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" data-testid={`button-delete-category-${category.id}`}>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Delete category
+                          }}
+                          data-testid={`button-delete-category-${category.id}`}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
+                        {expandedCategories.has(category.id) ? (
+                          <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                        )}
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {category.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {category.endpoints.slice(0, 3).map((endpoint) => (
-                        <Badge key={endpoint} variant="outline" className="text-xs">
-                          {endpoint}
-                        </Badge>
-                      ))}
-                      {category.endpoints.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{category.endpoints.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    
+                    {expandedCategories.has(category.id) && (
+                      <div className="border-t bg-muted/10">
+                        {categoryApis.length === 0 ? (
+                          <div className="p-6 text-center text-muted-foreground">
+                            <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            <p>No APIs in this category</p>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="mt-2"
+                              onClick={() => setShowApiDialog(true)}
+                            >
+                              Add First API
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="p-4 space-y-3">
+                            {categoryApis.map((api) => (
+                              <div 
+                                key={api.id} 
+                                className="flex items-center justify-between p-4 bg-background rounded-lg border cursor-pointer hover:bg-muted/25 transition-colors"
+                                onClick={() => {
+                                  setSelectedApi(api);
+                                  setShowApiDetailsDialog(true);
+                                }}
+                              >
+                                <div className="flex items-center space-x-4">
+                                  <Badge variant={
+                                    api.method === 'GET' ? 'default' :
+                                    api.method === 'POST' ? 'destructive' :
+                                    api.method === 'PUT' ? 'secondary' : 'outline'
+                                  }>
+                                    {api.method}
+                                  </Badge>
+                                  <div>
+                                    <h4 className="font-medium text-[var(--au-primary)]">{api.name}</h4>
+                                    <p className="text-sm text-muted-foreground">{api.summary}</p>
+                                    <code className="text-xs bg-muted px-2 py-1 rounded mt-1 inline-block">{api.path}</code>
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Badge 
+                                    variant={api.status === 'active' ? 'default' : 'secondary'}
+                                    className="text-xs"
+                                  >
+                                    {api.status}
+                                  </Badge>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingApi(api);
+                                      setShowApiDialog(true);
+                                    }}
+                                    data-testid={`button-edit-api-${api.id}`}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteApi(api.id);
+                                    }}
+                                    data-testid={`button-delete-api-${api.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 
@@ -926,6 +1045,198 @@ export default function AdminPanel() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* API Details Dialog */}
+      <Dialog open={showApiDetailsDialog} onOpenChange={setShowApiDetailsDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-3">
+              <Badge variant={
+                selectedApi?.method === 'GET' ? 'default' :
+                selectedApi?.method === 'POST' ? 'destructive' :
+                selectedApi?.method === 'PUT' ? 'secondary' : 'outline'
+              }>
+                {selectedApi?.method}
+              </Badge>
+              <span className="text-[var(--au-primary)]">{selectedApi?.name}</span>
+            </DialogTitle>
+            <p className="text-muted-foreground">{selectedApi?.summary}</p>
+          </DialogHeader>
+          
+          {selectedApi && (
+            <Tabs defaultValue="documentation" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="documentation">Documentation</TabsTrigger>
+                <TabsTrigger value="sandbox">Sandbox</TabsTrigger>
+                <TabsTrigger value="configuration">Configuration</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="documentation" className="space-y-4">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Endpoint</h4>
+                    <code className="bg-muted px-3 py-2 rounded text-sm block">
+                      {selectedApi.method} {selectedApi.path}
+                    </code>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Description</h4>
+                    <p className="text-sm text-muted-foreground">{selectedApi.description}</p>
+                  </div>
+                  
+                  {(selectedApi as any).parameters && Array.isArray((selectedApi as any).parameters) && (selectedApi as any).parameters.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">Parameters</h4>
+                      <div className="space-y-2">
+                        {(selectedApi as any).parameters.map((param: any, index: number) => (
+                          <div key={index} className="border rounded p-3">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <Badge variant="outline" className="text-xs">{param.type}</Badge>
+                              <span className="font-medium text-sm">{param.name}</span>
+                              {param.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{param.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {(selectedApi as any).response_schema && (
+                    <div>
+                      <h4 className="font-medium mb-2">Response Schema</h4>
+                      <pre className="bg-muted p-3 rounded text-xs overflow-x-auto">
+                        {JSON.stringify((selectedApi as any).response_schema, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="sandbox" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg bg-muted/20">
+                    <h4 className="font-medium mb-2 flex items-center">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Interactive API Testing
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Test this API endpoint with live data and see real responses.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium">Request URL</Label>
+                        <code className="bg-background border px-3 py-2 rounded text-sm block mt-1">
+                          {window.location.origin}{selectedApi.path}
+                        </code>
+                      </div>
+                      
+                      {(selectedApi as any).parameters && Array.isArray((selectedApi as any).parameters) && (selectedApi as any).parameters.length > 0 && (
+                        <div>
+                          <Label className="text-sm font-medium">Test Parameters</Label>
+                          <div className="space-y-2 mt-2">
+                            {(selectedApi as any).parameters.map((param: any, index: number) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <Label className="text-xs w-24">{param.name}</Label>
+                                <Input 
+                                  placeholder={param.example || `Enter ${param.name}`}
+                                  className="text-xs"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Button className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+                        <Activity className="w-4 h-4 mr-2" />
+                        Test API
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Response Preview</h4>
+                    <div className="bg-muted p-3 rounded text-xs">
+                      <span className="text-muted-foreground">Click "Test API" to see live response...</span>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="configuration" className="space-y-4">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">API Settings</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm">Status</Label>
+                        <Badge variant={(selectedApi as any).status === 'active' ? 'default' : 'secondary'} className="ml-2">
+                          {(selectedApi as any).status || 'active'}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm">Version</Label>
+                        <span className="ml-2 text-sm text-muted-foreground">{(selectedApi as any).version || 'v1.0'}</span>
+                      </div>
+                      <div>
+                        <Label className="text-sm">Authentication</Label>
+                        <Badge variant="outline" className="ml-2">
+                          {(selectedApi as any).requires_auth ? 'Required' : 'Not Required'}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm">Rate Limit</Label>
+                        <span className="ml-2 text-sm text-muted-foreground">
+                          {(selectedApi as any).rate_limits ? 
+                            `${(selectedApi as any).rate_limits.requests_per_minute || 1000}/min` : 
+                            '1000/min'
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Access Control</h4>
+                    <div className="space-y-2">
+                      {(selectedApi as any).required_permissions && Array.isArray((selectedApi as any).required_permissions) ? (
+                        (selectedApi as any).required_permissions.map((permission: string, index: number) => (
+                          <Badge key={index} variant="outline" className="mr-2">
+                            {permission}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-sm text-muted-foreground">No specific permissions required</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2 pt-4">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setEditingApi(selectedApi);
+                        setShowApiDialog(true);
+                        setShowApiDetailsDialog(false);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit API
+                    </Button>
+                    <Button variant="outline">
+                      <Globe className="w-4 h-4 mr-2" />
+                      View in Portal
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
