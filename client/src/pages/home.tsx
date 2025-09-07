@@ -257,8 +257,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  // Debug logging to see what categories are being displayed
-  console.log('🏠 HOME PAGE - Current categories:', dynamicApiCategories.map(c => c.title));
+  // Categories are now loaded dynamically from hierarchical backend data
 
   // Load dynamic API data from backend
   useEffect(() => {
@@ -297,7 +296,6 @@ export default function Home() {
               })) : []
             }));
             
-            console.log('✅ NEW HIERARCHICAL CATEGORIES:', transformedCategories.map(c => c.title));
             setDynamicApiCategories(transformedCategories);
           } else {
             // Fallback: try to map individual arrays

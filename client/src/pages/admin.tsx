@@ -125,15 +125,11 @@ export default function AdminPanel() {
 
   const loadAdminData = async () => {
     try {
-      console.log('🔧 ADMIN - Loading hierarchical data from backend...');
-      
       // Load hierarchical data from the same endpoint as home page
       const categoriesResponse = await fetch('/api/categories');
       
       if (categoriesResponse.ok) {
         const hierarchicalData = await categoriesResponse.json();
-        
-        console.log('🔧 ADMIN - Loaded', hierarchicalData.length, 'hierarchical categories');
         
         // Transform hierarchical data for admin panel
         const adminCategories: APICategory[] = hierarchicalData.map((cat: any) => ({
@@ -190,7 +186,7 @@ export default function AdminPanel() {
         });
         
         setApis(allApis);
-        console.log('🔧 ADMIN - Processed', allApis.length, 'APIs with full documentation and sandbox details');
+        // All APIs processed with full documentation and sandbox details
         
         toast({
           title: "Hierarchical Data Loaded",
@@ -200,7 +196,7 @@ export default function AdminPanel() {
         return;
       }
     } catch (error) {
-      console.error('🔧 ADMIN - Error loading hierarchical data:', error);
+      console.error('Error loading hierarchical data:', error);
       toast({
         title: "Error",
         description: "Failed to load hierarchical data, using fallback",
