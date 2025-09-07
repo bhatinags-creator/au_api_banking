@@ -546,6 +546,209 @@ const apiEndpoints: APIEndpoint[] = [
       tenure: 24
     }
   },
+  // Customer APIs
+  {
+    id: "aadhar-insert-token",
+    name: "Aadhar Vault - Insert Token",
+    method: "POST",
+    path: "https://osbuat.aubankuat.in/AadharVaultServiceNewV1/AadharVault/insertToken",
+    category: "Customer",
+    description: "Store Aadhar details securely and get token",
+    requiresAuth: true,
+    sampleRequest: {
+      Guid: "UPI891728937123",
+      Source: "UPI",
+      Token: "252007727794",
+      Format: "0"
+    }
+  },
+  {
+    id: "aadhar-get-value",
+    name: "Aadhar Vault - Get Value",
+    method: "GET",
+    path: "https://osbuat.aubankuat.in/AadharVaultServiceNewV1/AadharVault/getValue",
+    category: "Customer",
+    description: "Retrieve Aadhar value using token",
+    requiresAuth: true,
+    sampleRequest: {
+      Guid: "UPI891728937123",
+      Source: "UPI",
+      Token: "252007727794",
+      Format: "0"
+    }
+  },
+  {
+    id: "aadhar-get-token",
+    name: "Aadhar Vault - Get Token",
+    method: "POST",
+    path: "https://osbuat.aubankuat.in/AadharVaultServiceNewV1/AadharVault/getToken",
+    category: "Customer",
+    description: "Get token for Aadhar value",
+    requiresAuth: true,
+    sampleRequest: {
+      naeUser: "uat_testing",
+      naePassword: "6b33c0dfd*********",
+      dbUser: "ADV_ADMIN",
+      dbPassword: "7f0faf1975*******",
+      value: "6556****",
+      tableName: "UAT_VAULT1"
+    }
+  },
+  {
+    id: "cibil-service",
+    name: "CIBIL Service",
+    method: "POST",
+    path: "https://osbuat.aubankuat.in/AadharVaultServiceNewV1/AadharVault/insertToken",
+    category: "Customer",
+    description: "Perform CIBIL score inquiry for customer",
+    requiresAuth: true,
+    sampleRequest: {
+      RequestId: "REQ123456789",
+      OriginatingChannel: "API",
+      SolutionSetId: "CIBIL001",
+      ExecutionMode: "ONLINE",
+      ApplicantFirstName: "John",
+      ApplicantLastName: "Doe",
+      DateOfBirth: "19900115",
+      Gender: "2",
+      IdNumber: "ABCDE1234F",
+      IdType: "01",
+      TelephoneNumber: "9876543210",
+      AddressLine3: "123 Main Street, City"
+    }
+  },
+  {
+    id: "cif-creation",
+    name: "CIF Creation Service",
+    method: "POST",
+    path: "https://api.aubankuat.in/crm/CRMCustomerAccountCreationRestService/Create",
+    category: "Customer",
+    description: "Create new customer in CBS system",
+    requiresAuth: true,
+    sampleRequest: {
+      RequestId: "REQ123456789",
+      OriginatingChannel: "DECI",
+      ReferenceNumber: "2011",
+      TransactionBranch: "REQ123456789",
+      FirstName: "John",
+      LastName: "Doe",
+      ShortName: "John D",
+      MobileNumber: "9876543210",
+      EmailId: "john.doe@example.com",
+      Line1: "123 Main Street",
+      City: "Mumbai",
+      State: "MAHARASHTRA",
+      Country: "IN",
+      Zip: "400001"
+    }
+  },
+  {
+    id: "ckyc-search",
+    name: "CKYC Search",
+    method: "POST",
+    path: "https://api.aubankuat.in/CKYCSearch",
+    category: "Customer",
+    description: "Search customer in CKYC records",
+    requiresAuth: true,
+    sampleRequest: {
+      RequestId: "REQ123456789",
+      Channel: "API",
+      SearchCategory: "C",
+      Searchinput: "ABCDE1234F"
+    }
+  },
+  {
+    id: "customer-360",
+    name: "Customer 360 Service",
+    method: "POST",
+    path: "https://api.aubankuat.in/CBSCustomerService/customer360service",
+    category: "Customer",
+    description: "Fetch existing customer details by customer ID",
+    requiresAuth: true,
+    sampleRequest: {
+      RequestId: "REQ123456789",
+      Channel: "DEC",
+      ReferenceNumber: "REF123456789",
+      CustomerId: "21970181",
+      TransactionBranch: "2011"
+    }
+  },
+  {
+    id: "customer-dedupe",
+    name: "Customer Dedupe Service",
+    method: "POST",
+    path: "https://api.aubankuat.in/customerdedupe",
+    category: "Customer",
+    description: "Find existing customers by mobile, PAN, or Aadhaar",
+    requiresAuth: true,
+    sampleRequest: {
+      RequestId: "REQ123456789",
+      Channel: "DEC",
+      ReferenceNumber: "REF123456789",
+      MobileNumber: "9876543210",
+      AadhaarNumber: "",
+      PanNumber: "",
+      TransactionBranch: "2011"
+    }
+  },
+  {
+    id: "customer-image-upload",
+    name: "Customer Image Upload Service",
+    method: "POST",
+    path: "https://api.aubankuat.in/CustomerImageMnt",
+    category: "Customer",
+    description: "Upload or modify customer image/signature",
+    requiresAuth: true,
+    sampleRequest: {
+      FlgTxnType: "A",
+      RequestId: "REQ123456789",
+      OriginatingChannel: "CRM",
+      ReferenceNumber: "REF123456789",
+      TransactionBranch: "9000",
+      CustomerId: "27972517",
+      CustomerImage: "base64_image_data_here"
+    }
+  },
+  {
+    id: "posidex-fetch-ucic",
+    name: "POSIDEX - Fetch UCIC",
+    method: "POST",
+    path: "https://osbuat.aubankuat.in/PosidexFetchService/fetchUcic",
+    category: "Customer",
+    description: "Fetch customer details from UCIC API",
+    requiresAuth: true,
+    sampleRequest: {
+      Metadata: {
+        Request_Id: "FETCH01035328",
+        Customer_Id: "",
+        SourceSystem: "",
+        ApplicantType: "",
+        UCIC: "998876543"
+      }
+    }
+  },
+  {
+    id: "update-customer-details",
+    name: "Update Customer Details Service",
+    method: "POST",
+    path: "https://api.aubankuat.in/cardrestservice/UpdateCustomerDetails",
+    category: "Customer",
+    description: "Update customer card and personal details",
+    requiresAuth: true,
+    sampleRequest: {
+      RequestId: "REQ123456789",
+      Channel: "CRM",
+      CardNumber: "6080880152053638",
+      Function: "Mobile",
+      CIFkey: "123456",
+      MobileDetail: {
+        HomePhone: "9963731084",
+        BusinessPhone: "9963731084",
+        AlternatePhone1: "9963731084",
+        AlternatePhone2: "9963731084"
+      }
+    }
+  },
   {
     id: "loan-status",
     name: "Loan Status",

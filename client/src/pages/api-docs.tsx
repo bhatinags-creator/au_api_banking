@@ -313,6 +313,400 @@ const apiCategories: APICategory[] = [
             }]
           }
         ]
+      },
+      {
+        id: "customer",
+        title: "Customer",
+        endpoints: [
+          {
+            id: "aadhar-insert-token",
+            method: "POST",
+            path: "/AadharVaultServiceNewV1/AadharVault/insertToken",
+            title: "Aadhar Vault - Insert Token",
+            description: "Store Aadhar details securely and get token",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "Guid", type: "string", required: true, description: "Unique identifier", example: "UPI891728937123" },
+              { name: "Source", type: "string", required: true, description: "Source system", example: "UPI" },
+              { name: "Token", type: "string", required: true, description: "Token value", example: "252007727794" },
+              { name: "Format", type: "string", required: true, description: "Format type", example: "0" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Token inserted successfully",
+                example: { token: "664587294422" }
+              }
+            ],
+            examples: [{
+              title: "Insert Aadhar Token",
+              request: { Guid: "UPI891728937123", Source: "UPI", Token: "252007727794", Format: "0" },
+              response: { token: "664587294422" },
+              curl: `curl -X POST "https://osbuat.aubankuat.in/AadharVaultServiceNewV1/AadharVault/insertToken" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"Guid": "UPI891728937123", "Source": "UPI", "Token": "252007727794", "Format": "0"}'`
+            }]
+          },
+          {
+            id: "aadhar-get-value",
+            method: "GET",
+            path: "/AadharVaultServiceNewV1/AadharVault/getValue",
+            title: "Aadhar Vault - Get Value",
+            description: "Retrieve Aadhar value using token",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "Guid", type: "string", required: true, description: "Unique identifier", example: "UPI891728937123" },
+              { name: "Source", type: "string", required: true, description: "Source system", example: "UPI" },
+              { name: "Token", type: "string", required: true, description: "Token value", example: "252007727794" },
+              { name: "Format", type: "string", required: true, description: "Format type", example: "0" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Value retrieved successfully",
+                example: { value: "655645354422" }
+              }
+            ],
+            examples: [{
+              title: "Get Aadhar Value",
+              request: { Guid: "UPI891728937123", Source: "UPI", Token: "252007727794", Format: "0" },
+              response: { value: "655645354422" },
+              curl: `curl -X GET "https://osbuat.aubankuat.in/AadharVaultServiceNewV1/AadharVault/getValue?Guid=UPI891728937123&Source=UPI&Token=252007727794&Format=0" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`
+            }]
+          },
+          {
+            id: "aadhar-get-token",
+            method: "POST",
+            path: "/AadharVaultServiceNewV1/AadharVault/getToken",
+            title: "Aadhar Vault - Get Token",
+            description: "Get token for Aadhar value",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "naeUser", type: "string", required: true, description: "NAE user", example: "uat_testing" },
+              { name: "naePassword", type: "string", required: true, description: "NAE password", example: "6b33c0dfd*********" },
+              { name: "dbUser", type: "string", required: true, description: "Database user", example: "ADV_ADMIN" },
+              { name: "dbPassword", type: "string", required: true, description: "Database password", example: "7f0faf1975*******" },
+              { name: "value", type: "string", required: true, description: "Aadhar value", example: "6556****" },
+              { name: "tableName", type: "string", required: true, description: "Table name", example: "UAT_VAULT1" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Token generated successfully",
+                example: { token: "generated_token_value" }
+              }
+            ],
+            examples: [{
+              title: "Get Token for Aadhar",
+              request: { naeUser: "uat_testing", naePassword: "6b33c0dfd*********", dbUser: "ADV_ADMIN", dbPassword: "7f0faf1975*******", value: "6556****", tableName: "UAT_VAULT1" },
+              response: { token: "generated_token_value" },
+              curl: `curl -X POST "https://osbuat.aubankuat.in/AadharVaultServiceNewV1/AadharVault/getToken" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"naeUser": "uat_testing", "naePassword": "6b33c0dfd*********", "dbUser": "ADV_ADMIN", "dbPassword": "7f0faf1975*******", "value": "6556****", "tableName": "UAT_VAULT1"}'`
+            }]
+          },
+          {
+            id: "cibil-service",
+            method: "POST",
+            path: "/cibil/ConsumerCIBILService",
+            title: "CIBIL Service",
+            description: "Perform CIBIL score inquiry for customer",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "RequestId", type: "string", required: true, description: "Unique request ID", example: "REQ123456789" },
+              { name: "OriginatingChannel", type: "string", required: true, description: "Originating channel", example: "API" },
+              { name: "SolutionSetId", type: "string", required: true, description: "Solution set identifier", example: "CIBIL001" },
+              { name: "ExecutionMode", type: "string", required: true, description: "Execution mode", example: "ONLINE" },
+              { name: "ApplicantFirstName", type: "string", required: true, description: "Applicant first name", example: "John" },
+              { name: "ApplicantLastName", type: "string", required: false, description: "Applicant last name", example: "Doe" },
+              { name: "DateOfBirth", type: "string", required: true, description: "Date of birth (YYYYMMDD)", example: "19900115" },
+              { name: "Gender", type: "string", required: true, description: "Gender (1-Female, 2-Male, 3-Transgender)", example: "2" },
+              { name: "IdNumber", type: "string", required: true, description: "ID number (PAN)", example: "ABCDE1234F" },
+              { name: "IdType", type: "string", required: true, description: "ID type (01-PAN)", example: "01" },
+              { name: "TelephoneNumber", type: "string", required: true, description: "Mobile number", example: "9876543210" },
+              { name: "AddressLine3", type: "string", required: true, description: "Address", example: "123 Main Street, City" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "CIBIL report generated successfully",
+                example: { score: 750, report: "detailed_cibil_report", status: "success" }
+              }
+            ],
+            examples: [{
+              title: "Get CIBIL Score",
+              request: { RequestId: "REQ123456789", OriginatingChannel: "API", ApplicantFirstName: "John", DateOfBirth: "19900115", Gender: "2", IdNumber: "ABCDE1234F" },
+              response: { score: 750, report: "detailed_cibil_report", status: "success" },
+              curl: `curl -X POST "https://api.aubank.in/cibil/ConsumerCIBILService" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"RequestId": "REQ123456789", "OriginatingChannel": "API", "ApplicantFirstName": "John", "DateOfBirth": "19900115", "Gender": "2", "IdNumber": "ABCDE1234F"}'`
+            }]
+          },
+          {
+            id: "cif-creation",
+            method: "POST",
+            path: "/crm/CRMCustomerAccountCreationRestService/Create",
+            title: "CIF Creation Service",
+            description: "Create new customer in CBS system",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "RequestId", type: "string", required: true, description: "Unique reference number", example: "REQ123456789" },
+              { name: "OriginatingChannel", type: "string", required: true, description: "Application name", example: "DECI" },
+              { name: "ReferenceNumber", type: "string", required: true, description: "Branch code", example: "2011" },
+              { name: "TransactionBranch", type: "string", required: true, description: "Unique reference number", example: "REQ123456789" },
+              { name: "FirstName", type: "string", required: true, description: "Customer first name", example: "John" },
+              { name: "LastName", type: "string", required: false, description: "Customer last name", example: "Doe" },
+              { name: "ShortName", type: "string", required: true, description: "Short name", example: "John D" },
+              { name: "MobileNumber", type: "string", required: true, description: "Mobile number", example: "9876543210" },
+              { name: "EmailId", type: "string", required: false, description: "Email address", example: "john.doe@example.com" },
+              { name: "Line1", type: "string", required: true, description: "Address line 1", example: "123 Main Street" },
+              { name: "City", type: "string", required: false, description: "City", example: "Mumbai" },
+              { name: "State", type: "string", required: true, description: "State", example: "MAHARASHTRA" },
+              { name: "Country", type: "string", required: true, description: "Country code", example: "IN" },
+              { name: "Zip", type: "string", required: true, description: "Zip code", example: "400001" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Customer created successfully",
+                example: { ResponseCode: "0", ResponseMessage: "Success", AccountKey: "22658666" }
+              }
+            ],
+            examples: [{
+              title: "Create Customer",
+              request: { RequestId: "REQ123456789", OriginatingChannel: "DECI", FirstName: "John", ShortName: "John D", MobileNumber: "9876543210" },
+              response: { ResponseCode: "0", ResponseMessage: "Success", AccountKey: "22658666" },
+              curl: `curl -X POST "https://api.aubank.in/crm/CRMCustomerAccountCreationRestService/Create" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"RequestId": "REQ123456789", "OriginatingChannel": "DECI", "FirstName": "John", "ShortName": "John D", "MobileNumber": "9876543210"}'`
+            }]
+          },
+          {
+            id: "ckyc-search",
+            method: "POST",
+            path: "/CKYCSearch",
+            title: "CKYC Search",
+            description: "Search customer in CKYC records",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "RequestId", type: "string", required: false, description: "Unique request ID", example: "REQ123456789" },
+              { name: "Channel", type: "string", required: false, description: "Channel", example: "API" },
+              { name: "SearchCategory", type: "string", required: true, description: "Search category (A-Passport, B-Voter ID, C-PAN, D-Driving License, E-UID, F-NREGA, Z-CKYC Number)", example: "C" },
+              { name: "Searchinput", type: "string", required: true, description: "Search input value", example: "ABCDE1234F" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "CKYC search completed",
+                example: { message: "Success", error_cd: "000", ckyc_data: [{ ckyc_number: "123456789", full_name: "John Doe", father_name: "Richard Doe" }] }
+              }
+            ],
+            examples: [{
+              title: "Search CKYC by PAN",
+              request: { SearchCategory: "C", Searchinput: "ABCDE1234F" },
+              response: { message: "Success", error_cd: "000", ckyc_data: [{ ckyc_number: "123456789", full_name: "John Doe", father_name: "Richard Doe" }] },
+              curl: `curl -X POST "https://api.aubank.in/CKYCSearch" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"SearchCategory": "C", "Searchinput": "ABCDE1234F"}'`
+            }]
+          },
+          {
+            id: "customer-360",
+            method: "POST",
+            path: "/CBSCustomerService/customer360service",
+            title: "Customer 360 Service",
+            description: "Fetch existing customer details by customer ID",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "RequestId", type: "string", required: true, description: "Unique reference number", example: "REQ123456789" },
+              { name: "Channel", type: "string", required: true, description: "Application name", example: "DEC" },
+              { name: "ReferenceNumber", type: "string", required: true, description: "Unique reference number", example: "REF123456789" },
+              { name: "CustomerId", type: "string", required: true, description: "Customer ID", example: "21970181" },
+              { name: "TransactionBranch", type: "string", required: true, description: "Transaction branch", example: "2011" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Customer details retrieved successfully",
+                example: { 
+                  TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" },
+                  CustomerResponse: { 
+                    CustomerBasicInquiry: { 
+                      CustomerFullName: "KIRTI DOSHI", 
+                      CustomerId: "22100033", 
+                      MobileNumber: "7507396305" 
+                    } 
+                  } 
+                }
+              }
+            ],
+            examples: [{
+              title: "Get Customer Details",
+              request: { RequestId: "REQ123456789", Channel: "DEC", CustomerId: "21970181", TransactionBranch: "2011" },
+              response: { TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" }, CustomerResponse: { CustomerBasicInquiry: { CustomerFullName: "KIRTI DOSHI", CustomerId: "22100033" } } },
+              curl: `curl -X POST "https://api.aubank.in/CBSCustomerService/customer360service" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"RequestId": "REQ123456789", "Channel": "DEC", "CustomerId": "21970181", "TransactionBranch": "2011"}'`
+            }]
+          },
+          {
+            id: "customer-dedupe",
+            method: "POST",
+            path: "/customerdedupe",
+            title: "Customer Dedupe Service",
+            description: "Find existing customers by mobile, PAN, or Aadhaar",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "RequestId", type: "string", required: true, description: "Unique reference number", example: "REQ123456789" },
+              { name: "Channel", type: "string", required: true, description: "Application name", example: "DEC" },
+              { name: "ReferenceNumber", type: "string", required: true, description: "Unique reference number", example: "REF123456789" },
+              { name: "MobileNumber", type: "string", required: false, description: "Mobile number", example: "9876543210" },
+              { name: "AadhaarNumber", type: "string", required: false, description: "Aadhaar number", example: "123456789012" },
+              { name: "PanNumber", type: "string", required: false, description: "PAN number", example: "ABCDE1234F" },
+              { name: "TransactionBranch", type: "string", required: true, description: "Branch code", example: "2011" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Customer search completed",
+                example: { 
+                  MatchFound: [{ 
+                    CustomerResponse: { 
+                      CustomerBasicInquiry: { 
+                        CustomerFullName: "Pradeep Singh", 
+                        CustomerId: 23689739, 
+                        MobileNumber: "8223072358" 
+                      } 
+                    } 
+                  }] 
+                }
+              }
+            ],
+            examples: [{
+              title: "Search Customer by Mobile",
+              request: { RequestId: "REQ123456789", Channel: "DEC", MobileNumber: "9876543210", TransactionBranch: "2011" },
+              response: { MatchFound: [{ CustomerResponse: { CustomerBasicInquiry: { CustomerFullName: "Pradeep Singh", CustomerId: 23689739 } } }] },
+              curl: `curl -X POST "https://api.aubank.in/customerdedupe" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"RequestId": "REQ123456789", "Channel": "DEC", "MobileNumber": "9876543210", "TransactionBranch": "2011"}'`
+            }]
+          },
+          {
+            id: "customer-image-upload",
+            method: "POST",
+            path: "/CustomerImageMnt",
+            title: "Customer Image Upload Service",
+            description: "Upload or modify customer image/signature",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "FlgTxnType", type: "string", required: true, description: "Transaction type (A-Add, M-Modify, D-Delete)", example: "A" },
+              { name: "RequestId", type: "string", required: true, description: "Unique request ID", example: "REQ123456789" },
+              { name: "OriginatingChannel", type: "string", required: true, description: "Originating channel", example: "CRM" },
+              { name: "ReferenceNumber", type: "string", required: true, description: "Reference number", example: "REF123456789" },
+              { name: "TransactionBranch", type: "string", required: true, description: "Transaction branch", example: "9000" },
+              { name: "CustomerId", type: "string", required: true, description: "Customer ID", example: "27972517" },
+              { name: "CustomerImage", type: "string", required: true, description: "Base64 encoded image", example: "base64_image_data" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Image uploaded successfully",
+                example: { TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" } }
+              }
+            ],
+            examples: [{
+              title: "Upload Customer Image",
+              request: { FlgTxnType: "A", RequestId: "REQ123456789", OriginatingChannel: "CRM", CustomerId: "27972517", CustomerImage: "base64_image_data" },
+              response: { TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" } },
+              curl: `curl -X POST "https://api.aubank.in/CustomerImageMnt" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"FlgTxnType": "A", "RequestId": "REQ123456789", "OriginatingChannel": "CRM", "CustomerId": "27972517", "CustomerImage": "base64_image_data"}'`
+            }]
+          },
+          {
+            id: "posidex-fetch-ucic",
+            method: "POST",
+            path: "/PosidexFetchService/fetchUcic",
+            title: "POSIDEX - Fetch UCIC",
+            description: "Fetch customer details from UCIC API",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "Request_Id", type: "string", required: true, description: "Unique request ID", example: "FETCH01035328" },
+              { name: "Customer_Id", type: "string", required: false, description: "Customer ID", example: "" },
+              { name: "SourceSystem", type: "string", required: false, description: "Source system", example: "" },
+              { name: "ApplicantType", type: "string", required: false, description: "Applicant type", example: "" },
+              { name: "UCIC", type: "string", required: true, description: "UCIC number", example: "998876543" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Customer details retrieved successfully",
+                example: { 
+                  Results: { 
+                    Customer: [{ 
+                      Demographics: { 
+                        UCIC: "998876543", 
+                        Gender: "M", 
+                        Name: "John Doe" 
+                      } 
+                    }] 
+                  } 
+                }
+              }
+            ],
+            examples: [{
+              title: "Fetch UCIC Details",
+              request: { Request_Id: "FETCH01035328", UCIC: "998876543" },
+              response: { Results: { Customer: [{ Demographics: { UCIC: "998876543", Gender: "M", Name: "John Doe" } }] } },
+              curl: `curl -X POST "https://osbuat.aubankuat.in/PosidexFetchService/fetchUcic" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"Metadata": {"Request_Id": "FETCH01035328", "UCIC": "998876543"}}'`
+            }]
+          },
+          {
+            id: "update-customer-details",
+            method: "POST",
+            path: "/cardrestservice/UpdateCustomerDetails",
+            title: "Update Customer Details Service",
+            description: "Update customer card and personal details",
+            security: [{ type: "API Key", description: "API Key required in header" }],
+            parameters: [
+              { name: "RequestId", type: "string", required: true, description: "Unique request ID", example: "REQ123456789" },
+              { name: "Channel", type: "string", required: true, description: "Channel", example: "CRM" },
+              { name: "CardNumber", type: "string", required: false, description: "Card number", example: "6080880152053638" },
+              { name: "Function", type: "string", required: true, description: "Function type (Mobile, Address, Card)", example: "Mobile" },
+              { name: "CIFkey", type: "string", required: false, description: "CIF key", example: "123456" },
+              { name: "HomePhone", type: "string", required: false, description: "Home phone", example: "9963731084" },
+              { name: "BusinessPhone", type: "string", required: false, description: "Business phone", example: "9963731084" }
+            ],
+            responses: [
+              { 
+                status: 200, 
+                description: "Customer details updated successfully",
+                example: { TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" } }
+              }
+            ],
+            examples: [{
+              title: "Update Customer Mobile",
+              request: { RequestId: "REQ123456789", Channel: "CRM", Function: "Mobile", HomePhone: "9963731084" },
+              response: { TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" } },
+              curl: `curl -X POST "https://api.aubank.in/cardrestservice/UpdateCustomerDetails" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"RequestId": "REQ123456789", "Channel": "CRM", "Function": "Mobile", "MobileDetail": {"HomePhone": "9963731084"}}'`
+            }]
+          }
+        ]
       }
     ]
   },
