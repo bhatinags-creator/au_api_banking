@@ -1702,9 +1702,9 @@ export default function APIDocs() {
         </div>
       </header>
 
-      <div className="flex min-h-screen">
+      <div className="flex">
         {/* Sidebar */}
-        <div className="w-80 bg-white/95 backdrop-blur-sm border-r border-[var(--au-primary)]/10 min-h-screen overflow-y-auto sticky top-0 shadow-xl flex-shrink-0">
+        <div className="w-80 bg-white/95 backdrop-blur-sm border-r border-[var(--au-primary)]/10 h-screen overflow-y-auto fixed top-16 left-0 shadow-xl z-40">
           <div className="p-4">
             <div className="space-y-1">
               <motion.div
@@ -2310,7 +2310,7 @@ export default function APIDocs() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-8 ml-80">
           <AnimatePresence mode="wait">
             {selectedCategory === "introduction" && !selectedEndpoint && (
               <motion.div
