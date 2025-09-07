@@ -194,12 +194,76 @@ export default function AdminPanel() {
           }
         });
         
+        // Add the original static categories to show all categories in admin
+        const originalCategories: APICategory[] = [
+          {
+            id: "customer",
+            name: "Customer",
+            description: "Essential APIs for integrating with core banking services. Run checks and validations using fundamental APIs such as KYC verification, account validation, and identity checks.",
+            icon: "Shield",
+            color: "#2563eb",
+            endpoints: ["customer-360-service", "customer-dedupe", "ckyc-search"]
+          },
+          {
+            id: "loans",
+            name: "Loans",
+            description: "Comprehensive loan management APIs for personal loans, home loans, and business financing with automated approval workflows and real-time status tracking.",
+            icon: "CreditCard",
+            color: "#16a34a",
+            endpoints: ["loan-application", "loan-status", "emi-calculator"]
+          },
+          {
+            id: "liabilities",
+            name: "Liabilities",
+            description: "Enable customers to invest and bank with you by integrating savings accounts, corporate accounts, fixed deposits, and recurring deposit services.",
+            icon: "Database",
+            color: "#9333ea",
+            endpoints: ["account-balance", "account-transactions", "fd-creation"]
+          },
+          {
+            id: "cards",
+            name: "Cards",
+            description: "Empower your corporate banking with seamless APIs for credit card management, debit card services, and card transaction processing.",
+            icon: "CreditCard",
+            color: "#ea580c",
+            endpoints: ["card-application", "card-status", "card-transactions"]
+          },
+          {
+            id: "payments",
+            name: "Payments",
+            description: "Industry-leading payment APIs to introduce tailored payment services. Multiple payment options to integrate your services with the outside world.",
+            icon: "CreditCard",
+            color: "#dc2626",
+            endpoints: ["cnb-payment", "upi-payment", "payment-status"]
+          },
+          {
+            id: "trade-services",
+            name: "Trade Services",
+            description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
+            icon: "Shield",
+            color: "#be185d",
+            endpoints: ["letter-of-credit", "bank-guarantee", "export-financing"]
+          },
+          {
+            id: "corporate",
+            name: "Corporate API Suite",
+            description: "A curated collection of APIs specially selected to cater to evolving corporate client needs, studied after careful analysis of corporate journeys.",
+            icon: "Database",
+            color: "#4338ca",
+            endpoints: ["corporate-onboard", "bulk-payments", "virtual-account-mgmt"]
+          }
+        ];
+
+        // Combine hierarchical categories with original static categories
+        const allCategoriesForAdmin = [...adminCategories, ...originalCategories];
+        setCategories(allCategoriesForAdmin);
         setApis(allApis);
-        console.log('🔧 ADMIN - Processed', allApis.length, 'APIs with full documentation and sandbox details');
+        
+        console.log('🔧 ADMIN - Processed', allCategoriesForAdmin.length, 'total categories (', adminCategories.length, 'hierarchical +', originalCategories.length, 'original) and', allApis.length, 'APIs');
         
         toast({
-          title: "Hierarchical Data Loaded",
-          description: `Loaded ${adminCategories.length} categories with ${allApis.length} APIs`
+          title: "All Categories Loaded",
+          description: `Loaded ${allCategoriesForAdmin.length} categories (${adminCategories.length} hierarchical + ${originalCategories.length} original) with ${allApis.length} APIs`
         });
         
         return;
