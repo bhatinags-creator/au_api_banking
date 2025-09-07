@@ -1021,24 +1021,15 @@ export default function Sandbox() {
         options.body = requestBody;
       }
       
-      // Make real API call to backend sandbox endpoints
-      const backendUrl = getBackendApiUrl(selectedEndpoint, finalUrl);
-      const response = await fetch(backendUrl, options);
+      // Simulate API call with mock responses for testing
+      const simulatedResponse = await simulateAPICall(selectedEndpoint, options.body);
       const responseTime = Date.now() - startTime;
       
-      let responseData;
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        responseData = await response.json();
-      } else {
-        responseData = await response.text();
-      }
-      
       const apiResponse: APIResponse = {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries([...response.headers.entries()]),
-        data: responseData,
+        status: simulatedResponse.status,
+        statusText: simulatedResponse.statusText,
+        headers: simulatedResponse.headers,
+        data: simulatedResponse.data,
         responseTime,
         timestamp: new Date().toISOString()
       };
@@ -1089,63 +1080,337 @@ export default function Sandbox() {
     }
   };
 
-  // Map sandbox API endpoints to backend routes
-  const getBackendApiUrl = (endpoint: APIEndpoint, finalUrl: string): string => {
-    const baseUrl = window.location.origin;
+  // Simulate API responses for all endpoints
+  const simulateAPICall = async (endpoint: APIEndpoint, body: any): Promise<any> => {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 700));
     
     switch (endpoint.id) {
       case "oauth-token":
-        return `${baseUrl}/api/sandbox/oauth/accesstoken`;
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhdWJhbmtfZGV2ZWxvcGVyIiwiaWF0IjoxNjc4ODg2NDAwLCJleHAiOjE2Nzg4OTAwMDB9.simulated_token_signature",
+            token_type: "Bearer",
+            expires_in: 3600,
+            scope: "payment_read payment_write account_read kyc_read"
+          }
+        };
       
       case "cnb-payment":
-        return `${baseUrl}/api/sandbox/CNBPaymentService/paymentCreation`;
-      
+        try {
+          const paymentData = body ? JSON.parse(body) : {};
+          return {
+            status: 201,
+            statusText: "Created",
+            headers: { "Content-Type": "application/json" },
+            data: {
+              payment_id: "pay_" + Date.now(),
+              status: "INITIATED",
+              unique_request_id: paymentData.uniqueRequestId || "REQ" + Date.now(),
+              amount: paymentData.amount || "1000.00",
+              currency: paymentData.payableCurrency || "INR",
+              beneficiary_name: paymentData.beneName || "Test Beneficiary",
+              beneficiary_account: paymentData.beneAccNo || "9876543210987",
+              ifsc_code: paymentData.ifscCode || "AUBL0002086",
+              payment_mode: paymentData.paymentMethodName || "NEFT",
+              corporate_code: paymentData.corporateCode || "CORP001",
+              remitter_account: paymentData.remitterAccountNo || "1234567890123",
+              transaction_ref: "TXN" + Date.now(),
+              utr_number: "UTR" + Date.now(),
+              created_at: new Date().toISOString(),
+              estimated_completion: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+              message: "Payment initiated successfully - This is a simulated response"
+            }
+          };
+        } catch (error) {
+          return {
+            status: 400,
+            statusText: "Bad Request",
+            headers: { "Content-Type": "application/json" },
+            data: {
+              error: "Invalid JSON format in request body",
+              message: "Please check your request format and try again"
+            }
+          };
+        }
+
       case "payment-enquiry":
-        return `${baseUrl}/api/sandbox/paymentEnquiry`;
-      
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            transaction_id: "TXN" + Date.now(),
+            status: "COMPLETED",
+            amount: "1000.00",
+            currency: "INR",
+            beneficiary_name: "Test Beneficiary",
+            processed_at: new Date().toISOString(),
+            mode: "NEFT",
+            message: "Simulated payment enquiry response"
+          }
+        };
+
       case "customer-dedupe":
-        return `${baseUrl}/api/sandbox/Customer/customerDedupe`;
-      
+        const existingCustomer = Math.random() > 0.7;
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            status: "SUCCESS",
+            customer_exists: existingCustomer,
+            customer_id: existingCustomer ? `CUST${Date.now()}` : null,
+            message: existingCustomer ? "Existing customer found (simulated)" : "No existing customer found (simulated)",
+            search_criteria: {
+              mobile: "XXXXX67890",
+              pan: "ABCDE1234F",
+              aadhaar: "XXXXXXXXXXXX5678"
+            },
+            timestamp: new Date().toISOString()
+          }
+        };
+
       case "account-balance":
-        return `${baseUrl}/api/sandbox/accounts/balance`;
-      
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            account_id: "acc_123456789",
+            account_number: "****1234",
+            balance: {
+              available: 25750.50,
+              ledger: 26000.00,
+              currency: "INR"
+            },
+            last_updated: new Date().toISOString(),
+            status: "ACTIVE",
+            message: "Simulated account balance response"
+          }
+        };
+
       case "account-transactions":
-        return `${baseUrl}/api/sandbox/accounts/transactions`;
-      
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            account_id: "acc_123456789",
+            transactions: [
+              {
+                transaction_id: "txn_001",
+                type: "CREDIT",
+                amount: 5000.00,
+                description: "Salary Credit (Simulated)",
+                date: "2024-12-01",
+                balance_after: 25750.50
+              },
+              {
+                transaction_id: "txn_002",
+                type: "DEBIT",
+                amount: 250.00,
+                description: "ATM Withdrawal (Simulated)",
+                date: "2024-11-30",
+                balance_after: 20750.50
+              }
+            ],
+            pagination: {
+              page: 1,
+              total_pages: 5,
+              total_transactions: 47
+            },
+            message: "Simulated transaction history"
+          }
+        };
+
       case "corporate-registration":
-        return `${baseUrl}/api/sandbox/business/corporate/register`;
-      
+        return {
+          status: 201,
+          statusText: "Created",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            application_id: `app_corp_${Date.now()}`,
+            status: "under_review",
+            company_name: "Tech Solutions Pvt Ltd",
+            estimated_approval_time: "3-5 business days",
+            submitted_at: new Date().toISOString(),
+            reference_id: `REF${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+            message: "Corporate registration submitted successfully (simulated)"
+          }
+        };
+
       case "fund-transfer":
-        return `${baseUrl}/api/sandbox/payments/fund-transfer`;
-      
+        return {
+          status: 201,
+          statusText: "Created",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            transfer_id: `FT${Date.now()}`,
+            status: "INITIATED",
+            amount: "5000.00",
+            currency: "INR",
+            reference_number: `REF${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+            estimated_completion: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+            timestamp: new Date().toISOString(),
+            message: "Fund transfer initiated successfully (simulated)"
+          }
+        };
+
       case "bulk-payment":
-        return `${baseUrl}/api/sandbox/payments/bulk`;
-      
+        return {
+          status: 201,
+          statusText: "Created",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            batch_id: `BATCH${Date.now()}`,
+            total_payments: 10,
+            successful_payments: 9,
+            failed_payments: 1,
+            status: "PROCESSING",
+            created_at: new Date().toISOString(),
+            message: "Bulk payment batch created successfully (simulated)"
+          }
+        };
+
       case "payment-status":
-        return `${baseUrl}/api/sandbox/payments/status`;
-      
+        const statuses = ["INITIATED", "PROCESSING", "COMPLETED", "FAILED"];
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            payment_id: "pay_123456789",
+            status: statuses[Math.floor(Math.random() * statuses.length)],
+            amount: "1000.00",
+            currency: "INR",
+            created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+            completed_at: new Date().toISOString(),
+            message: "Simulated payment status response"
+          }
+        };
+
       case "vam-create":
-        return `${baseUrl}/api/sandbox/vam/create`;
-      
+        return {
+          status: 201,
+          statusText: "Created",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            vam_id: `VAM${Date.now()}`,
+            virtual_account_number: `VA${Date.now().toString().slice(-12)}`,
+            status: "ACTIVE",
+            valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            created_at: new Date().toISOString(),
+            message: "Virtual account created successfully (simulated)"
+          }
+        };
+
       case "vam-transactions":
-        return `${baseUrl}/api/sandbox/vam/transactions`;
-      
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            vam_id: "VAM123456789012",
+            transactions: [{
+              transaction_id: "TXN789012345",
+              amount: 5000.00,
+              currency: "INR",
+              transaction_date: new Date().toISOString(),
+              remitter_name: "John Doe (Simulated)",
+              remitter_account: "9876543210987",
+              utr_number: "UTR123456789"
+            }],
+            total_amount: 5000.00,
+            transaction_count: 1,
+            message: "Simulated VAM transaction data"
+          }
+        };
+
       case "loan-application":
-        return `${baseUrl}/api/sandbox/loans/application`;
-      
+        return {
+          status: 201,
+          statusText: "Created",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            application_id: `LOAN${Date.now()}`,
+            status: "SUBMITTED",
+            loan_type: "PERSONAL",
+            amount: "500000.00",
+            interest_rate: "9.5%",
+            estimated_approval_time: "7-10 business days",
+            submitted_at: new Date().toISOString(),
+            message: "Loan application submitted successfully (simulated)"
+          }
+        };
+
       case "loan-status":
-        return `${baseUrl}/api/sandbox/loans/status`;
-      
+        const loanStatuses = ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED"];
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            application_id: "LOAN123456789",
+            status: loanStatuses[Math.floor(Math.random() * loanStatuses.length)],
+            loan_amount: "500000.00",
+            approved_amount: "450000.00",
+            interest_rate: "9.5%",
+            tenure: "60 months",
+            last_updated: new Date().toISOString(),
+            message: "Simulated loan status response"
+          }
+        };
+
       case "card-application":
-        return `${baseUrl}/api/sandbox/cards/application`;
-      
+        return {
+          status: 201,
+          statusText: "Created",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            application_id: `CARD${Date.now()}`,
+            status: "SUBMITTED",
+            card_type: "PREMIUM_CREDIT",
+            estimated_approval_time: "5-7 business days",
+            submitted_at: new Date().toISOString(),
+            reference_number: `CREF${Math.random().toString(36).substr(2, 8).toUpperCase()}`,
+            message: "Card application submitted successfully (simulated)"
+          }
+        };
+
       case "card-status":
-        return `${baseUrl}/api/sandbox/cards/status`;
-      
+        const cardStatuses = ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "REJECTED", "CARD_DISPATCHED"];
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: {
+            application_id: "CARD123456789",
+            status: cardStatuses[Math.floor(Math.random() * cardStatuses.length)],
+            card_type: "PREMIUM_CREDIT",
+            credit_limit: "200000.00",
+            card_number: "****-****-****-1234",
+            dispatch_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+            last_updated: new Date().toISOString(),
+            message: "Simulated card status response"
+          }
+        };
+        
       default:
-        // For generic endpoints, construct from the path
-        const cleanPath = finalUrl.replace(/^\//, ''); // Remove leading slash
-        return `${baseUrl}/api/sandbox/${cleanPath}`;
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "application/json" },
+          data: { 
+            message: `Simulated response for ${endpoint.name}`,
+            endpoint_id: endpoint.id,
+            timestamp: new Date().toISOString(),
+            note: "This is a simulated API response for testing purposes"
+          }
+        };
     }
   };
 
