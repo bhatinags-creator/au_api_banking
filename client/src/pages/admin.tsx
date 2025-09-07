@@ -891,14 +891,50 @@ export default function AdminPanel() {
           </TabsContent>
 
           {/* Categories Management Tab */}
+          {/* Hierarchical Categories & APIs Tab */}
           <TabsContent value="categories" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[var(--au-primary)]">Category Management</h2>
-                <p className="text-muted-foreground">Organize APIs into logical groups and categories</p>
-              </div>
-              <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-                <DialogTrigger asChild>
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <button 
+                onClick={() => {
+                  setCurrentView('categories');
+                  setSelectedCategory(null);
+                  setSelectedApi(null);
+                }}
+                className={`hover:text-[var(--au-primary)] ${currentView === 'categories' ? 'text-[var(--au-primary)] font-medium' : ''}`}
+              >
+                Categories
+              </button>
+              {selectedCategory && (
+                <>
+                  <span>›</span>
+                  <button 
+                    onClick={() => {
+                      setCurrentView('apis');
+                      setSelectedApi(null);
+                    }}
+                    className={`hover:text-[var(--au-primary)] ${currentView === 'apis' ? 'text-[var(--au-primary)] font-medium' : ''}`}
+                  >
+                    {selectedCategory.name}
+                  </button>
+                </>
+              )}
+              {selectedApi && (
+                <>
+                  <span>›</span>
+                  <span className="text-[var(--au-primary)] font-medium">{selectedApi.name}</span>
+                </>
+              )}
+            </div>
+
+            {/* Level 1: Categories View */}
+            {currentView === 'categories' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[var(--au-primary)]">Categories & APIs</h2>
+                    <p className="text-muted-foreground">Hierarchical management: Categories → APIs → Documentation & Sandbox</p>
+                  </div>
                   <Button 
                     onClick={() => {
                       setEditingCategory(null);
@@ -907,65 +943,264 @@ export default function AdminPanel() {
                     className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add New Category
+                    Add Category
                   </Button>
-                </DialogTrigger>
-                <CategoryEditDialog 
-                  category={editingCategory}
-                  onSave={handleSaveCategory}
-                  onClose={() => setShowCategoryDialog(false)}
-                />
-              </Dialog>
-            </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category) => (
-                <Card key={category.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center space-x-2">
-                        <div 
-                          className="w-8 h-8 rounded flex items-center justify-center text-white"
-                          style={{ backgroundColor: category.color }}
-                        >
-                          {category.icon === 'Shield' && <Shield className="w-4 h-4" />}
-                          {category.icon === 'CreditCard' && <CreditCard className="w-4 h-4" />}
-                          {category.icon === 'Database' && <Database className="w-4 h-4" />}
-                        </div>
-                        <span>{category.name}</span>
-                      </CardTitle>
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {categories.map((category) => {
+                    const categoryApis = apis.filter(api => api.category === category.name);
+                    return (
+                      <Card key={category.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle 
+                              className="flex items-center space-x-3"
+                              onClick={() => {
+                                setSelectedCategory(category);
+                                setCurrentView('apis');
+                              }}
+                            >
+                              <div 
+                                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                                style={{ backgroundColor: category.color }}
+                              >
+                                {category.icon === 'Shield' && <Shield className="w-5 h-5" />}
+                                {category.icon === 'CreditCard' && <CreditCard className="w-5 h-5" />}
+                                {category.icon === 'Database' && <Database className="w-5 h-5" />}
+                                {category.icon === 'Key' && <Settings className="w-5 h-5" />}
+                              </div>
+                              <div>
+                                <div className="text-lg font-semibold">{category.name}</div>
+                                <div className="text-sm text-muted-foreground font-normal">
+                                  {categoryApis.length} API{categoryApis.length !== 1 ? 's' : ''}
+                                </div>
+                              </div>
+                            </CardTitle>
+                            <div className="flex items-center space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingCategory(category);
+                                  setShowCategoryDialog(true);
+                                }}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent 
                           onClick={() => {
-                            setEditingCategory(category);
-                            setShowCategoryDialog(true);
+                            setSelectedCategory(category);
+                            setCurrentView('apis');
                           }}
                         >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCategory(category.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                          <p className="text-sm text-muted-foreground mb-4">{category.description}</p>
+                          <div className="flex items-center justify-between">
+                            <Badge variant="outline" style={{ borderColor: category.color, color: category.color }}>
+                              {categoryApis.length} API{categoryApis.length !== 1 ? 's' : ''} →
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Level 2: APIs in Selected Category */}
+            {currentView === 'apis' && selectedCategory && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[var(--au-primary)]">APIs in {selectedCategory.name}</h2>
+                    <p className="text-muted-foreground">Click an API to view and edit its documentation & sandbox configuration</p>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      setEditingApi(null);
+                      setShowApiDialog(true);
+                    }}
+                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add API
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {apis.filter(api => api.category === selectedCategory.name).map((api) => (
+                    <Card key={api.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div 
+                            className="flex items-center space-x-4"
+                            onClick={() => {
+                              setSelectedApi(api);
+                              setCurrentView('api-details');
+                            }}
+                          >
+                            <Badge variant={api.method === 'GET' ? 'secondary' : 'default'}>
+                              {api.method}
+                            </Badge>
+                            <div>
+                              <CardTitle className="text-lg">{api.name}</CardTitle>
+                              <CardDescription className="font-mono text-sm">{api.path}</CardDescription>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={api.status === 'active' ? 'default' : 'secondary'}>
+                              {api.status}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingApi(api);
+                                setShowApiDialog(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent 
+                        onClick={() => {
+                          setSelectedApi(api);
+                          setCurrentView('api-details');
+                        }}
+                      >
+                        <div className="space-y-2">
+                          <p className="text-sm">{api.description}</p>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span>Auth: {api.requiresAuth ? 'Required' : 'Not Required'}</span>
+                            <span>Rate Limit: {api.rateLimit || 100}/min</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Level 3: API Documentation & Sandbox Details */}
+            {currentView === 'api-details' && selectedApi && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[var(--au-primary)]">{selectedApi.name}</h2>
+                    <p className="text-muted-foreground">{selectedApi.method} {selectedApi.path}</p>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      setEditingApi(selectedApi);
+                      setShowApiDialog(true);
+                    }}
+                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit API
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Documentation Section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <BookOpen className="w-5 h-5" />
+                        <span>Documentation</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium">Description</Label>
+                        <p className="text-sm text-muted-foreground mt-1">{selectedApi.description}</p>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">{category.description}</p>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline">
-                        {category.endpoints.length} API{category.endpoints.length !== 1 ? 's' : ''}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div>
+                        <Label className="text-sm font-medium">Request Example</Label>
+                        <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-auto mt-1">
+                          {selectedApi.requestExample}
+                        </pre>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Response Example</Label>
+                        <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-auto mt-1">
+                          {selectedApi.responseExample}
+                        </pre>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Sandbox Configuration */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <Globe className="w-5 h-5" />
+                        <span>Sandbox Configuration</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">Rate Limit</Label>
+                          <p className="text-sm text-muted-foreground mt-1">{selectedApi.rateLimit || 100} requests/min</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Timeout</Label>
+                          <p className="text-sm text-muted-foreground mt-1">{selectedApi.timeout || 30000}ms</p>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Authentication</Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {selectedApi.requiresAuth ? `Required (${selectedApi.authType || 'Bearer'})` : 'Not required'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Status</Label>
+                        <Badge variant={selectedApi.status === 'active' ? 'default' : 'secondary'} className="mt-1">
+                          {selectedApi.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Tags</Label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedApi.tags.map(tag => (
+                            <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {/* Dialogs */}
+            <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+              <CategoryEditDialog 
+                category={editingCategory}
+                onSave={handleSaveCategory}
+                onClose={() => setShowCategoryDialog(false)}
+              />
+            </Dialog>
+
+            <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+              <ApiEditDialog 
+                api={editingApi}
+                categories={categories}
+                onSave={handleSaveApi}
+                onClose={() => setShowApiDialog(false)}
+              />
+            </Dialog>
           </TabsContent>
 
           {/* Documentation Tab */}
