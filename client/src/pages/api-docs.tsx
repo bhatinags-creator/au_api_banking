@@ -1676,7 +1676,7 @@ export default function APIDocs() {
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-[var(--au-bg-soft-1)] via-white to-[var(--au-bg-soft-2)]">
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-sm border-b border-[var(--au-primary)]/10 shadow-lg">
+      <header className="bg-white/90 backdrop-blur-sm border-b border-[var(--au-primary)]/10 shadow-lg fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-6">
@@ -2310,7 +2310,7 @@ export default function APIDocs() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8 ml-80">
+        <div className="flex-1 p-8 ml-80 pt-24">
           <AnimatePresence mode="wait">
             {selectedCategory === "introduction" && !selectedEndpoint && (
               <motion.div
