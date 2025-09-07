@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1482,8 +1482,41 @@ export default function APIDocs() {
     password: "",
     confirmPassword: ""
   });
+  const [dynamicCategories, setDynamicCategories] = useState<APICategory[]>(apiCategories);
   const { toast } = useToast();
   const shouldReduceMotion = useReducedMotion();
+
+  // Load backend categories and add them to the existing documentation
+  useEffect(() => {
+    const loadBackendCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (response.ok) {
+          const backendCategories = await response.json();
+          if (backendCategories.length > 0) {
+            // Transform backend categories to docs format and add to existing
+            const transformedCategories: APICategory[] = backendCategories.map((cat: any) => ({
+              id: cat.name.toLowerCase().replace(/\s+/g, '-'),
+              title: cat.name,
+              icon: cat.name === 'TEST' ? Settings : (cat.name.includes('Payment') ? CreditCard : Shield),
+              description: cat.description,
+              endpoints: [],
+              subcategories: []
+            }));
+            
+            // Add backend categories to existing ones (avoid duplicates)
+            const existingIds = apiCategories.map(c => c.id);
+            const newCategories = transformedCategories.filter(c => !existingIds.includes(c.id));
+            setDynamicCategories([...apiCategories, ...newCategories]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load backend categories:', error);
+      }
+    };
+    
+    loadBackendCategories();
+  }, []);
 
   // Animation variants
   const sidebarItemVariants = {
@@ -2207,6 +2240,48 @@ export default function APIDocs() {
                   <ChevronRight className="w-4 h-4" />
                 </motion.div>
               </motion.div>
+
+              {/* Dynamic Backend Categories */}
+              {dynamicCategories.filter(cat => !apiCategories.some(staticCat => staticCat.id === cat.id)).length > 0 && (
+                <>
+                  <div className="pt-2 mt-2 border-t border-[var(--au-primary)]/10">
+                    <div className="text-xs font-medium text-[var(--au-primary)]/60 px-3 pb-2">Additional Categories</div>
+                  </div>
+                  {dynamicCategories.filter(cat => !apiCategories.some(staticCat => staticCat.id === cat.id)).map((category) => {
+                    const IconComponent = category.icon;
+                    return (
+                      <motion.div
+                        key={category.id}
+                        className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
+                          selectedCategory === category.id
+                            ? 'bg-primary/10 text-primary font-medium' 
+                            : 'hover:bg-neutrals-50 text-neutrals-700'
+                        }`}
+                        variants={sidebarItemVariants}
+                        initial="initial"
+                        whileHover="hover"
+                        whileTap="tap"
+                        animate={selectedCategory === category.id ? "selected" : "initial"}
+                        onClick={() => {
+                          setSelectedCategory(selectedCategory === category.id ? null : category.id);
+                          setSelectedEndpoint(null);
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <IconComponent className="w-4 h-4" />
+                          <span>{category.title}</span>
+                        </div>
+                        <motion.div
+                          animate={{ rotate: selectedCategory === category.id ? 90 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </motion.div>
+                      </motion.div>
+                    );
+                  })}
+                </>
+              )}
             </div>
             
             {/* Selected Endpoint Details */}
