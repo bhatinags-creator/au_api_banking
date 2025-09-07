@@ -178,6 +178,36 @@ export default function AdminPanel() {
         hierarchicalData.forEach((cat: any) => {
           if (cat.apis && cat.apis.length > 0) {
             cat.apis.forEach((api: any) => {
+              // Properly transform database structure to component structure
+              const parameters = api.parameters || [];
+              const queryParameters = parameters.filter((p: any) => p.paramType === 'query' || (!p.paramType && api.method === 'GET'));
+              const pathParameters = parameters.filter((p: any) => p.paramType === 'path');
+              const bodyParameters = parameters.filter((p: any) => p.paramType === 'body' || (!p.paramType && api.method !== 'GET'));
+              
+              // Transform headers with proper structure
+              const headers = Array.isArray(api.headers) ? api.headers : [
+                { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+                { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+              ];
+              
+              // Transform responses with proper structure  
+              const responses = Array.isArray(api.responses) ? api.responses : [{
+                statusCode: 200,
+                description: "Success response", 
+                schema: JSON.stringify(api.responseSchema || {
+                  "accountId": "ACC123456",
+                  "balance": 50000.75,
+                  "currency": "INR", 
+                  "status": "active"
+                }, null, 2),
+                example: JSON.stringify(api.responseSchema || {
+                  "accountId": "ACC123456",
+                  "balance": 50000.75,
+                  "currency": "INR",
+                  "status": "active"
+                }, null, 2)
+              }];
+              
               allApis.push({
                 id: api.id,
                 name: api.name,
@@ -186,21 +216,13 @@ export default function AdminPanel() {
                 category: api.category,
                 description: api.description,
                 summary: api.summary || api.description,
-                requiresAuth: api.requiresAuth || true,
+                requiresAuth: api.requiresAuth !== undefined ? api.requiresAuth : true,
                 authType: api.authType || 'bearer',
-                queryParameters: api.parameters ? api.parameters.filter((p: any) => p.required) : [],
-                pathParameters: [],
-                bodyParameters: api.parameters || [],
-                headers: api.headers || [
-                  { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-                  { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-                ],
-                responses: [{
-                  statusCode: 200,
-                  description: "Success response",
-                  schema: JSON.stringify(api.responseSchema || {}, null, 2),
-                  example: JSON.stringify(api.responseSchema || {}, null, 2)
-                }],
+                queryParameters,
+                pathParameters,
+                bodyParameters,
+                headers,
+                responses,
                 requestExample: api.parameters ? JSON.stringify(
                   api.parameters.reduce((acc: any, p: any) => ({ ...acc, [p.name]: p.example || `<${p.type}>` }), {}),
                   null, 2
@@ -1923,9 +1945,31 @@ export default function AdminPanel() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                setEditingApi(api);
+                                // Load fresh API data from database
+                                try {
+                                  const response = await fetch(`/api/admin/apis/${api.id}`);
+                                  if (response.ok) {
+                                    const freshApiData = await response.json();
+                                    // Transform database structure to component structure
+                                    const transformedApi = {
+                                      ...freshApiData,
+                                      queryParameters: freshApiData.parameters?.filter((p: any) => p.paramType === 'query') || [],
+                                      pathParameters: freshApiData.parameters?.filter((p: any) => p.paramType === 'path') || [],
+                                      bodyParameters: freshApiData.parameters?.filter((p: any) => p.paramType === 'body') || [],
+                                      headers: Array.isArray(freshApiData.headers) ? freshApiData.headers : [],
+                                      responses: Array.isArray(freshApiData.responses) ? freshApiData.responses : []
+                                    };
+                                    setEditingApi(transformedApi);
+                                  } else {
+                                    // Fallback to existing data
+                                    setEditingApi(api);
+                                  }
+                                } catch (error) {
+                                  console.error('Error loading fresh API data:', error);
+                                  setEditingApi(api);
+                                }
                                 setShowApiDialog(true);
                               }}
                             >
