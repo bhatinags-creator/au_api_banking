@@ -410,6 +410,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public Categories endpoint for main portal with hierarchical structure
   app.get("/api/categories", async (req, res) => {
     try {
+      // Disable caching for dynamic data
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
       res.json(categoriesWithApis);
     } catch (error) {
@@ -428,6 +433,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public APIs endpoint for main portal (read-only)
   app.get("/api/apis", async (req, res) => {
     try {
+      // Disable caching for dynamic data
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       const apis = await storage.getAllApiEndpoints();
       res.json(apis);
     } catch (error) {

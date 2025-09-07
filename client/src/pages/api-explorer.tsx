@@ -37,11 +37,19 @@ export default function ApiExplorer() {
 
   const { data: endpoints = [], isLoading } = useQuery<ApiEndpoint[]>({
     queryKey: ["/api/apis"],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Load categories dynamically from backend
   const { data: categoriesData = [] } = useQuery<any[]>({
     queryKey: ["/api/categories"],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
   
   const categories = categoriesData.length > 0 
