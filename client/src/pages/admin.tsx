@@ -88,7 +88,7 @@ export default function AdminPanel() {
   const [apis, setApis] = useState<APIEndpoint[]>([]);
   const [categories, setCategories] = useState<APICategory[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [editingApi, setEditingApi] = useState<APIEndpoint | null>(null);
   const [editingCategory, setEditingCategory] = useState<APICategory | null>(null);
@@ -96,47 +96,21 @@ export default function AdminPanel() {
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [apiConfigTab, setApiConfigTab] = useState("basic");
   
-  // Hierarchical navigation state
-  const [currentView, setCurrentView] = useState<'categories' | 'apis' | 'api-details'>('categories');
-  const [selectedCategory, setSelectedCategory] = useState<APICategory | null>(null);
-  const [selectedApi, setSelectedApi] = useState<APIEndpoint | null>(null);
-  
   const { toast } = useToast();
 
-  // Admin authentication with API login
-  const handleAdminLogin = async () => {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: adminCredentials.username === "admin" ? "admin@aubank.com" : adminCredentials.username,
-          password: adminCredentials.password
-        }),
+  // Simple admin authentication
+  const handleAdminLogin = () => {
+    // In production, this would be a proper authentication system
+    if (adminCredentials.username === "admin" && adminCredentials.password === "aubank2024") {
+      setIsAuthenticated(true);
+      toast({
+        title: "Admin Access Granted",
+        description: "Welcome to the AU Bank API Developer Portal Admin Panel"
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsAuthenticated(true);
-        toast({
-          title: "Admin Access Granted",
-          description: "Welcome to the AU Bank API Developer Portal Admin Panel"
-        });
-      } else {
-        const errorData = await response.json();
-        toast({
-          title: "Authentication Failed",
-          description: errorData.message || "Invalid admin credentials",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Login error:', error);
+    } else {
       toast({
         title: "Authentication Failed",
-        description: "Unable to connect to authentication server",
+        description: "Invalid admin credentials",
         variant: "destructive"
       });
     }
@@ -215,785 +189,12 @@ export default function AdminPanel() {
           }
         });
         
-        // Add the original static categories to show all categories in admin
-        const originalCategories: APICategory[] = [
-          {
-            id: "customer",
-            name: "Customer",
-            description: "Essential APIs for integrating with core banking services. Run checks and validations using fundamental APIs such as KYC verification, account validation, and identity checks.",
-            icon: "Shield",
-            color: "#2563eb",
-            endpoints: ["customer-360-service", "customer-dedupe", "ckyc-search"]
-          },
-          {
-            id: "loans",
-            name: "Loans",
-            description: "Comprehensive loan management APIs for personal loans, home loans, and business financing with automated approval workflows and real-time status tracking.",
-            icon: "CreditCard",
-            color: "#16a34a",
-            endpoints: ["loan-application", "loan-status", "emi-calculator"]
-          },
-          {
-            id: "liabilities",
-            name: "Liabilities",
-            description: "Enable customers to invest and bank with you by integrating savings accounts, corporate accounts, fixed deposits, and recurring deposit services.",
-            icon: "Database",
-            color: "#9333ea",
-            endpoints: ["account-balance", "account-transactions", "fd-creation"]
-          },
-          {
-            id: "cards",
-            name: "Cards",
-            description: "Empower your corporate banking with seamless APIs for credit card management, debit card services, and card transaction processing.",
-            icon: "CreditCard",
-            color: "#ea580c",
-            endpoints: ["card-application", "card-status", "card-transactions"]
-          },
-          {
-            id: "payments",
-            name: "Payments",
-            description: "Industry-leading payment APIs to introduce tailored payment services. Multiple payment options to integrate your services with the outside world.",
-            icon: "CreditCard",
-            color: "#dc2626",
-            endpoints: ["cnb-payment", "upi-payment", "payment-status"]
-          },
-          {
-            id: "trade-services",
-            name: "Trade Services",
-            description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
-            icon: "Shield",
-            color: "#be185d",
-            endpoints: ["letter-of-credit", "bank-guarantee", "export-financing"]
-          },
-          {
-            id: "corporate",
-            name: "Corporate API Suite",
-            description: "A curated collection of APIs specially selected to cater to evolving corporate client needs, studied after careful analysis of corporate journeys.",
-            icon: "Database",
-            color: "#4338ca",
-            endpoints: ["corporate-onboard", "bulk-payments", "virtual-account-mgmt"]
-          }
-        ];
-
-        // Add APIs for the original static categories
-        const originalApis: APIEndpoint[] = [
-          // Customer APIs (9 APIs)
-          {
-            id: "customer-360-service",
-            name: "Customer 360 Service",
-            method: "POST",
-            path: "/api/sandbox/customer360service",
-            category: "Customer",
-            description: "Comprehensive customer information API providing complete customer profile, account details, and relationship information",
-            summary: "Get complete customer profile data",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer identification number", example: "CUST123456" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token for authentication", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type header", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Customer profile retrieved successfully",
-                schema: '{"customerBasicInquiry": {}, "accountDetails": [], "transactionStatus": {}}',
-                example: '{"customerBasicInquiry": {"customerID": "CUST123456", "customerName": "John Doe"}}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456"\n}',
-            responseExample: '{\n  "customerBasicInquiry": {\n    "customerID": "CUST123456",\n    "customerName": "John Doe"\n  }\n}',
-            status: "active",
-            tags: ["customer", "profile"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          {
-            id: "customer-dedupe",
-            name: "Customer Dedupe",
-            method: "POST",
-            path: "/api/sandbox/customer/dedupe",
-            category: "Customer",
-            description: "Identify and manage duplicate customer records in the system",
-            summary: "Customer deduplication service",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerDetails", type: "object", required: true, description: "Customer details for deduplication", example: '{"name": "John Doe", "mobile": "9876543210"}' }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Deduplication completed",
-                schema: '{"isDuplicate": "boolean", "matchedRecords": "array"}',
-                example: '{"isDuplicate": false, "matchedRecords": []}'
-              }
-            ],
-            requestExample: '{\n  "customerDetails": {\n    "name": "John Doe",\n    "mobile": "9876543210"\n  }\n}',
-            responseExample: '{\n  "isDuplicate": false,\n  "matchedRecords": []\n}',
-            status: "active",
-            tags: ["customer", "dedupe"],
-            rateLimit: 50,
-            timeout: 30000
-          },
-          {
-            id: "ckyc-search",
-            name: "CKYC Search",
-            method: "GET",
-            path: "/api/sandbox/customer/ckyc/search",
-            category: "Customer",
-            description: "Search Central KYC registry for customer information",
-            summary: "Central KYC search service",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [
-              { name: "ckycNumber", type: "string", required: true, description: "CKYC number", example: "12345678901234" }
-            ],
-            pathParameters: [],
-            bodyParameters: [],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "CKYC data retrieved",
-                schema: '{"ckycData": "object", "status": "string"}',
-                example: '{"ckycData": {"name": "John Doe", "status": "verified"}, "status": "found"}'
-              }
-            ],
-            requestExample: 'GET /api/sandbox/customer/ckyc/search?ckycNumber=12345678901234',
-            responseExample: '{\n  "ckycData": {\n    "name": "John Doe",\n    "status": "verified"\n  },\n  "status": "found"\n}',
-            status: "active",
-            tags: ["customer", "kyc"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          {
-            id: "customer-image-upload",
-            name: "Customer Image Upload",
-            method: "POST",
-            path: "/api/sandbox/customer/image/upload",
-            category: "Customer",
-            description: "Upload customer images for profile and KYC documentation",
-            summary: "Upload customer images",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
-              { name: "imageType", type: "string", required: true, description: "Type of image", example: "profile" },
-              { name: "imageData", type: "string", required: true, description: "Base64 encoded image", example: "data:image/jpeg;base64,..." }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Image uploaded successfully",
-                schema: '{"imageId": "string", "status": "string"}',
-                example: '{"imageId": "IMG123456", "status": "uploaded"}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456",\n  "imageType": "profile",\n  "imageData": "data:image/jpeg;base64,..."\n}',
-            responseExample: '{\n  "imageId": "IMG123456",\n  "status": "uploaded"\n}',
-            status: "active",
-            tags: ["customer", "image"],
-            rateLimit: 25,
-            timeout: 30000
-          },
-          {
-            id: "posidex-fetch-ucic",
-            name: "Posidex Fetch UCIC",
-            method: "POST",
-            path: "/api/sandbox/customer/posidex/ucic",
-            category: "Customer",
-            description: "Fetch Unique Customer Identification Code from Posidex system",
-            summary: "Fetch UCIC from Posidex",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerDetails", type: "object", required: true, description: "Customer details", example: '{"name": "John Doe", "pan": "ABCDE1234F"}' }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "UCIC fetched successfully",
-                schema: '{"ucic": "string", "status": "string"}',
-                example: '{"ucic": "UC123456789", "status": "found"}'
-              }
-            ],
-            requestExample: '{\n  "customerDetails": {\n    "name": "John Doe",\n    "pan": "ABCDE1234F"\n  }\n}',
-            responseExample: '{\n  "ucic": "UC123456789",\n  "status": "found"\n}',
-            status: "active",
-            tags: ["customer", "posidex"],
-            rateLimit: 50,
-            timeout: 30000
-          },
-          {
-            id: "update-customer-details",
-            name: "Update Customer Details",
-            method: "PUT",
-            path: "/api/sandbox/customer/update",
-            category: "Customer",
-            description: "Update existing customer information and profile details",
-            summary: "Update customer details",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
-              { name: "updates", type: "object", required: true, description: "Fields to update", example: '{"mobile": "9876543210", "email": "john@example.com"}' }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Customer updated successfully",
-                schema: '{"customerID": "string", "status": "string"}',
-                example: '{"customerID": "CUST123456", "status": "updated"}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456",\n  "updates": {\n    "mobile": "9876543210",\n    "email": "john@example.com"\n  }\n}',
-            responseExample: '{\n  "customerID": "CUST123456",\n  "status": "updated"\n}',
-            status: "active",
-            tags: ["customer", "update"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          {
-            id: "aadhar-vault-insert",
-            name: "Aadhar Vault Insert",
-            method: "POST",
-            path: "/api/sandbox/customer/aadhar/vault/insert",
-            category: "Customer",
-            description: "Securely store Aadhar information in encrypted vault",
-            summary: "Insert Aadhar data in vault",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
-              { name: "aadharData", type: "object", required: true, description: "Aadhar information", example: '{"number": "XXXX-XXXX-1234", "name": "John Doe"}' }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Aadhar data stored securely",
-                schema: '{"vaultId": "string", "status": "string"}',
-                example: '{"vaultId": "VAULT123456", "status": "stored"}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456",\n  "aadharData": {\n    "number": "XXXX-XXXX-1234",\n    "name": "John Doe"\n  }\n}',
-            responseExample: '{\n  "vaultId": "VAULT123456",\n  "status": "stored"\n}',
-            status: "active",
-            tags: ["customer", "aadhar"],
-            rateLimit: 25,
-            timeout: 30000
-          },
-          {
-            id: "aadhar-vault-get",
-            name: "Aadhar Vault Get",
-            method: "GET",
-            path: "/api/sandbox/customer/aadhar/vault/get",
-            category: "Customer",
-            description: "Retrieve Aadhar information from secure vault",
-            summary: "Get Aadhar data from vault",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" }
-            ],
-            pathParameters: [],
-            bodyParameters: [],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Aadhar data retrieved",
-                schema: '{"aadharData": "object", "status": "string"}',
-                example: '{"aadharData": {"maskedNumber": "XXXX-XXXX-1234"}, "status": "retrieved"}'
-              }
-            ],
-            requestExample: 'GET /api/sandbox/customer/aadhar/vault/get?customerID=CUST123456',
-            responseExample: '{\n  "aadharData": {\n    "maskedNumber": "XXXX-XXXX-1234"\n  },\n  "status": "retrieved"\n}',
-            status: "active",
-            tags: ["customer", "aadhar"],
-            rateLimit: 50,
-            timeout: 30000
-          },
-          {
-            id: "cibil-service",
-            name: "CIBIL Service",
-            method: "POST",
-            path: "/api/sandbox/customer/cibil/report",
-            category: "Customer",
-            description: "Fetch customer credit report from CIBIL bureau",
-            summary: "Get CIBIL credit report",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
-              { name: "consentFlag", type: "boolean", required: true, description: "Customer consent", example: "true" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "CIBIL report retrieved",
-                schema: '{"cibilScore": "number", "reportData": "object"}',
-                example: '{"cibilScore": 750, "reportData": {"status": "active"}}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456",\n  "consentFlag": true\n}',
-            responseExample: '{\n  "cibilScore": 750,\n  "reportData": {\n    "status": "active"\n  }\n}',
-            status: "active",
-            tags: ["customer", "cibil"],
-            rateLimit: 25,
-            timeout: 30000
-          },
-          // Loans APIs (6 APIs total)
-          {
-            id: "loan-application",
-            name: "Loan Application",
-            method: "POST",
-            path: "/api/sandbox/loan/application",
-            category: "Loans",
-            description: "Submit new loan application with customer details and loan requirements",
-            summary: "Submit loan application",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
-              { name: "loanAmount", type: "number", required: true, description: "Loan amount", example: "500000" },
-              { name: "loanType", type: "string", required: true, description: "Type of loan", example: "personal" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Loan application submitted successfully",
-                schema: '{"applicationId": "string", "status": "string"}',
-                example: '{"applicationId": "LA123456", "status": "submitted"}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456",\n  "loanAmount": 500000,\n  "loanType": "personal"\n}',
-            responseExample: '{\n  "applicationId": "LA123456",\n  "status": "submitted"\n}',
-            status: "active",
-            tags: ["loans", "application"],
-            rateLimit: 50,
-            timeout: 30000
-          },
-          {
-            id: "loan-status",
-            name: "Loan Status",
-            method: "GET",
-            path: "/api/sandbox/loan/status",
-            category: "Loans",
-            description: "Check the current status of a loan application",
-            summary: "Get loan application status",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [
-              { name: "applicationId", type: "string", required: true, description: "Loan application ID", example: "LA123456" }
-            ],
-            pathParameters: [],
-            bodyParameters: [],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Loan status retrieved",
-                schema: '{"applicationId": "string", "status": "string", "stage": "string"}',
-                example: '{"applicationId": "LA123456", "status": "approved", "stage": "documentation"}'
-              }
-            ],
-            requestExample: 'GET /api/sandbox/loan/status?applicationId=LA123456',
-            responseExample: '{\n  "applicationId": "LA123456",\n  "status": "approved",\n  "stage": "documentation"\n}',
-            status: "active",
-            tags: ["loans", "status"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          {
-            id: "emi-calculator",
-            name: "EMI Calculator",
-            method: "POST",
-            path: "/api/sandbox/loan/emi/calculate",
-            category: "Loans",
-            description: "Calculate EMI for loan amount, tenure and interest rate",
-            summary: "Calculate loan EMI",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "loanAmount", type: "number", required: true, description: "Loan amount", example: "500000" },
-              { name: "tenure", type: "number", required: true, description: "Loan tenure in months", example: "60" },
-              { name: "interestRate", type: "number", required: true, description: "Annual interest rate", example: "8.5" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "EMI calculated successfully",
-                schema: '{"emi": "number", "totalAmount": "number", "totalInterest": "number"}',
-                example: '{"emi": 10137, "totalAmount": 608220, "totalInterest": 108220}'
-              }
-            ],
-            requestExample: '{\n  "loanAmount": 500000,\n  "tenure": 60,\n  "interestRate": 8.5\n}',
-            responseExample: '{\n  "emi": 10137,\n  "totalAmount": 608220,\n  "totalInterest": 108220\n}',
-            status: "active",
-            tags: ["loans", "emi"],
-            rateLimit: 200,
-            timeout: 30000
-          },
-          {
-            id: "loan-prepayment",
-            name: "Loan Prepayment",
-            method: "POST",
-            path: "/api/sandbox/loan/prepayment",
-            category: "Loans",
-            description: "Process partial or full prepayment of existing loan",
-            summary: "Process loan prepayment",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "loanId", type: "string", required: true, description: "Loan ID", example: "LOAN123456" },
-              { name: "prepaymentAmount", type: "number", required: true, description: "Prepayment amount", example: "100000" },
-              { name: "prepaymentType", type: "string", required: true, description: "Prepayment type", example: "partial" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Prepayment processed",
-                schema: '{"transactionId": "string", "newOutstanding": "number", "status": "string"}',
-                example: '{"transactionId": "TXN123456", "newOutstanding": 400000, "status": "processed"}'
-              }
-            ],
-            requestExample: '{\n  "loanId": "LOAN123456",\n  "prepaymentAmount": 100000,\n  "prepaymentType": "partial"\n}',
-            responseExample: '{\n  "transactionId": "TXN123456",\n  "newOutstanding": 400000,\n  "status": "processed"\n}',
-            status: "active",
-            tags: ["loans", "prepayment"],
-            rateLimit: 50,
-            timeout: 30000
-          },
-          {
-            id: "loan-documents",
-            name: "Loan Documents",
-            method: "GET",
-            path: "/api/sandbox/loan/documents",
-            category: "Loans",
-            description: "Retrieve loan agreement and related documents",
-            summary: "Get loan documents",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [
-              { name: "loanId", type: "string", required: true, description: "Loan ID", example: "LOAN123456" }
-            ],
-            pathParameters: [],
-            bodyParameters: [],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Documents retrieved",
-                schema: '{"documents": "array", "loanId": "string"}',
-                example: '{"documents": [{"type": "agreement", "url": "https://..."}], "loanId": "LOAN123456"}'
-              }
-            ],
-            requestExample: 'GET /api/sandbox/loan/documents?loanId=LOAN123456',
-            responseExample: '{\n  "documents": [\n    {\n      "type": "agreement",\n      "url": "https://..."\n    }\n  ],\n  "loanId": "LOAN123456"\n}',
-            status: "active",
-            tags: ["loans", "documents"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          {
-            id: "loan-eligibility",
-            name: "Loan Eligibility",
-            method: "POST",
-            path: "/api/sandbox/loan/eligibility",
-            category: "Loans",
-            description: "Check customer eligibility for different loan products",
-            summary: "Check loan eligibility",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
-              { name: "loanType", type: "string", required: true, description: "Type of loan", example: "personal" },
-              { name: "income", type: "number", required: true, description: "Monthly income", example: "50000" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Eligibility checked",
-                schema: '{"eligible": "boolean", "maxAmount": "number", "interestRate": "number"}',
-                example: '{"eligible": true, "maxAmount": 1000000, "interestRate": 8.5}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456",\n  "loanType": "personal",\n  "income": 50000\n}',
-            responseExample: '{\n  "eligible": true,\n  "maxAmount": 1000000,\n  "interestRate": 8.5\n}',
-            status: "active",
-            tags: ["loans", "eligibility"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          // Cards APIs
-          {
-            id: "card-application",
-            name: "Card Application",
-            method: "POST",
-            path: "/api/sandbox/cards/application",
-            category: "Cards",
-            description: "Apply for a new credit or debit card",
-            summary: "Apply for new card",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
-              { name: "cardType", type: "string", required: true, description: "Type of card", example: "credit" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Card application submitted",
-                schema: '{"applicationId": "string", "cardType": "string"}',
-                example: '{"applicationId": "CA123456", "cardType": "credit"}'
-              }
-            ],
-            requestExample: '{\n  "customerID": "CUST123456",\n  "cardType": "credit"\n}',
-            responseExample: '{\n  "applicationId": "CA123456",\n  "cardType": "credit"\n}',
-            status: "active",
-            tags: ["cards", "application"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          // Payments APIs
-          {
-            id: "cnb-payment",
-            name: "CNB Payment",
-            method: "POST",
-            path: "/api/sandbox/payments/cnb",
-            category: "Payments",
-            description: "Process corporate banking payments through CNB system",
-            summary: "Process CNB payment",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "amount", type: "number", required: true, description: "Payment amount", example: "10000" },
-              { name: "beneficiaryAccount", type: "string", required: true, description: "Beneficiary account number", example: "1234567890" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Payment processed successfully",
-                schema: '{"transactionId": "string", "status": "string"}',
-                example: '{"transactionId": "TXN123456", "status": "success"}'
-              }
-            ],
-            requestExample: '{\n  "amount": 10000,\n  "beneficiaryAccount": "1234567890"\n}',
-            responseExample: '{\n  "transactionId": "TXN123456",\n  "status": "success"\n}',
-            status: "active",
-            tags: ["payments", "cnb"],
-            rateLimit: 100,
-            timeout: 30000
-          },
-          // Liabilities APIs
-          {
-            id: "account-balance",
-            name: "Account Balance",
-            method: "GET",
-            path: "/api/sandbox/accounts/balance",
-            category: "Liabilities",
-            description: "Get current account balance for a customer account",
-            summary: "Get account balance",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [
-              { name: "accountNumber", type: "string", required: true, description: "Account number", example: "1234567890" }
-            ],
-            pathParameters: [],
-            bodyParameters: [],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Account balance retrieved",
-                schema: '{"accountNumber": "string", "balance": "number", "currency": "string"}',
-                example: '{"accountNumber": "1234567890", "balance": 50000, "currency": "INR"}'
-              }
-            ],
-            requestExample: 'GET /api/sandbox/accounts/balance?accountNumber=1234567890',
-            responseExample: '{\n  "accountNumber": "1234567890",\n  "balance": 50000,\n  "currency": "INR"\n}',
-            status: "active",
-            tags: ["accounts", "balance"],
-            rateLimit: 200,
-            timeout: 30000
-          },
-          // Trade Services APIs
-          {
-            id: "letter-of-credit",
-            name: "Letter of Credit",
-            method: "POST",
-            path: "/api/sandbox/trade/letter-of-credit",
-            category: "Trade Services",
-            description: "Create and manage letters of credit for international trade",
-            summary: "Create letter of credit",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "amount", type: "number", required: true, description: "LC amount", example: "100000" },
-              { name: "beneficiary", type: "string", required: true, description: "Beneficiary name", example: "ABC Corp" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Letter of credit created",
-                schema: '{"lcNumber": "string", "status": "string"}',
-                example: '{"lcNumber": "LC123456", "status": "issued"}'
-              }
-            ],
-            requestExample: '{\n  "amount": 100000,\n  "beneficiary": "ABC Corp"\n}',
-            responseExample: '{\n  "lcNumber": "LC123456",\n  "status": "issued"\n}',
-            status: "active",
-            tags: ["trade", "lc"],
-            rateLimit: 50,
-            timeout: 30000
-          },
-          // Corporate APIs
-          {
-            id: "corporate-onboard",
-            name: "Corporate Onboarding",
-            method: "POST",
-            path: "/api/sandbox/corporate/onboard",
-            category: "Corporate API Suite",
-            description: "Onboard new corporate clients with KYC and account setup",
-            summary: "Onboard corporate client",
-            requiresAuth: true,
-            authType: "bearer",
-            queryParameters: [],
-            pathParameters: [],
-            bodyParameters: [
-              { name: "companyName", type: "string", required: true, description: "Company name", example: "ABC Corp Ltd" },
-              { name: "businessType", type: "string", required: true, description: "Business type", example: "manufacturing" }
-            ],
-            headers: [
-              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
-              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
-            ],
-            responses: [
-              {
-                statusCode: 200,
-                description: "Corporate client onboarded",
-                schema: '{"clientId": "string", "status": "string"}',
-                example: '{"clientId": "CORP123456", "status": "onboarded"}'
-              }
-            ],
-            requestExample: '{\n  "companyName": "ABC Corp Ltd",\n  "businessType": "manufacturing"\n}',
-            responseExample: '{\n  "clientId": "CORP123456",\n  "status": "onboarded"\n}',
-            status: "active",
-            tags: ["corporate", "onboarding"],
-            rateLimit: 25,
-            timeout: 30000
-          }
-        ];
-
-        // Combine hierarchical categories with original static categories
-        const allCategoriesForAdmin = [...adminCategories, ...originalCategories];
-        
-        // Combine hierarchical APIs with original static APIs
-        const allApisForAdmin = [...allApis, ...originalApis];
-        
-        setCategories(allCategoriesForAdmin);
-        setApis(allApisForAdmin);
-        
-        console.log('🔧 ADMIN - Processed', allCategoriesForAdmin.length, 'total categories (', adminCategories.length, 'hierarchical +', originalCategories.length, 'original) and', allApisForAdmin.length, 'total APIs (', allApis.length, 'hierarchical +', originalApis.length, 'original)');
-        console.log('🔧 ADMIN - Customer APIs:', allApisForAdmin.filter(api => api.category === 'Customer').length);
-        console.log('🔧 ADMIN - Loans APIs:', allApisForAdmin.filter(api => api.category === 'Loans').length);
+        setApis(allApis);
+        console.log('🔧 ADMIN - Processed', allApis.length, 'APIs with full documentation and sandbox details');
         
         toast({
-          title: "All Categories & APIs Loaded",
-          description: `Loaded ${allCategoriesForAdmin.length} categories with ${allApisForAdmin.length} APIs total`
+          title: "Hierarchical Data Loaded",
+          description: `Loaded ${adminCategories.length} categories with ${allApis.length} APIs`
         });
         
         return;
@@ -1282,96 +483,26 @@ export default function AdminPanel() {
   };
 
   // API Management Functions
-  const handleSaveApi = async (apiData: Partial<APIEndpoint>) => {
-    try {
-      if (editingApi) {
-        // Update existing API
-        const response = await fetch(`/api/admin/apis/${editingApi.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(apiData),
-        });
-
-        if (response.ok) {
-          const updatedApi = await response.json();
-          setApis(apis.map(api => api.id === editingApi.id ? updatedApi : api));
-          toast({ title: "API Updated", description: "API endpoint has been successfully updated" });
-        } else {
-          const error = await response.json();
-          toast({ 
-            title: "Update Failed", 
-            description: error.message || "Failed to update API endpoint",
-            variant: "destructive"
-          });
-          return;
-        }
-      } else {
-        // Create new API
-        const response = await fetch('/api/admin/apis', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...apiData,
-            status: 'active'
-          }),
-        });
-
-        if (response.ok) {
-          const newApi = await response.json();
-          setApis([...apis, newApi]);
-          toast({ title: "API Created", description: "New API endpoint has been created and saved" });
-        } else {
-          const error = await response.json();
-          toast({ 
-            title: "Creation Failed", 
-            description: error.message || "Failed to create API endpoint",
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-      
-      setEditingApi(null);
-      setShowApiDialog(false);
-    } catch (error) {
-      console.error('Error saving API:', error);
-      toast({ 
-        title: "Save Failed", 
-        description: "Unable to save API endpoint. Please try again.",
-        variant: "destructive"
-      });
+  const handleSaveApi = (apiData: Partial<APIEndpoint>) => {
+    if (editingApi) {
+      setApis(apis.map(api => api.id === editingApi.id ? { ...api, ...apiData } : api));
+      toast({ title: "API Updated", description: "API endpoint has been successfully updated" });
+    } else {
+      const newApi: APIEndpoint = {
+        ...apiData as APIEndpoint,
+        id: Date.now().toString(),
+        status: 'active'
+      };
+      setApis([...apis, newApi]);
+      toast({ title: "API Created", description: "New API endpoint has been created" });
     }
+    setEditingApi(null);
+    setShowApiDialog(false);
   };
 
-  const handleDeleteApi = async (apiId: string) => {
-    try {
-      const response = await fetch(`/api/admin/apis/${apiId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setApis(apis.filter(api => api.id !== apiId));
-        toast({ title: "API Deleted", description: "API endpoint has been removed" });
-      } else {
-        const error = await response.json();
-        toast({ 
-          title: "Delete Failed", 
-          description: error.message || "Failed to delete API endpoint",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting API:', error);
-      toast({ 
-        title: "Delete Failed", 
-        description: "Unable to delete API endpoint. Please try again.",
-        variant: "destructive"
-      });
-    }
+  const handleDeleteApi = (apiId: string) => {
+    setApis(apis.filter(api => api.id !== apiId));
+    toast({ title: "API Deleted", description: "API endpoint has been removed" });
   };
 
   // Category Management Functions - Production Ready with Backend API
@@ -1569,14 +700,26 @@ export default function AdminPanel() {
 
       <div className="container mx-auto p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Dashboard
             </TabsTrigger>
+            <TabsTrigger value="apis" className="flex items-center gap-2">
+              <Code className="w-4 h-4" />
+              APIs
+            </TabsTrigger>
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Categories & APIs
+              Categories
+            </TabsTrigger>
+            <TabsTrigger value="documentation" className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              Docs
+            </TabsTrigger>
+            <TabsTrigger value="sandbox" className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Sandbox
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -1755,50 +898,14 @@ export default function AdminPanel() {
           </TabsContent>
 
           {/* Categories Management Tab */}
-          {/* Hierarchical Categories & APIs Tab */}
           <TabsContent value="categories" className="space-y-6">
-            {/* Breadcrumb Navigation */}
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <button 
-                onClick={() => {
-                  setCurrentView('categories');
-                  setSelectedCategory(null);
-                  setSelectedApi(null);
-                }}
-                className={`hover:text-[var(--au-primary)] ${currentView === 'categories' ? 'text-[var(--au-primary)] font-medium' : ''}`}
-              >
-                Categories
-              </button>
-              {selectedCategory && (
-                <>
-                  <span>›</span>
-                  <button 
-                    onClick={() => {
-                      setCurrentView('apis');
-                      setSelectedApi(null);
-                    }}
-                    className={`hover:text-[var(--au-primary)] ${currentView === 'apis' ? 'text-[var(--au-primary)] font-medium' : ''}`}
-                  >
-                    {selectedCategory.name}
-                  </button>
-                </>
-              )}
-              {selectedApi && (
-                <>
-                  <span>›</span>
-                  <span className="text-[var(--au-primary)] font-medium">{selectedApi.name}</span>
-                </>
-              )}
-            </div>
-
-            {/* Level 1: Categories View */}
-            {currentView === 'categories' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-[var(--au-primary)]">Categories & APIs</h2>
-                    <p className="text-muted-foreground">Hierarchical management: Categories → APIs → Documentation & Sandbox</p>
-                  </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-[var(--au-primary)]">Category Management</h2>
+                <p className="text-muted-foreground">Organize APIs into logical groups and categories</p>
+              </div>
+              <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+                <DialogTrigger asChild>
                   <Button 
                     onClick={() => {
                       setEditingCategory(null);
@@ -1807,264 +914,65 @@ export default function AdminPanel() {
                     className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Category
+                    Add New Category
                   </Button>
-                </div>
+                </DialogTrigger>
+                <CategoryEditDialog 
+                  category={editingCategory}
+                  onSave={handleSaveCategory}
+                  onClose={() => setShowCategoryDialog(false)}
+                />
+              </Dialog>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {categories.map((category) => {
-                    const categoryApis = apis.filter(api => api.category === category.name);
-                    return (
-                      <Card key={category.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <CardTitle 
-                              className="flex items-center space-x-3"
-                              onClick={() => {
-                                setSelectedCategory(category);
-                                setCurrentView('apis');
-                              }}
-                            >
-                              <div 
-                                className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
-                                style={{ backgroundColor: category.color }}
-                              >
-                                {category.icon === 'Shield' && <Shield className="w-5 h-5" />}
-                                {category.icon === 'CreditCard' && <CreditCard className="w-5 h-5" />}
-                                {category.icon === 'Database' && <Database className="w-5 h-5" />}
-                                {category.icon === 'Key' && <Settings className="w-5 h-5" />}
-                              </div>
-                              <div>
-                                <div className="text-lg font-semibold">{category.name}</div>
-                                <div className="text-sm text-muted-foreground font-normal">
-                                  {categoryApis.length} API{categoryApis.length !== 1 ? 's' : ''}
-                                </div>
-                              </div>
-                            </CardTitle>
-                            <div className="flex items-center space-x-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingCategory(category);
-                                  setShowCategoryDialog(true);
-                                }}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categories.map((category) => (
+                <Card key={category.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center space-x-2">
+                        <div 
+                          className="w-8 h-8 rounded flex items-center justify-center text-white"
+                          style={{ backgroundColor: category.color }}
+                        >
+                          {category.icon === 'Shield' && <Shield className="w-4 h-4" />}
+                          {category.icon === 'CreditCard' && <CreditCard className="w-4 h-4" />}
+                          {category.icon === 'Database' && <Database className="w-4 h-4" />}
+                        </div>
+                        <span>{category.name}</span>
+                      </CardTitle>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => {
-                            setSelectedCategory(category);
-                            setCurrentView('apis');
+                            setEditingCategory(category);
+                            setShowCategoryDialog(true);
                           }}
                         >
-                          <p className="text-sm text-muted-foreground mb-4">{category.description}</p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="outline" style={{ borderColor: category.color, color: category.color }}>
-                              {categoryApis.length} API{categoryApis.length !== 1 ? 's' : ''} →
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Level 2: APIs in Selected Category */}
-            {currentView === 'apis' && selectedCategory && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-[var(--au-primary)]">APIs in {selectedCategory.name}</h2>
-                    <p className="text-muted-foreground">Click an API to view and edit its documentation & sandbox configuration</p>
-                  </div>
-                  <Button 
-                    onClick={() => {
-                      setEditingApi(null);
-                      setShowApiDialog(true);
-                    }}
-                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add API
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4">
-                  {apis.filter(api => api.category === selectedCategory.name).map((api) => (
-                    <Card key={api.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div 
-                            className="flex items-center space-x-4"
-                            onClick={() => {
-                              setSelectedApi(api);
-                              setCurrentView('api-details');
-                            }}
-                          >
-                            <Badge variant={api.method === 'GET' ? 'secondary' : 'default'}>
-                              {api.method}
-                            </Badge>
-                            <div>
-                              <CardTitle className="text-lg">{api.name}</CardTitle>
-                              <CardDescription className="font-mono text-sm">{api.path}</CardDescription>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant={api.status === 'active' ? 'default' : 'secondary'}>
-                              {api.status}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingApi(api);
-                                setShowApiDialog(true);
-                              }}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent 
-                        onClick={() => {
-                          setSelectedApi(api);
-                          setCurrentView('api-details');
-                        }}
-                      >
-                        <div className="space-y-2">
-                          <p className="text-sm">{api.description}</p>
-                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                            <span>Auth: {api.requiresAuth ? 'Required' : 'Not Required'}</span>
-                            <span>Rate Limit: {api.rateLimit || 100}/min</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Level 3: API Documentation & Sandbox Details */}
-            {currentView === 'api-details' && selectedApi && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-[var(--au-primary)]">{selectedApi.name}</h2>
-                    <p className="text-muted-foreground">{selectedApi.method} {selectedApi.path}</p>
-                  </div>
-                  <Button 
-                    onClick={() => {
-                      setEditingApi(selectedApi);
-                      setShowApiDialog(true);
-                    }}
-                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit API
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Documentation Section */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <BookOpen className="w-5 h-5" />
-                        <span>Documentation</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <Label className="text-sm font-medium">Description</Label>
-                        <p className="text-sm text-muted-foreground mt-1">{selectedApi.description}</p>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium">Request Example</Label>
-                        <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-auto mt-1">
-                          {selectedApi.requestExample}
-                        </pre>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Response Example</Label>
-                        <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-auto mt-1">
-                          {selectedApi.responseExample}
-                        </pre>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Sandbox Configuration */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Globe className="w-5 h-5" />
-                        <span>Sandbox Configuration</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm font-medium">Rate Limit</Label>
-                          <p className="text-sm text-muted-foreground mt-1">{selectedApi.rateLimit || 100} requests/min</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">Timeout</Label>
-                          <p className="text-sm text-muted-foreground mt-1">{selectedApi.timeout || 30000}ms</p>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Authentication</Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {selectedApi.requiresAuth ? `Required (${selectedApi.authType || 'Bearer'})` : 'Not required'}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Status</Label>
-                        <Badge variant={selectedApi.status === 'active' ? 'default' : 'secondary'} className="mt-1">
-                          {selectedApi.status}
-                        </Badge>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium">Tags</Label>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {selectedApi.tags.map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {/* Dialogs */}
-            <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-              <CategoryEditDialog 
-                category={editingCategory}
-                onSave={handleSaveCategory}
-                onClose={() => setShowCategoryDialog(false)}
-              />
-            </Dialog>
-
-            <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-              <ApiEditDialog 
-                api={editingApi}
-                categories={categories}
-                onSave={handleSaveApi}
-                onClose={() => setShowApiDialog(false)}
-              />
-            </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">{category.description}</p>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline">
+                        {category.endpoints.length} API{category.endpoints.length !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </TabsContent>
 
           {/* Documentation Tab */}

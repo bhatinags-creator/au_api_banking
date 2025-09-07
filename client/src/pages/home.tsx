@@ -291,12 +291,13 @@ export default function Home() {
                 name: api.name,
                 method: api.method,
                 endpoint: api.path,
-                description: api.description || api.summary || 'No description available',
+                description: api.description,
                 documentation: api.documentation,
-                sandbox: api.sandbox || { enabled: false }
+                sandbox: api.sandbox
               })) : []
             }));
             
+            console.log('✅ NEW HIERARCHICAL CATEGORIES:', transformedCategories.map(c => c.title));
             setDynamicApiCategories(transformedCategories);
           } else {
             // Fallback: try to map individual arrays
@@ -492,8 +493,8 @@ export default function Home() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#" className="text-neutrals-700 hover:text-primary transition-colors">Home</a>
-              <Link href="/apis" className="text-neutrals-700 hover:text-primary transition-colors">
-                <span data-testid="link-apis">Explore APIs</span>
+              <Link href="/docs" className="text-neutrals-700 hover:text-primary transition-colors">
+                <span data-testid="link-docs">Explore APIs</span>
               </Link>
               <Link href="/sandbox" className="text-neutrals-700 hover:text-primary transition-colors">
                 <span data-testid="link-sandbox">Sandbox</span>
@@ -533,7 +534,7 @@ export default function Home() {
           <div className="md:hidden bg-white border-t" data-testid="mobile-menu">
             <div className="px-4 py-4 space-y-4">
               <a href="#" className="block text-neutrals-700 hover:text-primary">Home</a>
-              <Link href="/apis" className="block text-neutrals-700 hover:text-primary">Explore APIs</Link>
+              <Link href="/docs" className="block text-neutrals-700 hover:text-primary">Explore APIs</Link>
               <Link href="/sandbox" className="block text-neutrals-700 hover:text-primary">Sandbox</Link>
               <a href="#" className="block text-neutrals-700 hover:text-primary">Strategic Partners</a>
               <a href="#" className="block text-neutrals-700 hover:text-primary">FAQ</a>
@@ -950,7 +951,7 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {(dynamicApiCategories.length > 0 ? dynamicApiCategories : apiCategories).map((category, index) => {
+              {apiCategories.map((category, index) => {
                 const IconComponent = category.icon;
                 return (
                   <Card key={index} className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-2">
@@ -971,51 +972,19 @@ export default function Home() {
                       <p className="text-neutrals-600 leading-relaxed text-base mb-4">
                         {category.description}
                       </p>
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <p className="text-sm font-medium text-[var(--au-primary-700)]">Key APIs:</p>
-                        <div className="grid gap-3">
-                          {category.apis.slice(0, 2).map((api, apiIndex) => (
-                            <div key={apiIndex} className="bg-gradient-to-r from-[var(--au-primary)]/5 to-blue-50/30 rounded-lg p-3 border border-[var(--au-primary)]/10">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-semibold text-sm text-neutrals-800 truncate">{api.name}</span>
-                                <Badge variant="outline" className="text-xs h-5 ml-2 flex-shrink-0 bg-white">
-                                  {api.method}
-                                </Badge>
-                              </div>
-                              {api.endpoint && (
-                                <div className="text-xs font-mono text-[var(--au-primary)]/70 bg-white/60 px-2 py-1 rounded mb-2">
-                                  {api.endpoint}
-                                </div>
-                              )}
-                              {api.description && (
-                                <p className="text-xs text-neutrals-600 leading-relaxed">
-                                  {api.description.length > 80 ? `${api.description.substring(0, 80)}...` : api.description}
-                                </p>
-                              )}
-                              {api.sandbox && api.sandbox.enabled && (
-                                <div className="flex items-center gap-1 mt-2">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                  <span className="text-xs text-green-700 font-medium">Sandbox Available</span>
-                                </div>
-                              )}
+                        <div className="grid gap-1">
+                          {category.apis.slice(0, 3).map((api, apiIndex) => (
+                            <div key={apiIndex} className="flex items-center justify-between text-xs">
+                              <span className="font-mono text-neutrals-700 truncate">{api.name}</span>
+                              <Badge variant="outline" className="text-xs h-5 ml-2 flex-shrink-0">
+                                {api.method}
+                              </Badge>
                             </div>
                           ))}
-                          {category.apis.length > 2 && (
-                            <div className="text-center">
-                              <p className="text-xs text-neutrals-500 mb-2">+{category.apis.length - 2} more APIs available</p>
-                              <Link href="/apis">
-                                <Button size="sm" variant="outline" className="text-xs h-7">
-                                  View All APIs
-                                  <ArrowRight className="w-3 h-3 ml-1" />
-                                </Button>
-                              </Link>
-                            </div>
-                          )}
-                          {category.apis.length === 0 && (
-                            <div className="text-center py-3 text-neutrals-400">
-                              <Database className="w-6 h-6 mx-auto mb-1 opacity-50" />
-                              <p className="text-xs">No APIs configured yet</p>
-                            </div>
+                          {category.apis.length > 3 && (
+                            <p className="text-xs text-neutrals-500">+{category.apis.length - 3} more APIs</p>
                           )}
                         </div>
                       </div>
@@ -1026,7 +995,7 @@ export default function Home() {
             </div>
             
             <div className="text-center mt-12">
-              <Link href="/apis">
+              <Link href="/docs">
                 <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
                   BROWSE ALL APIs
                 </Button>

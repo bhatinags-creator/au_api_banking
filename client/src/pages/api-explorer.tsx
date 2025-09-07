@@ -6,19 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, CreditCard, Shield, ArrowLeft, Play, Copy, Database, Settings } from "lucide-react";
+import { Building2, CreditCard, Shield, ArrowLeft, Play, Copy } from "lucide-react";
 import { Link } from "wouter";
 import { ApiEndpoint } from "@shared/schema";
 
 const categoryIcons = {
   auth: Shield,
-  authentication: Shield,
   accounts: Building2,
   payments: CreditCard,
-  "digital payments": CreditCard,
   kyc: Shield,
-  test: Settings,
-  database: Database,
 };
 
 const categoryColors = {
@@ -29,53 +25,21 @@ const categoryColors = {
 };
 
 export default function ApiExplorer() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("accounts");
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint | null>(null);
   const [requestBody, setRequestBody] = useState("");
   const [apiKey, setApiKey] = useState("lEbnG39cJwC4lKUe5fliVA9HFcyR");
   const [response, setResponse] = useState<any>(null);
 
   const { data: endpoints = [], isLoading } = useQuery<ApiEndpoint[]>({
-    queryKey: ["/api/apis"],
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    queryKey: ["/api/endpoints"],
   });
 
-  // Load categories dynamically from backend
-  const { data: categoriesData = [] } = useQuery<any[]>({
-    queryKey: ["/api/categories"],
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-  
-  const categories = categoriesData.length > 0 
-    ? categoriesData.map((cat: any) => cat.name.toLowerCase()) 
-    : ["auth", "accounts", "payments", "kyc"];
-
-  // Initialize selectedCategory with the first available category
-  React.useEffect(() => {
-    if (categories.length > 0 && !selectedCategory) {
-      setSelectedCategory(categories[0]);
-    }
-  }, [categories, selectedCategory]);
+  const categories = ["auth", "accounts", "payments", "kyc"];
   
   const filteredEndpoints = endpoints.filter((endpoint: ApiEndpoint) => 
-    endpoint.category?.toLowerCase() === selectedCategory
+    endpoint.category === selectedCategory
   );
-
-  // Debug logging
-  React.useEffect(() => {
-    console.log('🔍 API EXPLORER DEBUG:');
-    console.log('Selected category:', selectedCategory);
-    console.log('Available categories:', categories);
-    console.log('Total endpoints:', endpoints.length);
-    console.log('Filtered endpoints:', filteredEndpoints.length);
-    console.log('All endpoints:', endpoints.map(e => ({ name: e.name, category: e.category })));
-  }, [selectedCategory, categories, endpoints, filteredEndpoints]);
 
   // Set sample request body when endpoint changes
   React.useEffect(() => {
@@ -189,8 +153,8 @@ export default function ApiExplorer() {
                 API Categories
               </h2>
               <div className="space-y-2">
-                {categories.map((category: string) => {
-                  const Icon = categoryIcons[category as keyof typeof categoryIcons] || Database;
+                {categories.map((category) => {
+                  const Icon = categoryIcons[category as keyof typeof categoryIcons];
                   return (
                     <button
                       key={category}

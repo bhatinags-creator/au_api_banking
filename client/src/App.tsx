@@ -56,8 +56,7 @@ function Router() {
       <Route path="/signin" component={SignIn} />
       <Route path="/signup" component={SignUp} />
       <Route path="/register" component={CorporateRegistration} />
-      <Route path="/api-docs" component={APIDocs} />
-      <Route path="/apis" component={ApiExplorer} />
+      <Route path="/docs" component={APIDocs} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/admin" component={AdminPanel} />
       <Route path="/" component={Home} />
@@ -65,6 +64,9 @@ function Router() {
       {/* Protected routes - auth check only when accessed */}
       <Route path="/dashboard">
         {() => <ProtectedRoute component={Dashboard} />}
+      </Route>
+      <Route path="/apis">
+        {() => <ProtectedRoute component={ApiExplorer} />}
       </Route>
       <Route path="/analytics">
         {() => <ProtectedRoute component={Analytics} />}

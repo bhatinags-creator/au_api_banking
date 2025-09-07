@@ -236,7 +236,7 @@ const validateRequestBody = (requestBody: string, endpointId: string): Validatio
   return errors;
 };
 
-const staticApiEndpoints: APIEndpoint[] = [
+const apiEndpoints: APIEndpoint[] = [
   {
     id: "oauth-token",
     name: "Generate OAuth Token", 
@@ -785,40 +785,6 @@ const categoryImages = {
 };
 
 export default function Sandbox() {
-  // Load API endpoints from backend
-  const [apiEndpoints, setApiEndpoints] = useState<APIEndpoint[]>(staticApiEndpoints);
-  
-  useEffect(() => {
-    const loadApiEndpoints = async () => {
-      try {
-        const response = await fetch('/api/apis');
-        if (response.ok) {
-          const backendApis = await response.json();
-          if (backendApis.length > 0) {
-            // Transform backend APIs to sandbox format
-            const transformedApis = backendApis.map((api: any) => ({
-              id: api.id,
-              name: api.name,
-              method: api.method,
-              path: api.path.startsWith('http') ? api.path : `https://aubank.tech/uat${api.path}`,
-              category: api.category,
-              description: api.description,
-              requiresAuth: api.requiresAuth,
-              sampleRequest: api.requestExample ? JSON.parse(api.requestExample) : {}
-            }));
-            
-            // Combine with static endpoints
-            setApiEndpoints([...transformedApis, ...staticApiEndpoints]);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load API endpoints:', error);
-        // Fallback to static endpoints
-      }
-    };
-    
-    loadApiEndpoints();
-  }, []);
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint>(apiEndpoints[0]);
   const [requestBody, setRequestBody] = useState("");
   const [requestHeaders, setRequestHeaders] = useState("{\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer your_token_here\"\n}");
