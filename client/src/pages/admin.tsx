@@ -88,7 +88,7 @@ export default function AdminPanel() {
   const [apis, setApis] = useState<APIEndpoint[]>([]);
   const [categories, setCategories] = useState<APICategory[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [editingApi, setEditingApi] = useState<APIEndpoint | null>(null);
   const [editingCategory, setEditingCategory] = useState<APICategory | null>(null);
@@ -103,19 +103,40 @@ export default function AdminPanel() {
   
   const { toast } = useToast();
 
-  // Simple admin authentication
-  const handleAdminLogin = () => {
-    // In production, this would be a proper authentication system
-    if (adminCredentials.username === "admin" && adminCredentials.password === "aubank2024") {
-      setIsAuthenticated(true);
-      toast({
-        title: "Admin Access Granted",
-        description: "Welcome to the AU Bank API Developer Portal Admin Panel"
+  // Admin authentication with API login
+  const handleAdminLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: adminCredentials.username === "admin" ? "admin@aubank.com" : adminCredentials.username,
+          password: adminCredentials.password
+        }),
       });
-    } else {
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsAuthenticated(true);
+        toast({
+          title: "Admin Access Granted",
+          description: "Welcome to the AU Bank API Developer Portal Admin Panel"
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Authentication Failed",
+          description: errorData.message || "Invalid admin credentials",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Authentication Failed",
-        description: "Invalid admin credentials",
+        description: "Unable to connect to authentication server",
         variant: "destructive"
       });
     }
