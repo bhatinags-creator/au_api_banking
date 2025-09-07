@@ -123,8 +123,92 @@ export default function AdminPanel() {
     }
   }, [isAuthenticated]);
 
-  const loadAdminData = () => {
-    // Load real API data from the application configuration
+  const loadAdminData = async () => {
+    try {
+      console.log('🔧 ADMIN - Loading hierarchical data from backend...');
+      
+      // Load hierarchical data from the same endpoint as home page
+      const categoriesResponse = await fetch('/api/categories');
+      
+      if (categoriesResponse.ok) {
+        const hierarchicalData = await categoriesResponse.json();
+        
+        console.log('🔧 ADMIN - Loaded', hierarchicalData.length, 'hierarchical categories');
+        
+        // Transform hierarchical data for admin panel
+        const adminCategories: APICategory[] = hierarchicalData.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          description: cat.description,
+          icon: cat.icon,
+          color: cat.color,
+          endpoints: cat.apis ? cat.apis.map((api: any) => api.id) : []
+        }));
+        
+        setCategories(adminCategories);
+        
+        // Extract all APIs from hierarchical structure with full documentation
+        const allApis: APIEndpoint[] = [];
+        hierarchicalData.forEach((cat: any) => {
+          if (cat.apis && cat.apis.length > 0) {
+            cat.apis.forEach((api: any) => {
+              allApis.push({
+                id: api.id,
+                name: api.name,
+                method: api.method,
+                path: api.path,
+                category: api.category,
+                description: api.description,
+                summary: api.summary || api.description,
+                requiresAuth: api.requiresAuth || true,
+                authType: api.authType || 'bearer',
+                queryParameters: api.parameters ? api.parameters.filter((p: any) => p.required) : [],
+                pathParameters: [],
+                bodyParameters: api.parameters || [],
+                headers: api.headers || [
+                  { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+                  { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+                ],
+                responses: [{
+                  statusCode: 200,
+                  description: "Success response",
+                  schema: JSON.stringify(api.responseSchema || {}, null, 2),
+                  example: JSON.stringify(api.responseSchema || {}, null, 2)
+                }],
+                requestExample: api.parameters ? JSON.stringify(
+                  api.parameters.reduce((acc: any, p: any) => ({ ...acc, [p.name]: p.example || `<${p.type}>` }), {}),
+                  null, 2
+                ) : '{}',
+                responseExample: JSON.stringify(api.responseSchema || {}, null, 2),
+                status: api.status || 'active',
+                tags: api.tags || [],
+                rateLimit: api.rateLimits?.sandbox || 100,
+                timeout: api.timeout || 30000
+              });
+            });
+          }
+        });
+        
+        setApis(allApis);
+        console.log('🔧 ADMIN - Processed', allApis.length, 'APIs with full documentation and sandbox details');
+        
+        toast({
+          title: "Hierarchical Data Loaded",
+          description: `Loaded ${adminCategories.length} categories with ${allApis.length} APIs`
+        });
+        
+        return;
+      }
+    } catch (error) {
+      console.error('🔧 ADMIN - Error loading hierarchical data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load hierarchical data, using fallback",
+        variant: "destructive"
+      });
+    }
+    
+    // Fallback: Load minimal static data
     const realApiData: APIEndpoint[] = [];
     
     // Customer APIs
