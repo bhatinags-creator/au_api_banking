@@ -124,15 +124,69 @@ export default function AdminPanel() {
   }, [isAuthenticated]);
 
   const loadAdminData = () => {
-    // Mock data - in production, this would come from the backend
-    setApis([
+    // Load real API data from the application configuration
+    const realApiData: APIEndpoint[] = [];
+    
+    // Customer APIs
+    realApiData.push(
+      {
+        id: "customer-360-service",
+        name: "Customer 360 Service",
+        method: "POST",
+        path: "/api/sandbox/customer360service",
+        category: "Customer",
+        description: "Comprehensive customer information API providing complete customer profile, account details, and relationship information",
+        summary: "Get complete customer profile data",
+        requiresAuth: true,
+        authType: "bearer",
+        queryParameters: [],
+        pathParameters: [],
+        bodyParameters: [
+          {
+            name: "customerID",
+            type: "string",
+            required: true,
+            description: "Customer identification number",
+            example: "CUST123456"
+          }
+        ],
+        headers: [
+          {
+            name: "Authorization",
+            required: true,
+            description: "Bearer token for authentication",
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          {
+            name: "Content-Type",
+            required: true,
+            description: "Content type header",
+            example: "application/json"
+          }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Customer profile retrieved successfully",
+            schema: "{\"customerBasicInquiry\": {}, \"accountDetails\": [], \"transactionStatus\": {}}",
+            example: "{\"customerBasicInquiry\": {\"customerID\": \"CUST123456\", \"customerName\": \"John Doe\", \"mobileNumber\": \"9876543210\"}, \"accountDetails\": [], \"transactionStatus\": {\"status\": \"ACTIVE\"}}"
+          }
+        ],
+        requestExample: "{\n  \"customerID\": \"CUST123456\"\n}",
+        responseExample: "{\n  \"customerBasicInquiry\": {\n    \"customerID\": \"CUST123456\",\n    \"customerName\": \"John Doe\",\n    \"mobileNumber\": \"9876543210\"\n  },\n  \"accountDetails\": [],\n  \"transactionStatus\": {\n    \"status\": \"ACTIVE\"\n  }\n}",
+        status: "active",
+        tags: ["customer", "profile"],
+        rateLimit: 100,
+        timeout: 30000,
+        documentation: "Retrieve comprehensive customer information including profile, accounts, and transaction status"
+      },
       {
         id: "oauth-token",
-        name: "Generate OAuth Token",
+        name: "OAuth Token Generation",
         method: "POST",
-        path: "/api/oauth/token",
+        path: "/api/sandbox/oauth/accesstoken",
         category: "Authentication",
-        description: "Generate OAuth access token for API authentication",
+        description: "Generate OAuth access token for API authentication with secure token management",
         summary: "OAuth token generation endpoint",
         requiresAuth: false,
         authType: "basic",
@@ -145,20 +199,20 @@ export default function AdminPanel() {
             required: true,
             description: "OAuth grant type",
             example: "client_credentials",
-            enum: ["client_credentials", "authorization_code"]
+            enum: ["client_credentials"]
           },
           {
             name: "client_id",
             type: "string",
             required: true,
-            description: "Client identifier",
-            example: "your_client_id"
+            description: "Client identifier provided during registration",
+            example: "aubank_internal_client"
           },
           {
             name: "client_secret",
             type: "string",
             required: true,
-            description: "Client secret",
+            description: "Client secret for authentication",
             example: "your_client_secret"
           }
         ],
@@ -173,33 +227,27 @@ export default function AdminPanel() {
         responses: [
           {
             statusCode: 200,
-            description: "Successful token generation",
+            description: "Token generated successfully",
             schema: "{\"access_token\": \"string\", \"token_type\": \"string\", \"expires_in\": \"number\"}",
-            example: "{\"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\", \"token_type\": \"Bearer\", \"expires_in\": 3600}"
-          },
-          {
-            statusCode: 400,
-            description: "Bad request - invalid parameters",
-            schema: "{\"error\": \"string\", \"error_description\": \"string\"}",
-            example: "{\"error\": \"invalid_grant\", \"error_description\": \"Invalid grant type\"}"
+            example: "{\"access_token\": \"internal_access_123456789_abcdefghi\", \"token_type\": \"BearerToken\", \"expires_in\": \"86400\"}"
           }
         ],
-        requestExample: "{\n  \"grant_type\": \"client_credentials\",\n  \"client_id\": \"your_client_id\",\n  \"client_secret\": \"your_client_secret\"\n}",
-        responseExample: "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 3600\n}",
+        requestExample: "{\n  \"grant_type\": \"client_credentials\",\n  \"client_id\": \"aubank_internal_client\",\n  \"client_secret\": \"your_client_secret\"\n}",
+        responseExample: "{\n  \"refresh_token_expires_in\": \"0\",\n  \"api_product_list\": \"[Internal APIs, Authentication, Payments, Accounts, KYC]\",\n  \"organization_name\": \"au-bank-internal\",\n  \"token_type\": \"BearerToken\",\n  \"issued_at\": \"1673875200000\",\n  \"access_token\": \"internal_access_123456789_abcdefghi\",\n  \"expires_in\": \"86400\",\n  \"status\": \"approved\"\n}",
         status: "active",
-        tags: ["authentication", "oauth"],
+        tags: ["authentication", "oauth", "security"],
         rateLimit: 100,
         timeout: 30000,
-        documentation: "This endpoint generates OAuth tokens for API access..."
+        documentation: "This endpoint generates OAuth tokens for secure API access with enterprise-grade authentication"
       },
       {
         id: "cnb-payment",
         name: "CNB Payment Creation",
         method: "POST",
-        path: "/api/cnb/payment",
+        path: "/api/sandbox/cnb/payment",
         category: "Payments",
-        description: "Create a new CNB payment transaction",
-        summary: "Create CNB payment",
+        description: "Create CNB payment transactions supporting NEFT, RTGS, and IMPS with real-time status tracking",
+        summary: "Create CNB payment transaction",
         requiresAuth: true,
         authType: "bearer",
         queryParameters: [],
@@ -209,7 +257,7 @@ export default function AdminPanel() {
             name: "amount",
             type: "number",
             required: true,
-            description: "Payment amount",
+            description: "Payment amount in INR",
             example: "1000.50"
           },
           {
@@ -218,7 +266,7 @@ export default function AdminPanel() {
             required: true,
             description: "Currency code",
             example: "INR",
-            enum: ["INR", "USD", "EUR"]
+            enum: ["INR"]
           },
           {
             name: "beneficiary_account",
@@ -226,14 +274,22 @@ export default function AdminPanel() {
             required: true,
             description: "Beneficiary account number",
             example: "1234567890"
+          },
+          {
+            name: "payment_mode",
+            type: "string",
+            required: true,
+            description: "Payment mode",
+            example: "NEFT",
+            enum: ["NEFT", "RTGS", "IMPS"]
           }
         ],
         headers: [
           {
             name: "Authorization",
             required: true,
-            description: "Bearer token",
-            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            description: "Bearer token for authentication",
+            example: "Bearer internal_access_123456789_abcdefghi"
           },
           {
             name: "Content-Type",
@@ -246,36 +302,87 @@ export default function AdminPanel() {
           {
             statusCode: 201,
             description: "Payment created successfully",
-            schema: "{\"payment_id\": \"string\", \"status\": \"string\", \"amount\": \"number\"}",
-            example: "{\"payment_id\": \"pay_123456\", \"status\": \"pending\", \"amount\": 1000.50}"
+            schema: "{\"payment_id\": \"string\", \"status\": \"string\", \"amount\": \"number\", \"tracking_id\": \"string\"}",
+            example: "{\"payment_id\": \"PAY123456789\", \"status\": \"INITIATED\", \"amount\": 1000.50, \"tracking_id\": \"TXN987654321\"}"
           }
         ],
-        requestExample: "{\n  \"amount\": 1000.50,\n  \"currency\": \"INR\",\n  \"beneficiary_account\": \"1234567890\"\n}",
-        responseExample: "{\n  \"payment_id\": \"pay_123456\",\n  \"status\": \"pending\",\n  \"amount\": 1000.50\n}",
+        requestExample: "{\n  \"amount\": 1000.50,\n  \"currency\": \"INR\",\n  \"beneficiary_account\": \"1234567890\",\n  \"payment_mode\": \"NEFT\"\n}",
+        responseExample: "{\n  \"payment_id\": \"PAY123456789\",\n  \"status\": \"INITIATED\",\n  \"amount\": 1000.50,\n  \"currency\": \"INR\",\n  \"payment_mode\": \"NEFT\",\n  \"tracking_id\": \"TXN987654321\",\n  \"created_at\": \"2024-12-07T10:30:00Z\"\n}",
         status: "active",
-        tags: ["payments", "cnb"],
+        tags: ["payments", "cnb", "neft", "rtgs", "imps"],
         rateLimit: 50,
         timeout: 60000,
-        documentation: "Create payment transactions using CNB gateway..."
+        documentation: "Create payment transactions using CNB gateway with support for multiple payment modes and real-time tracking"
       }
-    ]);
+    );
 
+    setApis(realApiData);
+
+    // Load real categories from the application
     setCategories([
       {
-        id: "auth",
-        name: "Authentication",
-        description: "API authentication and authorization endpoints",
+        id: "customer",
+        name: "Customer",
+        description: "Essential APIs for integrating with core banking services. Run checks and validations using fundamental APIs such as KYC verification, account validation, and identity checks.",
         icon: "Shield",
-        color: "#603078",
-        endpoints: ["oauth-token"]
+        color: "#2563eb",
+        endpoints: ["customer-360-service", "customer-dedupe", "ckyc-search", "customer-image-upload", "posidex-fetch-ucic", "update-customer-details", "aadhar-vault-insert", "aadhar-vault-get", "cibil-service"]
+      },
+      {
+        id: "loans",
+        name: "Loans",
+        description: "Comprehensive loan management APIs for personal loans, home loans, and business financing with automated approval workflows and real-time status tracking.",
+        icon: "CreditCard",
+        color: "#16a34a",
+        endpoints: ["loan-application", "loan-status", "emi-calculator", "loan-prepayment", "loan-documents", "loan-eligibility"]
+      },
+      {
+        id: "liabilities",
+        name: "Liabilities",
+        description: "Enable customers to invest and bank with you by integrating savings accounts, corporate accounts, fixed deposits, and recurring deposit services.",
+        icon: "Database",
+        color: "#9333ea",
+        endpoints: ["account-balance", "account-transactions", "fd-creation", "fd-maturity", "rd-creation", "account-statement", "interest-calculation"]
+      },
+      {
+        id: "cards",
+        name: "Cards",
+        description: "Empower your corporate banking with seamless APIs for credit card management, debit card services, and card transaction processing.",
+        icon: "CreditCard",
+        color: "#ea580c",
+        endpoints: ["card-application", "card-status", "card-block-unblock", "card-transactions", "card-pin", "card-limit", "virtual-card", "card-rewards"]
       },
       {
         id: "payments",
         name: "Payments",
-        description: "Payment processing and transaction management",
-        icon: "CreditCard", 
-        color: "#603078",
-        endpoints: ["cnb-payment"]
+        description: "Industry-leading payment APIs to introduce tailored payment services. Multiple payment options to integrate your services with the outside world.",
+        icon: "Building2",
+        color: "#dc2626",
+        endpoints: ["cnb-payment", "upi-payment", "payment-status", "payment-reconciliation"]
+      },
+      {
+        id: "authentication",
+        name: "Authentication",
+        description: "Secure authentication and authorization APIs with OAuth 2.0 implementation for enterprise security and token management.",
+        icon: "Shield",
+        color: "#7c3aed",
+        endpoints: ["oauth-token", "token-refresh", "token-validation"]
+      },
+      {
+        id: "trade-services",
+        name: "Trade Services",
+        description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
+        icon: "FileCheck",
+        color: "#be185d",
+        endpoints: ["letter-of-credit", "bank-guarantee", "export-financing", "import-financing", "trade-documents"]
+      },
+      {
+        id: "corporate",
+        name: "Corporate API Suite",
+        description: "A curated collection of APIs specially selected to cater to evolving corporate client needs, studied after careful analysis of corporate journeys.",
+        icon: "Layers",
+        color: "#4338ca",
+        endpoints: ["corporate-onboard", "bulk-payments", "virtual-account-mgmt", "corporate-account", "cash-management", "reconciliation"]
       }
     ]);
 
