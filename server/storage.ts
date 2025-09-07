@@ -11,7 +11,7 @@ import {
   users, developers, applications, apiEndpoints, apiCategories, apiUsage, corporateRegistrations, auditLogs, apiTokens
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 
@@ -914,6 +914,114 @@ export class DatabaseStorage implements IStorage {
       .update(apiTokens)
       .set({ lastUsedAt: new Date() })
       .where(eq(apiTokens.token, token));
+  }
+
+  // API Category operations (Database Implementation)
+  async getAllApiCategories(): Promise<ApiCategory[]> {
+    try {
+      return await db
+        .select()
+        .from(apiCategories)
+        .where(eq(apiCategories.isActive, true))
+        .orderBy(asc(apiCategories.displayOrder));
+    } catch (error) {
+      console.error('Database error in getAllApiCategories:', error);
+      throw new Error('Failed to fetch API categories');
+    }
+  }
+
+  async createApiCategory(categoryData: InsertApiCategory): Promise<ApiCategory> {
+    try {
+      const [category] = await db
+        .insert(apiCategories)
+        .values({
+          ...categoryData,
+          icon: categoryData.icon || 'Database',
+          color: categoryData.color || '#603078',
+          displayOrder: categoryData.displayOrder || 0,
+          isActive: categoryData.isActive ?? true
+        })
+        .returning();
+      return category;
+    } catch (error) {
+      console.error('Database error in createApiCategory:', error);
+      throw new Error('Failed to create API category');
+    }
+  }
+
+  async updateApiCategory(id: string, categoryData: UpdateApiCategory): Promise<ApiCategory | undefined> {
+    try {
+      const [updated] = await db
+        .update(apiCategories)
+        .set({ ...categoryData, updatedAt: new Date() })
+        .where(eq(apiCategories.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateApiCategory:', error);
+      throw new Error('Failed to update API category');
+    }
+  }
+
+  async deleteApiCategory(id: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(apiCategories)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(apiCategories.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteApiCategory:', error);
+      throw new Error('Failed to delete API category');
+    }
+  }
+
+  async getApiCategory(id: string): Promise<ApiCategory | undefined> {
+    try {
+      const [category] = await db
+        .select()
+        .from(apiCategories)
+        .where(and(eq(apiCategories.id, id), eq(apiCategories.isActive, true)));
+      return category;
+    } catch (error) {
+      console.error('Database error in getApiCategory:', error);
+      throw new Error('Failed to get API category');
+    }
+  }
+
+
+  // Hierarchical data method - Categories with their APIs and documentation
+  async getCategoriesWithApisHierarchical(): Promise<Array<ApiCategory & { apis: ApiEndpoint[] }>> {
+    try {
+      // Get all active categories
+      const categories = await this.getAllApiCategories();
+      
+      // For each category, get its APIs with full documentation and sandbox details
+      const categoriesWithApis = await Promise.all(
+        categories.map(async (category) => {
+          const apis = await this.getApiEndpointsByCategory(category.name);
+          return {
+            ...category,
+            apis: apis.map(api => ({
+              ...api,
+              // Include sandbox and documentation details
+              documentation: api.description || '',
+              sandbox: {
+                enabled: true,
+                testData: api.parameters || [],
+                mockResponse: api.responseSchema || {},
+                rateLimits: api.rateLimits || { sandbox: 100, production: 1000 }
+              }
+            }))
+          };
+        })
+      );
+      
+      return categoriesWithApis;
+    } catch (error) {
+      console.error('Database error in getCategoriesWithApisHierarchical:', error);
+      throw new Error('Failed to fetch hierarchical categories data');
+    }
   }
 }
 

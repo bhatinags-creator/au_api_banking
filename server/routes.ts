@@ -407,14 +407,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin API and Category Management Routes
   
-  // Public Categories endpoint for main portal (read-only)
+  // Public Categories endpoint for main portal with hierarchical structure
   app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await storage.getAllApiCategories();
-      res.json(categories);
+      const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
+      res.json(categoriesWithApis);
     } catch (error) {
-      console.error("Error fetching categories:", error);
-      res.status(500).json({ error: "Failed to fetch categories" });
+      console.error("Error fetching hierarchical categories:", error);
+      // Fallback to basic categories if hierarchical fails
+      try {
+        const categories = await storage.getAllApiCategories();
+        res.json(categories);
+      } catch (fallbackError) {
+        console.error("Fallback error:", fallbackError);
+        res.status(500).json({ error: "Failed to fetch categories" });
+      }
     }
   });
 
@@ -426,6 +433,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching APIs:", error);
       res.status(500).json({ error: "Failed to fetch APIs" });
+    }
+  });
+
+  // Simple data initialization endpoint (public for demo purposes)
+  app.post("/api/init-data", async (req, res) => {
+    try {
+      // Check if data already exists
+      const existingCategories = await storage.getAllApiCategories();
+      if (existingCategories.length > 0) {
+        return res.json({ message: "Data already initialized", categories: existingCategories.length });
+      }
+
+      // Create initial categories
+      const authCategory = await storage.createApiCategory({
+        name: "Authentication",
+        description: "Essential APIs for secure authentication and authorization including OAuth, JWT tokens, and user management",
+        icon: "Shield",
+        color: "#603078",
+        displayOrder: 1,
+        isActive: true
+      });
+
+      const paymentCategory = await storage.createApiCategory({
+        name: "Digital Payments", 
+        description: "Comprehensive payment processing APIs including UPI, NEFT, RTGS, and wallet integrations",
+        icon: "CreditCard",
+        color: "#2563eb",
+        displayOrder: 2,
+        isActive: true
+      });
+
+      // Create APIs with full documentation and sandbox details
+      await storage.createApiEndpoint({
+        name: "OAuth 2.0 Token",
+        method: "POST",
+        path: "/oauth/token",
+        category: "Authentication",
+        description: "Generate OAuth 2.0 access tokens for secure API authentication with configurable scopes and expiration. This endpoint provides enterprise-grade security with comprehensive token management.",
+        summary: "OAuth 2.0 token generation with enterprise security features",
+        requiresAuth: false,
+        authType: "bearer",
+        status: "active",
+        version: "v1",
+        timeout: 30000,
+        parameters: [
+          { name: "client_id", type: "string", required: true, description: "Application client identifier" },
+          { name: "client_secret", type: "string", required: true, description: "Application client secret" },
+          { name: "grant_type", type: "string", required: true, description: "OAuth grant type (client_credentials)" }
+        ],
+        responseSchema: { access_token: "string", token_type: "Bearer", expires_in: 3600 },
+        rateLimits: { sandbox: 100, production: 1000 },
+        requiredPermissions: [],
+        isInternal: true,
+        isActive: true
+      });
+
+      await storage.createApiEndpoint({
+        name: "UPI Payment Processing",
+        method: "POST", 
+        path: "/upi/payment",
+        category: "Digital Payments",
+        description: "Process UPI payments with real-time status updates, VPA validation, and comprehensive fraud detection. Includes sandbox testing environment with mock responses.",
+        summary: "Complete UPI payment processing with advanced security",
+        requiresAuth: true,
+        authType: "bearer",
+        status: "active",
+        version: "v1",
+        timeout: 45000,
+        parameters: [
+          { name: "amount", type: "number", required: true, description: "Payment amount in INR" },
+          { name: "payerVPA", type: "string", required: true, description: "Payer's Virtual Payment Address" },
+          { name: "payeeVPA", type: "string", required: true, description: "Payee's Virtual Payment Address" }
+        ],
+        responseSchema: { transactionId: "string", status: "SUCCESS|PENDING|FAILED", amount: "number" },
+        rateLimits: { sandbox: 50, production: 500 },
+        requiredPermissions: ["payment:write"],
+        isInternal: true,
+        isActive: true
+      });
+
+      res.json({ 
+        message: "Hierarchical data initialized successfully",
+        categories: 2,
+        apis: 2,
+        structure: "Categories → APIs → Documentation & Sandbox"
+      });
+      
+    } catch (error) {
+      console.error("Initialization error:", error);
+      res.status(500).json({ error: "Failed to initialize data" });
     }
   });
 
@@ -1123,6 +1220,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "dispatch_date": new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
       "last_updated": new Date().toISOString()
     });
+  });
+
+  // Seed initial data for hierarchical structure
+  app.get("/api/seed", async (req, res) => {
+    try {
+      // Create initial categories with proper hierarchy
+      const authCategory = await storage.createApiCategory({
+        name: "Authentication",
+        description: "Essential APIs for secure authentication and authorization including OAuth, JWT tokens, and user management",
+        icon: "Shield",
+        color: "#603078",
+        displayOrder: 1,
+        isActive: true
+      });
+
+      const paymentCategory = await storage.createApiCategory({
+        name: "Digital Payments",
+        description: "Comprehensive payment processing APIs including UPI, NEFT, RTGS, and wallet integrations",
+        icon: "CreditCard", 
+        color: "#2563eb",
+        displayOrder: 2,
+        isActive: true
+      });
+
+      const customerCategory = await storage.createApiCategory({
+        name: "Customer Management",
+        description: "Complete customer lifecycle APIs for KYC, onboarding, profile management and 360-degree customer view",
+        icon: "Users",
+        color: "#059669",
+        displayOrder: 3,
+        isActive: true
+      });
+
+      // Create APIs with full documentation and sandbox details
+      await storage.createApiEndpoint({
+        name: "OAuth 2.0 Token",
+        method: "POST", 
+        path: "/oauth/token",
+        category: "Authentication",
+        description: "Generate OAuth 2.0 access tokens for secure API authentication with configurable scopes and expiration",
+        summary: "OAuth 2.0 token generation with enterprise security features",
+        requiresAuth: false,
+        authType: "bearer",
+        status: "active",
+        version: "v1",
+        timeout: 30000,
+        parameters: [
+          { name: "client_id", type: "string", required: true, description: "Application client identifier" },
+          { name: "client_secret", type: "string", required: true, description: "Application client secret" },
+          { name: "grant_type", type: "string", required: true, description: "OAuth grant type (client_credentials)" },
+          { name: "scope", type: "string", required: false, description: "Requested scopes separated by spaces" }
+        ],
+        responseSchema: {
+          access_token: "string",
+          token_type: "Bearer", 
+          expires_in: 3600,
+          scope: "string"
+        },
+        rateLimits: { sandbox: 100, production: 1000 },
+        requiredPermissions: [],
+        isInternal: true,
+        isActive: true
+      });
+
+      await storage.createApiEndpoint({
+        name: "UPI Payment Processing",
+        method: "POST",
+        path: "/upi/payment",
+        category: "Digital Payments", 
+        description: "Process UPI payments with real-time status updates, VPA validation, and comprehensive fraud detection",
+        summary: "Complete UPI payment processing with advanced security",
+        requiresAuth: true,
+        authType: "bearer",
+        status: "active",
+        version: "v1", 
+        timeout: 45000,
+        parameters: [
+          { name: "amount", type: "number", required: true, description: "Payment amount in INR" },
+          { name: "payerVPA", type: "string", required: true, description: "Payer's Virtual Payment Address" },
+          { name: "payeeVPA", type: "string", required: true, description: "Payee's Virtual Payment Address" },
+          { name: "reference", type: "string", required: true, description: "Unique transaction reference" },
+          { name: "remarks", type: "string", required: false, description: "Payment remarks" }
+        ],
+        responseSchema: {
+          transactionId: "string",
+          status: "SUCCESS|PENDING|FAILED",
+          amount: "number",
+          timestamp: "ISO8601",
+          reference: "string"
+        },
+        rateLimits: { sandbox: 50, production: 500 },
+        requiredPermissions: ["payment:write"],
+        isInternal: true,
+        isActive: true
+      });
+
+      await storage.createApiEndpoint({
+        name: "Customer 360 Service",
+        method: "GET",
+        path: "/customer/360/{customerId}",
+        category: "Customer Management",
+        description: "Comprehensive customer data aggregation providing complete 360-degree view including accounts, transactions, preferences, and relationship history",
+        summary: "Complete customer profile with relationship insights",
+        requiresAuth: true,
+        authType: "bearer", 
+        status: "active",
+        version: "v1",
+        timeout: 30000,
+        parameters: [
+          { name: "customerId", type: "string", required: true, description: "Unique customer identifier" },
+          { name: "includeTransactions", type: "boolean", required: false, description: "Include transaction history" },
+          { name: "includeFamilyData", type: "boolean", required: false, description: "Include family relationship data" }
+        ],
+        responseSchema: {
+          customerId: "string",
+          personalInfo: "object",
+          accounts: "array",
+          transactions: "array",
+          relationshipData: "object",
+          preferences: "object"
+        },
+        rateLimits: { sandbox: 100, production: 800 },
+        requiredPermissions: ["customer:read"],
+        isInternal: true,
+        isActive: true
+      });
+
+      res.json({ 
+        message: "Initial hierarchical data seeded successfully",
+        categories: 3,
+        apis: 3
+      });
+
+    } catch (error) {
+      console.error("Seeding error:", error);
+      res.status(500).json({ error: "Failed to seed data" });
+    }
   });
 
   const httpServer = createServer(app);
