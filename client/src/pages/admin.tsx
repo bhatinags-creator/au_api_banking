@@ -256,7 +256,7 @@ export default function AdminPanel() {
 
         // Add APIs for the original static categories
         const originalApis: APIEndpoint[] = [
-          // Customer APIs
+          // Customer APIs (9 APIs)
           {
             id: "customer-360-service",
             name: "Customer 360 Service",
@@ -291,7 +291,282 @@ export default function AdminPanel() {
             rateLimit: 100,
             timeout: 30000
           },
-          // Loans APIs
+          {
+            id: "customer-dedupe",
+            name: "Customer Dedupe",
+            method: "POST",
+            path: "/api/sandbox/customer/dedupe",
+            category: "Customer",
+            description: "Identify and manage duplicate customer records in the system",
+            summary: "Customer deduplication service",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerDetails", type: "object", required: true, description: "Customer details for deduplication", example: '{"name": "John Doe", "mobile": "9876543210"}' }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Deduplication completed",
+                schema: '{"isDuplicate": "boolean", "matchedRecords": "array"}',
+                example: '{"isDuplicate": false, "matchedRecords": []}'
+              }
+            ],
+            requestExample: '{\n  "customerDetails": {\n    "name": "John Doe",\n    "mobile": "9876543210"\n  }\n}',
+            responseExample: '{\n  "isDuplicate": false,\n  "matchedRecords": []\n}',
+            status: "active",
+            tags: ["customer", "dedupe"],
+            rateLimit: 50,
+            timeout: 30000
+          },
+          {
+            id: "ckyc-search",
+            name: "CKYC Search",
+            method: "GET",
+            path: "/api/sandbox/customer/ckyc/search",
+            category: "Customer",
+            description: "Search Central KYC registry for customer information",
+            summary: "Central KYC search service",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [
+              { name: "ckycNumber", type: "string", required: true, description: "CKYC number", example: "12345678901234" }
+            ],
+            pathParameters: [],
+            bodyParameters: [],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "CKYC data retrieved",
+                schema: '{"ckycData": "object", "status": "string"}',
+                example: '{"ckycData": {"name": "John Doe", "status": "verified"}, "status": "found"}'
+              }
+            ],
+            requestExample: 'GET /api/sandbox/customer/ckyc/search?ckycNumber=12345678901234',
+            responseExample: '{\n  "ckycData": {\n    "name": "John Doe",\n    "status": "verified"\n  },\n  "status": "found"\n}',
+            status: "active",
+            tags: ["customer", "kyc"],
+            rateLimit: 100,
+            timeout: 30000
+          },
+          {
+            id: "customer-image-upload",
+            name: "Customer Image Upload",
+            method: "POST",
+            path: "/api/sandbox/customer/image/upload",
+            category: "Customer",
+            description: "Upload customer images for profile and KYC documentation",
+            summary: "Upload customer images",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
+              { name: "imageType", type: "string", required: true, description: "Type of image", example: "profile" },
+              { name: "imageData", type: "string", required: true, description: "Base64 encoded image", example: "data:image/jpeg;base64,..." }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Image uploaded successfully",
+                schema: '{"imageId": "string", "status": "string"}',
+                example: '{"imageId": "IMG123456", "status": "uploaded"}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456",\n  "imageType": "profile",\n  "imageData": "data:image/jpeg;base64,..."\n}',
+            responseExample: '{\n  "imageId": "IMG123456",\n  "status": "uploaded"\n}',
+            status: "active",
+            tags: ["customer", "image"],
+            rateLimit: 25,
+            timeout: 30000
+          },
+          {
+            id: "posidex-fetch-ucic",
+            name: "Posidex Fetch UCIC",
+            method: "POST",
+            path: "/api/sandbox/customer/posidex/ucic",
+            category: "Customer",
+            description: "Fetch Unique Customer Identification Code from Posidex system",
+            summary: "Fetch UCIC from Posidex",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerDetails", type: "object", required: true, description: "Customer details", example: '{"name": "John Doe", "pan": "ABCDE1234F"}' }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "UCIC fetched successfully",
+                schema: '{"ucic": "string", "status": "string"}',
+                example: '{"ucic": "UC123456789", "status": "found"}'
+              }
+            ],
+            requestExample: '{\n  "customerDetails": {\n    "name": "John Doe",\n    "pan": "ABCDE1234F"\n  }\n}',
+            responseExample: '{\n  "ucic": "UC123456789",\n  "status": "found"\n}',
+            status: "active",
+            tags: ["customer", "posidex"],
+            rateLimit: 50,
+            timeout: 30000
+          },
+          {
+            id: "update-customer-details",
+            name: "Update Customer Details",
+            method: "PUT",
+            path: "/api/sandbox/customer/update",
+            category: "Customer",
+            description: "Update existing customer information and profile details",
+            summary: "Update customer details",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
+              { name: "updates", type: "object", required: true, description: "Fields to update", example: '{"mobile": "9876543210", "email": "john@example.com"}' }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Customer updated successfully",
+                schema: '{"customerID": "string", "status": "string"}',
+                example: '{"customerID": "CUST123456", "status": "updated"}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456",\n  "updates": {\n    "mobile": "9876543210",\n    "email": "john@example.com"\n  }\n}',
+            responseExample: '{\n  "customerID": "CUST123456",\n  "status": "updated"\n}',
+            status: "active",
+            tags: ["customer", "update"],
+            rateLimit: 100,
+            timeout: 30000
+          },
+          {
+            id: "aadhar-vault-insert",
+            name: "Aadhar Vault Insert",
+            method: "POST",
+            path: "/api/sandbox/customer/aadhar/vault/insert",
+            category: "Customer",
+            description: "Securely store Aadhar information in encrypted vault",
+            summary: "Insert Aadhar data in vault",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
+              { name: "aadharData", type: "object", required: true, description: "Aadhar information", example: '{"number": "XXXX-XXXX-1234", "name": "John Doe"}' }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Aadhar data stored securely",
+                schema: '{"vaultId": "string", "status": "string"}',
+                example: '{"vaultId": "VAULT123456", "status": "stored"}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456",\n  "aadharData": {\n    "number": "XXXX-XXXX-1234",\n    "name": "John Doe"\n  }\n}',
+            responseExample: '{\n  "vaultId": "VAULT123456",\n  "status": "stored"\n}',
+            status: "active",
+            tags: ["customer", "aadhar"],
+            rateLimit: 25,
+            timeout: 30000
+          },
+          {
+            id: "aadhar-vault-get",
+            name: "Aadhar Vault Get",
+            method: "GET",
+            path: "/api/sandbox/customer/aadhar/vault/get",
+            category: "Customer",
+            description: "Retrieve Aadhar information from secure vault",
+            summary: "Get Aadhar data from vault",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" }
+            ],
+            pathParameters: [],
+            bodyParameters: [],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Aadhar data retrieved",
+                schema: '{"aadharData": "object", "status": "string"}',
+                example: '{"aadharData": {"maskedNumber": "XXXX-XXXX-1234"}, "status": "retrieved"}'
+              }
+            ],
+            requestExample: 'GET /api/sandbox/customer/aadhar/vault/get?customerID=CUST123456',
+            responseExample: '{\n  "aadharData": {\n    "maskedNumber": "XXXX-XXXX-1234"\n  },\n  "status": "retrieved"\n}',
+            status: "active",
+            tags: ["customer", "aadhar"],
+            rateLimit: 50,
+            timeout: 30000
+          },
+          {
+            id: "cibil-service",
+            name: "CIBIL Service",
+            method: "POST",
+            path: "/api/sandbox/customer/cibil/report",
+            category: "Customer",
+            description: "Fetch customer credit report from CIBIL bureau",
+            summary: "Get CIBIL credit report",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
+              { name: "consentFlag", type: "boolean", required: true, description: "Customer consent", example: "true" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "CIBIL report retrieved",
+                schema: '{"cibilScore": "number", "reportData": "object"}',
+                example: '{"cibilScore": 750, "reportData": {"status": "active"}}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456",\n  "consentFlag": true\n}',
+            responseExample: '{\n  "cibilScore": 750,\n  "reportData": {\n    "status": "active"\n  }\n}',
+            status: "active",
+            tags: ["customer", "cibil"],
+            rateLimit: 25,
+            timeout: 30000
+          },
+          // Loans APIs (6 APIs total)
           {
             id: "loan-application",
             name: "Loan Application",
@@ -326,6 +601,180 @@ export default function AdminPanel() {
             status: "active",
             tags: ["loans", "application"],
             rateLimit: 50,
+            timeout: 30000
+          },
+          {
+            id: "loan-status",
+            name: "Loan Status",
+            method: "GET",
+            path: "/api/sandbox/loan/status",
+            category: "Loans",
+            description: "Check the current status of a loan application",
+            summary: "Get loan application status",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [
+              { name: "applicationId", type: "string", required: true, description: "Loan application ID", example: "LA123456" }
+            ],
+            pathParameters: [],
+            bodyParameters: [],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Loan status retrieved",
+                schema: '{"applicationId": "string", "status": "string", "stage": "string"}',
+                example: '{"applicationId": "LA123456", "status": "approved", "stage": "documentation"}'
+              }
+            ],
+            requestExample: 'GET /api/sandbox/loan/status?applicationId=LA123456',
+            responseExample: '{\n  "applicationId": "LA123456",\n  "status": "approved",\n  "stage": "documentation"\n}',
+            status: "active",
+            tags: ["loans", "status"],
+            rateLimit: 100,
+            timeout: 30000
+          },
+          {
+            id: "emi-calculator",
+            name: "EMI Calculator",
+            method: "POST",
+            path: "/api/sandbox/loan/emi/calculate",
+            category: "Loans",
+            description: "Calculate EMI for loan amount, tenure and interest rate",
+            summary: "Calculate loan EMI",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "loanAmount", type: "number", required: true, description: "Loan amount", example: "500000" },
+              { name: "tenure", type: "number", required: true, description: "Loan tenure in months", example: "60" },
+              { name: "interestRate", type: "number", required: true, description: "Annual interest rate", example: "8.5" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "EMI calculated successfully",
+                schema: '{"emi": "number", "totalAmount": "number", "totalInterest": "number"}',
+                example: '{"emi": 10137, "totalAmount": 608220, "totalInterest": 108220}'
+              }
+            ],
+            requestExample: '{\n  "loanAmount": 500000,\n  "tenure": 60,\n  "interestRate": 8.5\n}',
+            responseExample: '{\n  "emi": 10137,\n  "totalAmount": 608220,\n  "totalInterest": 108220\n}',
+            status: "active",
+            tags: ["loans", "emi"],
+            rateLimit: 200,
+            timeout: 30000
+          },
+          {
+            id: "loan-prepayment",
+            name: "Loan Prepayment",
+            method: "POST",
+            path: "/api/sandbox/loan/prepayment",
+            category: "Loans",
+            description: "Process partial or full prepayment of existing loan",
+            summary: "Process loan prepayment",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "loanId", type: "string", required: true, description: "Loan ID", example: "LOAN123456" },
+              { name: "prepaymentAmount", type: "number", required: true, description: "Prepayment amount", example: "100000" },
+              { name: "prepaymentType", type: "string", required: true, description: "Prepayment type", example: "partial" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Prepayment processed",
+                schema: '{"transactionId": "string", "newOutstanding": "number", "status": "string"}',
+                example: '{"transactionId": "TXN123456", "newOutstanding": 400000, "status": "processed"}'
+              }
+            ],
+            requestExample: '{\n  "loanId": "LOAN123456",\n  "prepaymentAmount": 100000,\n  "prepaymentType": "partial"\n}',
+            responseExample: '{\n  "transactionId": "TXN123456",\n  "newOutstanding": 400000,\n  "status": "processed"\n}',
+            status: "active",
+            tags: ["loans", "prepayment"],
+            rateLimit: 50,
+            timeout: 30000
+          },
+          {
+            id: "loan-documents",
+            name: "Loan Documents",
+            method: "GET",
+            path: "/api/sandbox/loan/documents",
+            category: "Loans",
+            description: "Retrieve loan agreement and related documents",
+            summary: "Get loan documents",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [
+              { name: "loanId", type: "string", required: true, description: "Loan ID", example: "LOAN123456" }
+            ],
+            pathParameters: [],
+            bodyParameters: [],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Documents retrieved",
+                schema: '{"documents": "array", "loanId": "string"}',
+                example: '{"documents": [{"type": "agreement", "url": "https://..."}], "loanId": "LOAN123456"}'
+              }
+            ],
+            requestExample: 'GET /api/sandbox/loan/documents?loanId=LOAN123456',
+            responseExample: '{\n  "documents": [\n    {\n      "type": "agreement",\n      "url": "https://..."\n    }\n  ],\n  "loanId": "LOAN123456"\n}',
+            status: "active",
+            tags: ["loans", "documents"],
+            rateLimit: 100,
+            timeout: 30000
+          },
+          {
+            id: "loan-eligibility",
+            name: "Loan Eligibility",
+            method: "POST",
+            path: "/api/sandbox/loan/eligibility",
+            category: "Loans",
+            description: "Check customer eligibility for different loan products",
+            summary: "Check loan eligibility",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
+              { name: "loanType", type: "string", required: true, description: "Type of loan", example: "personal" },
+              { name: "income", type: "number", required: true, description: "Monthly income", example: "50000" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Eligibility checked",
+                schema: '{"eligible": "boolean", "maxAmount": "number", "interestRate": "number"}',
+                example: '{"eligible": true, "maxAmount": 1000000, "interestRate": 8.5}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456",\n  "loanType": "personal",\n  "income": 50000\n}',
+            responseExample: '{\n  "eligible": true,\n  "maxAmount": 1000000,\n  "interestRate": 8.5\n}',
+            status: "active",
+            tags: ["loans", "eligibility"],
+            rateLimit: 100,
             timeout: 30000
           },
           // Cards APIs
@@ -518,6 +967,8 @@ export default function AdminPanel() {
         setApis(allApisForAdmin);
         
         console.log('🔧 ADMIN - Processed', allCategoriesForAdmin.length, 'total categories (', adminCategories.length, 'hierarchical +', originalCategories.length, 'original) and', allApisForAdmin.length, 'total APIs (', allApis.length, 'hierarchical +', originalApis.length, 'original)');
+        console.log('🔧 ADMIN - Customer APIs:', allApisForAdmin.filter(api => api.category === 'Customer').length);
+        console.log('🔧 ADMIN - Loans APIs:', allApisForAdmin.filter(api => api.category === 'Loans').length);
         
         toast({
           title: "All Categories & APIs Loaded",
