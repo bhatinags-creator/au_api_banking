@@ -6,15 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, CreditCard, Shield, ArrowLeft, Play, Copy } from "lucide-react";
+import { Building2, CreditCard, Shield, ArrowLeft, Play, Copy, Database, Settings } from "lucide-react";
 import { Link } from "wouter";
 import { ApiEndpoint } from "@shared/schema";
 
 const categoryIcons = {
   auth: Shield,
+  authentication: Shield,
   accounts: Building2,
   payments: CreditCard,
+  "digital payments": CreditCard,
   kyc: Shield,
+  test: Settings,
+  database: Database,
 };
 
 const categoryColors = {
@@ -41,7 +45,7 @@ export default function ApiExplorer() {
   });
   
   const categories = categoriesData.length > 0 
-    ? categoriesData.map((cat: any) => cat.name.toLowerCase()) 
+    ? (categoriesData as any[]).map((cat: any) => cat.name.toLowerCase()) 
     : ["auth", "accounts", "payments", "kyc"];
   
   const filteredEndpoints = endpoints.filter((endpoint: ApiEndpoint) => 
@@ -160,8 +164,8 @@ export default function ApiExplorer() {
                 API Categories
               </h2>
               <div className="space-y-2">
-                {categories.map((category) => {
-                  const Icon = categoryIcons[category as keyof typeof categoryIcons];
+                {categories.map((category: string) => {
+                  const Icon = categoryIcons[category as keyof typeof categoryIcons] || Database;
                   return (
                     <button
                       key={category}
