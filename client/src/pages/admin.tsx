@@ -254,16 +254,274 @@ export default function AdminPanel() {
           }
         ];
 
+        // Add APIs for the original static categories
+        const originalApis: APIEndpoint[] = [
+          // Customer APIs
+          {
+            id: "customer-360-service",
+            name: "Customer 360 Service",
+            method: "POST",
+            path: "/api/sandbox/customer360service",
+            category: "Customer",
+            description: "Comprehensive customer information API providing complete customer profile, account details, and relationship information",
+            summary: "Get complete customer profile data",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer identification number", example: "CUST123456" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token for authentication", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type header", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Customer profile retrieved successfully",
+                schema: '{"customerBasicInquiry": {}, "accountDetails": [], "transactionStatus": {}}',
+                example: '{"customerBasicInquiry": {"customerID": "CUST123456", "customerName": "John Doe"}}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456"\n}',
+            responseExample: '{\n  "customerBasicInquiry": {\n    "customerID": "CUST123456",\n    "customerName": "John Doe"\n  }\n}',
+            status: "active",
+            tags: ["customer", "profile"],
+            rateLimit: 100,
+            timeout: 30000
+          },
+          // Loans APIs
+          {
+            id: "loan-application",
+            name: "Loan Application",
+            method: "POST",
+            path: "/api/sandbox/loan/application",
+            category: "Loans",
+            description: "Submit new loan application with customer details and loan requirements",
+            summary: "Submit loan application",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
+              { name: "loanAmount", type: "number", required: true, description: "Loan amount", example: "500000" },
+              { name: "loanType", type: "string", required: true, description: "Type of loan", example: "personal" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Loan application submitted successfully",
+                schema: '{"applicationId": "string", "status": "string"}',
+                example: '{"applicationId": "LA123456", "status": "submitted"}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456",\n  "loanAmount": 500000,\n  "loanType": "personal"\n}',
+            responseExample: '{\n  "applicationId": "LA123456",\n  "status": "submitted"\n}',
+            status: "active",
+            tags: ["loans", "application"],
+            rateLimit: 50,
+            timeout: 30000
+          },
+          // Cards APIs
+          {
+            id: "card-application",
+            name: "Card Application",
+            method: "POST",
+            path: "/api/sandbox/cards/application",
+            category: "Cards",
+            description: "Apply for a new credit or debit card",
+            summary: "Apply for new card",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "customerID", type: "string", required: true, description: "Customer ID", example: "CUST123456" },
+              { name: "cardType", type: "string", required: true, description: "Type of card", example: "credit" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Card application submitted",
+                schema: '{"applicationId": "string", "cardType": "string"}',
+                example: '{"applicationId": "CA123456", "cardType": "credit"}'
+              }
+            ],
+            requestExample: '{\n  "customerID": "CUST123456",\n  "cardType": "credit"\n}',
+            responseExample: '{\n  "applicationId": "CA123456",\n  "cardType": "credit"\n}',
+            status: "active",
+            tags: ["cards", "application"],
+            rateLimit: 100,
+            timeout: 30000
+          },
+          // Payments APIs
+          {
+            id: "cnb-payment",
+            name: "CNB Payment",
+            method: "POST",
+            path: "/api/sandbox/payments/cnb",
+            category: "Payments",
+            description: "Process corporate banking payments through CNB system",
+            summary: "Process CNB payment",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "amount", type: "number", required: true, description: "Payment amount", example: "10000" },
+              { name: "beneficiaryAccount", type: "string", required: true, description: "Beneficiary account number", example: "1234567890" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Payment processed successfully",
+                schema: '{"transactionId": "string", "status": "string"}',
+                example: '{"transactionId": "TXN123456", "status": "success"}'
+              }
+            ],
+            requestExample: '{\n  "amount": 10000,\n  "beneficiaryAccount": "1234567890"\n}',
+            responseExample: '{\n  "transactionId": "TXN123456",\n  "status": "success"\n}',
+            status: "active",
+            tags: ["payments", "cnb"],
+            rateLimit: 100,
+            timeout: 30000
+          },
+          // Liabilities APIs
+          {
+            id: "account-balance",
+            name: "Account Balance",
+            method: "GET",
+            path: "/api/sandbox/accounts/balance",
+            category: "Liabilities",
+            description: "Get current account balance for a customer account",
+            summary: "Get account balance",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [
+              { name: "accountNumber", type: "string", required: true, description: "Account number", example: "1234567890" }
+            ],
+            pathParameters: [],
+            bodyParameters: [],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Account balance retrieved",
+                schema: '{"accountNumber": "string", "balance": "number", "currency": "string"}',
+                example: '{"accountNumber": "1234567890", "balance": 50000, "currency": "INR"}'
+              }
+            ],
+            requestExample: 'GET /api/sandbox/accounts/balance?accountNumber=1234567890',
+            responseExample: '{\n  "accountNumber": "1234567890",\n  "balance": 50000,\n  "currency": "INR"\n}',
+            status: "active",
+            tags: ["accounts", "balance"],
+            rateLimit: 200,
+            timeout: 30000
+          },
+          // Trade Services APIs
+          {
+            id: "letter-of-credit",
+            name: "Letter of Credit",
+            method: "POST",
+            path: "/api/sandbox/trade/letter-of-credit",
+            category: "Trade Services",
+            description: "Create and manage letters of credit for international trade",
+            summary: "Create letter of credit",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "amount", type: "number", required: true, description: "LC amount", example: "100000" },
+              { name: "beneficiary", type: "string", required: true, description: "Beneficiary name", example: "ABC Corp" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Letter of credit created",
+                schema: '{"lcNumber": "string", "status": "string"}',
+                example: '{"lcNumber": "LC123456", "status": "issued"}'
+              }
+            ],
+            requestExample: '{\n  "amount": 100000,\n  "beneficiary": "ABC Corp"\n}',
+            responseExample: '{\n  "lcNumber": "LC123456",\n  "status": "issued"\n}',
+            status: "active",
+            tags: ["trade", "lc"],
+            rateLimit: 50,
+            timeout: 30000
+          },
+          // Corporate APIs
+          {
+            id: "corporate-onboard",
+            name: "Corporate Onboarding",
+            method: "POST",
+            path: "/api/sandbox/corporate/onboard",
+            category: "Corporate API Suite",
+            description: "Onboard new corporate clients with KYC and account setup",
+            summary: "Onboard corporate client",
+            requiresAuth: true,
+            authType: "bearer",
+            queryParameters: [],
+            pathParameters: [],
+            bodyParameters: [
+              { name: "companyName", type: "string", required: true, description: "Company name", example: "ABC Corp Ltd" },
+              { name: "businessType", type: "string", required: true, description: "Business type", example: "manufacturing" }
+            ],
+            headers: [
+              { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJ..." },
+              { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+            ],
+            responses: [
+              {
+                statusCode: 200,
+                description: "Corporate client onboarded",
+                schema: '{"clientId": "string", "status": "string"}',
+                example: '{"clientId": "CORP123456", "status": "onboarded"}'
+              }
+            ],
+            requestExample: '{\n  "companyName": "ABC Corp Ltd",\n  "businessType": "manufacturing"\n}',
+            responseExample: '{\n  "clientId": "CORP123456",\n  "status": "onboarded"\n}',
+            status: "active",
+            tags: ["corporate", "onboarding"],
+            rateLimit: 25,
+            timeout: 30000
+          }
+        ];
+
         // Combine hierarchical categories with original static categories
         const allCategoriesForAdmin = [...adminCategories, ...originalCategories];
-        setCategories(allCategoriesForAdmin);
-        setApis(allApis);
         
-        console.log('🔧 ADMIN - Processed', allCategoriesForAdmin.length, 'total categories (', adminCategories.length, 'hierarchical +', originalCategories.length, 'original) and', allApis.length, 'APIs');
+        // Combine hierarchical APIs with original static APIs
+        const allApisForAdmin = [...allApis, ...originalApis];
+        
+        setCategories(allCategoriesForAdmin);
+        setApis(allApisForAdmin);
+        
+        console.log('🔧 ADMIN - Processed', allCategoriesForAdmin.length, 'total categories (', adminCategories.length, 'hierarchical +', originalCategories.length, 'original) and', allApisForAdmin.length, 'total APIs (', allApis.length, 'hierarchical +', originalApis.length, 'original)');
         
         toast({
-          title: "All Categories Loaded",
-          description: `Loaded ${allCategoriesForAdmin.length} categories (${adminCategories.length} hierarchical + ${originalCategories.length} original) with ${allApis.length} APIs`
+          title: "All Categories & APIs Loaded",
+          description: `Loaded ${allCategoriesForAdmin.length} categories with ${allApisForAdmin.length} APIs total`
         });
         
         return;
