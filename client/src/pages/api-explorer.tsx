@@ -29,7 +29,7 @@ const categoryColors = {
 };
 
 export default function ApiExplorer() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("accounts");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint | null>(null);
   const [requestBody, setRequestBody] = useState("");
   const [apiKey, setApiKey] = useState("lEbnG39cJwC4lKUe5fliVA9HFcyR");
@@ -47,9 +47,16 @@ export default function ApiExplorer() {
   const categories = categoriesData.length > 0 
     ? categoriesData.map((cat: any) => cat.name.toLowerCase()) 
     : ["auth", "accounts", "payments", "kyc"];
+
+  // Initialize selectedCategory with the first available category
+  React.useEffect(() => {
+    if (categories.length > 0 && !selectedCategory) {
+      setSelectedCategory(categories[0]);
+    }
+  }, [categories, selectedCategory]);
   
   const filteredEndpoints = endpoints.filter((endpoint: ApiEndpoint) => 
-    endpoint.category === selectedCategory
+    endpoint.category?.toLowerCase() === selectedCategory
   );
 
   // Set sample request body when endpoint changes
