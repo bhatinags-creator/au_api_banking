@@ -421,27 +421,113 @@ export default function AdminPanel() {
     toast({ title: "API Deleted", description: "API endpoint has been removed" });
   };
 
-  // Category Management Functions
-  const handleSaveCategory = (categoryData: Partial<APICategory>) => {
-    if (editingCategory) {
-      setCategories(categories.map(cat => cat.id === editingCategory.id ? { ...cat, ...categoryData } : cat));
-      toast({ title: "Category Updated", description: "API category has been updated" });
-    } else {
-      const newCategory: APICategory = {
-        ...categoryData as APICategory,
-        id: Date.now().toString(),
-        endpoints: []
-      };
-      setCategories([...categories, newCategory]);
-      toast({ title: "Category Created", description: "New API category has been created" });
+  // Category Management Functions - Production Ready with Backend API
+  const handleSaveCategory = async (categoryData: Partial<APICategory>) => {
+    try {
+      if (editingCategory) {
+        // Update existing category via API
+        const response = await fetch(`/api/admin/categories/${editingCategory.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: categoryData.name,
+            description: categoryData.description,
+            icon: categoryData.icon,
+            color: categoryData.color,
+            displayOrder: editingCategory.endpoints?.length || 0,
+            isActive: true
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to update category');
+        }
+        
+        const categoryResponse = await response.json();
+        setCategories(categories.map(cat => cat.id === editingCategory.id ? {
+          ...cat,
+          name: categoryResponse.name,
+          description: categoryResponse.description,
+          icon: categoryResponse.icon,
+          color: categoryResponse.color
+        } : cat));
+        toast({ title: "Category Updated", description: "API category has been updated and will appear in the main portal" });
+      } else {
+        // Create new category via API
+        const response = await fetch('/api/admin/categories', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: categoryData.name,
+            description: categoryData.description,
+            icon: categoryData.icon || 'Database',
+            color: categoryData.color || '#603078',
+            displayOrder: categories.length + 1,
+            isActive: true
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to create category');
+        }
+        
+        const newCategoryData = await response.json();
+        const newCategory: APICategory = {
+          id: newCategoryData.id,
+          name: newCategoryData.name,
+          description: newCategoryData.description,
+          icon: newCategoryData.icon,
+          color: newCategoryData.color,
+          endpoints: []
+        };
+        setCategories([...categories, newCategory]);
+        toast({ title: "Category Created", description: "New API category has been created and is now live in the portal" });
+      }
+      
+      // Refresh the main portal data by reloading admin data
+      await loadAdminData();
+      
+    } catch (error) {
+      console.error('Error saving category:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to save category. Please try again.", 
+        variant: "destructive" 
+      });
     }
+    
     setEditingCategory(null);
     setShowCategoryDialog(false);
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
-    setCategories(categories.filter(cat => cat.id !== categoryId));
-    toast({ title: "Category Deleted", description: "API category has been removed" });
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      const response = await fetch(`/api/admin/categories/${categoryId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete category');
+      }
+      
+      setCategories(categories.filter(cat => cat.id !== categoryId));
+      toast({ title: "Category Deleted", description: "API category has been permanently removed from the portal" });
+      
+      // Refresh the main portal data
+      await loadAdminData();
+      
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete category. Please try again.", 
+        variant: "destructive" 
+      });
+    }
   };
 
   // Admin Authentication Screen
