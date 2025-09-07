@@ -58,6 +58,7 @@ function Router() {
       <Route path="/register" component={CorporateRegistration} />
       <Route path="/docs" component={APIDocs} />
       <Route path="/sandbox" component={Sandbox} />
+      <Route path="/admin" component={AdminPanel} />
       <Route path="/" component={Home} />
       
       {/* Protected routes - auth check only when accessed */}
@@ -69,9 +70,6 @@ function Router() {
       </Route>
       <Route path="/analytics">
         {() => <ProtectedRoute component={Analytics} />}
-      </Route>
-      <Route path="/admin">
-        {() => <ProtectedRoute component={AdminPanel} />}
       </Route>
       
       <Route component={NotFound} />
