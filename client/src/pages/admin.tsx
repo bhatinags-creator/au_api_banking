@@ -1313,6 +1313,7 @@ export default function AdminPanel() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify(apiData),
         });
 
@@ -1336,6 +1337,7 @@ export default function AdminPanel() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify({
             ...apiData,
             status: 'active'
@@ -1373,6 +1375,7 @@ export default function AdminPanel() {
     try {
       const response = await fetch(`/api/admin/apis/${apiId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -1949,7 +1952,9 @@ export default function AdminPanel() {
                                 e.stopPropagation();
                                 // Load fresh API data from database
                                 try {
-                                  const response = await fetch(`/api/admin/apis/${api.id}`);
+                                  const response = await fetch(`/api/admin/apis/${api.id}`, {
+                                    credentials: 'include'
+                                  });
                                   if (response.ok) {
                                     const freshApiData = await response.json();
                                     // Transform database structure to component structure
