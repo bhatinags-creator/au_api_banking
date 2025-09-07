@@ -951,7 +951,7 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {apiCategories.map((category, index) => {
+              {(dynamicApiCategories.length > 0 ? dynamicApiCategories : apiCategories).map((category, index) => {
                 const IconComponent = category.icon;
                 return (
                   <Card key={index} className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-2">
