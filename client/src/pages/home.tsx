@@ -804,13 +804,14 @@ export default function Home() {
                 >
                   Clear Search
                 </Button>
-                <Button 
-                  size="lg" 
-                  className="bg-primary hover:bg-primary/90"
-                  onClick={() => document.getElementById('apis')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Browse All APIs
-                </Button>
+                <Link href="/docs">
+                  <Button 
+                    size="lg" 
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Browse All APIs
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
@@ -871,7 +872,7 @@ export default function Home() {
             </div>
             
             <div className="text-center mt-12">
-              <Link href="/api-docs">
+              <Link href="/docs">
                 <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
                   BROWSE ALL APIs
                 </Button>
