@@ -86,103 +86,7 @@ const heroSlides = [
   }
 ];
 
-const apiCategories = [
-  {
-    icon: Shield,
-    title: "Customer",
-    description: "Essential APIs for integrating with core banking services. Run checks and validations using fundamental APIs such as KYC verification, account validation, and identity checks.",
-    color: "text-blue-600",
-    apiCount: 9,
-    apis: [
-      { name: "Customer 360 Service", method: "POST", endpoint: "/customer360service" },
-      { name: "Customer Dedupe", method: "POST", endpoint: "/customerdedupe" },
-      { name: "CKYC Search", method: "POST", endpoint: "/CKYCSearch" },
-      { name: "Customer Image Upload", method: "POST", endpoint: "/CustomerImageMnt" },
-      { name: "POSIDEX - Fetch UCIC", method: "POST", endpoint: "/fetchUcic" },
-      { name: "Update Customer Details", method: "POST", endpoint: "/UpdateCustomerDetails" },
-      { name: "Aadhar Vault - Insert Token", method: "POST", endpoint: "/insertToken" },
-      { name: "Aadhar Vault - Get Value", method: "GET", endpoint: "/getValue" },
-      { name: "CIBIL Service", method: "POST", endpoint: "/ConsumerCIBILService" }
-    ]
-  },
-  {
-    icon: CreditCard,
-    title: "Loans",
-    description: "Comprehensive loan management APIs for personal loans, home loans, and business financing with automated approval workflows and real-time status tracking.",
-    color: "text-green-600",
-    apiCount: 6,
-    apis: [
-      { name: "Loan Application", method: "POST", endpoint: "/loan/apply" },
-      { name: "Loan Status Inquiry", method: "GET", endpoint: "/loan/status" },
-      { name: "EMI Calculator", method: "POST", endpoint: "/loan/emi-calculator" },
-      { name: "Loan Prepayment", method: "POST", endpoint: "/loan/prepayment" },
-      { name: "Document Upload", method: "POST", endpoint: "/loan/documents" },
-      { name: "Eligibility Check", method: "POST", endpoint: "/loan/eligibility" }
-    ]
-  },
-  {
-    icon: Database,
-    title: "Liabilities",
-    description: "Enable customers to invest and bank with you by integrating savings accounts, corporate accounts, fixed deposits, and recurring deposit services.",
-    color: "text-purple-600",
-    apiCount: 7,
-    apis: [
-      { name: "Account Balance Inquiry", method: "GET", endpoint: "/account/balance" },
-      { name: "Account Transaction History", method: "GET", endpoint: "/account/transactions" },
-      { name: "Fixed Deposit Creation", method: "POST", endpoint: "/fd/create" },
-      { name: "FD Maturity Details", method: "GET", endpoint: "/fd/maturity" },
-      { name: "Recurring Deposit", method: "POST", endpoint: "/rd/create" },
-      { name: "Account Statement", method: "GET", endpoint: "/account/statement" },
-      { name: "Interest Calculation", method: "POST", endpoint: "/account/interest" }
-    ]
-  },
-  {
-    icon: Building2,
-    title: "Cards",
-    description: "Empower your corporate banking with seamless APIs for credit card management, debit card services, and card transaction processing.",
-    color: "text-orange-600",
-    apiCount: 8,
-    apis: [
-      { name: "Card Application", method: "POST", endpoint: "/card/apply" },
-      { name: "Card Status Inquiry", method: "GET", endpoint: "/card/status" },
-      { name: "Card Block/Unblock", method: "PUT", endpoint: "/card/block-unblock" },
-      { name: "Card Transaction History", method: "GET", endpoint: "/card/transactions" },
-      { name: "Card PIN Services", method: "POST", endpoint: "/card/pin" },
-      { name: "Card Limit Management", method: "PUT", endpoint: "/card/limit" },
-      { name: "Virtual Card Creation", method: "POST", endpoint: "/card/virtual" },
-      { name: "Card Rewards Inquiry", method: "GET", endpoint: "/card/rewards" }
-    ]
-  },
-  {
-    icon: FileCheck,
-    title: "Trade Services",
-    description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
-    color: "text-pink-600",
-    apiCount: 5,
-    apis: [
-      { name: "Letter of Credit", method: "POST", endpoint: "/trade/lc" },
-      { name: "Bank Guarantee", method: "POST", endpoint: "/trade/bg" },
-      { name: "Export Financing", method: "POST", endpoint: "/trade/export-finance" },
-      { name: "Import Financing", method: "POST", endpoint: "/trade/import-finance" },
-      { name: "Trade Document Processing", method: "POST", endpoint: "/trade/documents" }
-    ]
-  },
-  {
-    icon: Layers,
-    title: "Corporate API Suite",
-    description: "A curated collection of APIs specially selected to cater to evolving corporate client needs, studied after careful analysis of corporate journeys.",
-    color: "text-indigo-600",
-    apiCount: 6,
-    apis: [
-      { name: "Corporate Onboarding", method: "POST", endpoint: "/corporate/onboard" },
-      { name: "Bulk Payment Processing", method: "POST", endpoint: "/corporate/bulk-payments" },
-      { name: "Virtual Account Management", method: "POST", endpoint: "/corporate/vam" },
-      { name: "Corporate Account Opening", method: "POST", endpoint: "/corporate/account" },
-      { name: "Cash Management Services", method: "GET", endpoint: "/corporate/cash-mgmt" },
-      { name: "Reconciliation Services", method: "POST", endpoint: "/corporate/reconciliation" }
-    ]
-  }
-];
+// Hardcoded categories removed - now using only database data
 
 const featuredApis = [
   {
@@ -253,7 +157,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
-  const [dynamicApiCategories, setDynamicApiCategories] = useState(apiCategories);
+  const [dynamicApiCategories, setDynamicApiCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -300,40 +204,28 @@ export default function Home() {
             console.log('✅ NEW HIERARCHICAL CATEGORIES:', transformedCategories.map(c => c.title));
             setDynamicApiCategories(transformedCategories);
           } else {
-            // Fallback: try to map individual arrays
-            const categoryApiCounts = new Map();
-            backendApis.forEach((api: any) => {
-              const count = categoryApiCounts.get(api.category) || 0;
-              categoryApiCounts.set(api.category, count + 1);
-            });
-            
-            const updatedCategories = apiCategories.map(category => {
-              const backendCategory = backendCategories.find((bc: any) => bc.name === category.title);
-              const apiCount = categoryApiCounts.get(category.title) || category.apiCount;
-              
-              if (backendCategory) {
-                return {
-                  ...category,
-                  description: backendCategory.description || category.description,
-                  apiCount: apiCount,
-                  apis: backendApis
-                    .filter((api: any) => api.category === category.title)
-                    .map((api: any) => ({
-                      name: api.name,
-                      method: api.method,
-                      endpoint: api.path
-                    }))
-                    .slice(0, 9)
-                };
-              }
+            // If no hierarchical data but we have categories and APIs, create structure
+            const transformedCategories = backendCategories.map((backendCategory: any) => {
+              const categoryApis = backendApis.filter((api: any) => 
+                api.categoryId === backendCategory.id || api.category === backendCategory.name
+              );
               
               return {
-                ...category,
-                apiCount: apiCount
+                icon: getIconComponent(backendCategory.icon),
+                title: backendCategory.name,
+                description: backendCategory.description,
+                color: mapColorToTailwind(backendCategory.color),
+                apiCount: categoryApis.length,
+                apis: categoryApis.map((api: any) => ({
+                  name: api.name,
+                  method: api.method,
+                  endpoint: api.path,
+                  description: api.description
+                }))
               };
             });
             
-            setDynamicApiCategories(updatedCategories);
+            setDynamicApiCategories(transformedCategories);
           }
         } else {
           console.warn('Failed to load backend data, using fallback static data');
@@ -601,7 +493,7 @@ export default function Home() {
                         API
                       </Badge>
                     )}
-                    {apiCategories.some(cat => cat.title === suggestion) && (
+                    {dynamicApiCategories.some(cat => cat.title === suggestion) && (
                       <Badge variant="outline" className="ml-auto text-xs bg-blue-50 text-blue-600">
                         Category
                       </Badge>
@@ -951,7 +843,7 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {apiCategories.map((category, index) => {
+              {dynamicApiCategories.map((category, index) => {
                 const IconComponent = category.icon;
                 return (
                   <Card key={index} className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-2">
