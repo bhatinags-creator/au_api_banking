@@ -215,15 +215,22 @@ export default function AdminPanel() {
       const categoriesResponse = await fetch('/api/categories');
       if (categoriesResponse.ok) {
         const hierarchicalData = await categoriesResponse.json();
+        console.log('🔧 ADMIN - Loaded', hierarchicalData.length, 'categories from categories endpoint');
+        console.log('🔧 ADMIN - Category data:', hierarchicalData);
+        
         const adminCategories: APICategory[] = hierarchicalData.map((cat: any) => ({
           id: cat.id,
           name: cat.name,
           description: cat.description,
-          icon: cat.icon,
-          color: cat.color,
+          icon: cat.icon || 'Database',
+          color: cat.color || '#603078',
           endpoints: cat.apis ? cat.apis.map((api: any) => api.id) : []
         }));
         setCategories(adminCategories);
+        console.log('🔧 ADMIN - Processed', adminCategories.length, 'categories for admin panel');
+      } else {
+        console.log('🔧 ADMIN - Categories API failed');
+        setCategories([]);
       }
       
       // Set default users
@@ -711,7 +718,24 @@ export default function AdminPanel() {
                       </tr>
                     </thead>
                     <tbody>
-                      {apis.map((api) => (
+                      {apis.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                            <div className="flex flex-col items-center space-y-2">
+                              <Database className="w-8 h-8" />
+                              <p>No APIs found. Data loading: {apis.length} APIs in state</p>
+                              <Button 
+                                variant="outline" 
+                                onClick={loadAdminData}
+                                className="mt-2"
+                              >
+                                Refresh Data
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        apis.map((api) => (
                         <tr key={api.id} className="border-b hover:bg-muted/25">
                           <td className="p-4">
                             <div>
@@ -763,7 +787,8 @@ export default function AdminPanel() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
