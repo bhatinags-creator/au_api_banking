@@ -1122,17 +1122,6 @@ export default function AdminPanel() {
           title: "All Categories & APIs Loaded",
           description: `Loaded ${allCategoriesForAdmin.length} categories with ${allApisForAdmin.length} APIs total`
         });
-        
-        return;
-      }
-    } catch (error) {
-      console.error('🔧 ADMIN - Error loading hierarchical data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load hierarchical data, using fallback",
-        variant: "destructive"
-      });
-    }
     
     // Fallback: Load minimal static data
     const realApiData: APIEndpoint[] = [];
