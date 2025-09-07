@@ -75,20 +75,45 @@ export const applications = pgTable("applications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// API Categories for organization
+export const apiCategories = pgTable("api_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull().default("Code"),
+  color: text("color").notNull().default("#603078"),
+  displayOrder: integer("display_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Enhanced API endpoints with production features
 export const apiEndpoints = pgTable("api_endpoints", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  category: text("category").notNull(),
+  categoryId: varchar("category_id").references(() => apiCategories.id),
+  category: text("category").notNull(), // Keep for backwards compatibility
   name: text("name").notNull(),
   path: text("path").notNull(),
   method: text("method").notNull(),
   description: text("description").notNull(),
+  summary: text("summary"),
   parameters: jsonb("parameters").default(sql`'[]'::jsonb`),
+  headers: jsonb("headers").default(sql`'[]'::jsonb`),
+  responses: jsonb("responses").default(sql`'[]'::jsonb`),
+  requestExample: text("request_example"),
+  responseExample: text("response_example"),
+  documentation: text("documentation"),
+  tags: jsonb("tags").default(sql`'[]'::jsonb`),
   responseSchema: jsonb("response_schema").default(sql`'{}'::jsonb`),
   rateLimits: jsonb("rate_limits").default(sql`'{"sandbox": 100, "uat": 500, "production": 1000}'::jsonb`),
+  timeout: integer("timeout").default(30000),
+  requiresAuth: boolean("requires_auth").notNull().default(true),
+  authType: text("auth_type").default("bearer"),
   requiredPermissions: jsonb("required_permissions").default(sql`'["sandbox"]'::jsonb`),
   isActive: boolean("is_active").notNull().default(true),
   isInternal: boolean("is_internal").notNull().default(true),
+  status: text("status").notNull().default("active"), // active, deprecated, draft
   version: text("version").notNull().default("v1"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -217,6 +242,22 @@ export const insertApiUsageSchema = createInsertSchema(apiUsage).omit({
   month: true,
 });
 
+export const insertApiCategorySchema = createInsertSchema(apiCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateApiCategorySchema = createInsertSchema(apiCategories).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const updateApiEndpointSchema = createInsertSchema(apiEndpoints).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
 // Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
@@ -232,6 +273,10 @@ export type Application = typeof applications.$inferSelect;
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type ApiEndpoint = typeof apiEndpoints.$inferSelect;
 export type InsertApiEndpoint = z.infer<typeof insertApiEndpointSchema>;
+export type ApiCategory = typeof apiCategories.$inferSelect;
+export type InsertApiCategory = z.infer<typeof insertApiCategorySchema>;
+export type UpdateApiCategory = z.infer<typeof updateApiCategorySchema>;
+export type UpdateApiEndpoint = z.infer<typeof updateApiEndpointSchema>;
 export type ApiUsage = typeof apiUsage.$inferSelect;
 export type InsertApiUsage = z.infer<typeof insertApiUsageSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;

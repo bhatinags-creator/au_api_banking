@@ -405,7 +405,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // API Endpoint management (admin only)
+  // Admin API and Category Management Routes
+  
+  // Categories management
+  app.get("/api/admin/categories", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const categories = await storage.getAllApiCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error('Get categories error:', error);
+      res.status(500).json({ error: "Failed to fetch categories" });
+    }
+  });
+
+  app.post("/api/admin/categories", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const categoryData = req.body;
+      const category = await storage.createApiCategory(categoryData);
+      
+      // Log category creation
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'category_created',
+        resource: 'api_category',
+        resourceId: category.id,
+        details: { name: category.name, description: category.description },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json(category);
+    } catch (error) {
+      console.error('Create category error:', error);
+      res.status(500).json({ error: "Failed to create category" });
+    }
+  });
+
+  app.put("/api/admin/categories/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const categoryId = req.params.id;
+      const categoryData = req.body;
+      const category = await storage.updateApiCategory(categoryId, categoryData);
+      
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      
+      // Log category update
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'category_updated',
+        resource: 'api_category',
+        resourceId: categoryId,
+        details: { name: category.name, changes: categoryData },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json(category);
+    } catch (error) {
+      console.error('Update category error:', error);
+      res.status(500).json({ error: "Failed to update category" });
+    }
+  });
+
+  app.delete("/api/admin/categories/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const categoryId = req.params.id;
+      const deleted = await storage.deleteApiCategory(categoryId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      
+      // Log category deletion
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'category_deleted',
+        resource: 'api_category',
+        resourceId: categoryId,
+        details: { categoryId },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error('Delete category error:', error);
+      res.status(500).json({ error: "Failed to delete category" });
+    }
+  });
+
+  // APIs management  
+  app.get("/api/admin/apis", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const apis = await storage.getAllApiEndpoints();
+      res.json(apis);
+    } catch (error) {
+      console.error('Get APIs error:', error);
+      res.status(500).json({ error: "Failed to fetch APIs" });
+    }
+  });
+
+  app.post("/api/admin/apis", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const apiData = req.body;
+      const api = await storage.createApiEndpoint(apiData);
+      
+      // Log API creation
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'api_created',
+        resource: 'api_endpoint',
+        resourceId: api.id,
+        details: { name: api.name, path: api.path, method: api.method },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json(api);
+    } catch (error) {
+      console.error('Create API error:', error);
+      res.status(500).json({ error: "Failed to create API" });
+    }
+  });
+
+  app.put("/api/admin/apis/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const apiId = req.params.id;
+      const apiData = req.body;
+      const api = await storage.updateApiEndpoint(apiId, apiData);
+      
+      if (!api) {
+        return res.status(404).json({ error: "API not found" });
+      }
+      
+      // Log API update
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'api_updated',
+        resource: 'api_endpoint',
+        resourceId: apiId,
+        details: { name: api.name, changes: apiData },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json(api);
+    } catch (error) {
+      console.error('Update API error:', error);
+      res.status(500).json({ error: "Failed to update API" });
+    }
+  });
+
+  app.delete("/api/admin/apis/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const apiId = req.params.id;
+      const deleted = await storage.deleteApiEndpoint(apiId);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "API not found" });
+      }
+      
+      // Log API deletion
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'api_deleted',
+        resource: 'api_endpoint',
+        resourceId: apiId,
+        details: { apiId },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ message: "API deleted successfully" });
+    } catch (error) {
+      console.error('Delete API error:', error);
+      res.status(500).json({ error: "Failed to delete API" });
+    }
+  });
+
+  // API Endpoint management (admin only) - Legacy endpoint
   app.post("/api/endpoints", authenticate, requireRole(['admin']), async (req, res) => {
     try {
       const validatedData = insertApiEndpointSchema.parse(req.body);

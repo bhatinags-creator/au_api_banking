@@ -2,12 +2,13 @@ import {
   type User, type InsertUser, type UpdateUser,
   type Developer, type InsertDeveloper, type UpdateDeveloper,
   type Application, type InsertApplication, 
-  type ApiEndpoint, type InsertApiEndpoint, 
+  type ApiEndpoint, type InsertApiEndpoint, type UpdateApiEndpoint,
+  type ApiCategory, type InsertApiCategory, type UpdateApiCategory,
   type ApiUsage, type InsertApiUsage, 
   type CorporateRegistration, type InsertCorporateRegistration,
   type AuditLog, type InsertAuditLog,
   type ApiToken, type InsertApiToken,
-  users, developers, applications, apiEndpoints, apiUsage, corporateRegistrations, auditLogs, apiTokens
+  users, developers, applications, apiEndpoints, apiCategories, apiUsage, corporateRegistrations, auditLogs, apiTokens
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -52,6 +53,14 @@ export interface IStorage {
   getAllApiEndpoints(): Promise<ApiEndpoint[]>;
   getApiEndpointsByCategory(category: string): Promise<ApiEndpoint[]>;
   createApiEndpoint(endpoint: InsertApiEndpoint): Promise<ApiEndpoint>;
+  updateApiEndpoint(id: string, endpoint: UpdateApiEndpoint): Promise<ApiEndpoint | undefined>;
+  deleteApiEndpoint(id: string): Promise<boolean>;
+  
+  // API Category operations
+  getAllApiCategories(): Promise<ApiCategory[]>;
+  createApiCategory(category: InsertApiCategory): Promise<ApiCategory>;
+  updateApiCategory(id: string, category: UpdateApiCategory): Promise<ApiCategory | undefined>;
+  deleteApiCategory(id: string): Promise<boolean>;
   
   // API Usage operations
   getApiUsageByDeveloper(developerId: string): Promise<ApiUsage[]>;
@@ -77,6 +86,7 @@ export class MemStorage implements IStorage {
   private developers: Map<string, Developer>;
   private applications: Map<string, Application>;
   private apiEndpoints: Map<string, ApiEndpoint>;
+  private apiCategories: Map<string, ApiCategory>;
   private apiUsage: Map<string, ApiUsage>;
   private corporateRegistrations: Map<string, CorporateRegistration>;
   private auditLogs: Map<string, AuditLog>;
@@ -87,64 +97,110 @@ export class MemStorage implements IStorage {
     this.developers = new Map();
     this.applications = new Map();
     this.apiEndpoints = new Map();
+    this.apiCategories = new Map();
     this.apiUsage = new Map();
     this.corporateRegistrations = new Map();
     this.auditLogs = new Map();
     this.apiTokens = new Map();
     
-    // Seed with sample API endpoints
+    // Seed with sample data
+    this.seedApiCategories();
     this.seedApiEndpoints();
   }
 
+  private seedApiCategories() {
+    const categories: ApiCategory[] = [
+      {
+        id: "cat-1", name: "Customer", description: "Customer identity and profile management APIs including KYC verification, profile updates, and customer data retrieval", 
+        icon: "Users", color: "#603078", displayOrder: 1, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "cat-2", name: "Loans", description: "Personal loans, home loans, and business financing APIs for eligibility checks and loan management", 
+        icon: "CreditCard", color: "#603078", displayOrder: 2, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "cat-3", name: "Liabilities", description: "Savings accounts, fixed deposits, and recurring deposits management APIs", 
+        icon: "DollarSign", color: "#603078", displayOrder: 3, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "cat-4", name: "Cards", description: "Credit and debit card management, issuance, and transaction APIs", 
+        icon: "CreditCard", color: "#603078", displayOrder: 4, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "cat-5", name: "Payments", description: "Payment processing APIs including NEFT, RTGS, IMPS, and internal fund transfers", 
+        icon: "Send", color: "#603078", displayOrder: 5, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "cat-6", name: "Authentication", description: "OAuth 2.0 token generation and security APIs for secure access to banking services", 
+        icon: "Lock", color: "#603078", displayOrder: 6, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "cat-7", name: "Trade Services", description: "Trade finance APIs including letters of credit, bank guarantees, and documentary collections", 
+        icon: "Globe", color: "#603078", displayOrder: 7, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "cat-8", name: "Corporate API Suite", description: "Enterprise banking solutions for corporate clients including cash management and treasury services", 
+        icon: "Building", color: "#603078", displayOrder: 8, isActive: true, createdAt: new Date(), updatedAt: new Date()
+      }
+    ];
+    
+    categories.forEach(category => {
+      this.apiCategories.set(category.id, category);
+    });
+  }
+
   private seedApiEndpoints() {
-    const endpoints = [
+    const endpoints: ApiEndpoint[] = [
       // AU Bank OAuth and Authentication
-      { 
-        id: "1", category: "auth", name: "Generate Access Token", path: "/oauth/accesstoken", 
-        method: "GET", description: "Generate OAuth access token for API authentication (Valid for 24hrs in UAT, 6 months in production)", 
-        isActive: true, version: "v1", parameters: [], responseSchema: {}, rateLimits: { sandbox: 100, uat: 500, production: 1000 }, 
+      {
+        id: "1", categoryId: "cat-6", category: "Authentication", name: "Generate Access Token", path: "/oauth/accesstoken",
+        method: "GET", description: "Generate OAuth access token for API authentication (Valid for 24hrs in UAT, 6 months in production)",
+        summary: "OAuth token generation for API access",
+        headers: [{name: "Content-Type", value: "application/json"}],
+        responses: [{status: "200", description: "Token generated successfully"}],
+        requestExample: null,
+        responseExample: '{"access_token": "abc123", "expires_in": 86400}',
+        documentation: "Standard OAuth 2.0 token generation endpoint",
+        tags: ["oauth", "authentication"],
+        timeout: 30000, requiresAuth: false, authType: "basic", status: "active",
+        isActive: true, version: "v1", parameters: [], responseSchema: {}, 
+        rateLimits: { sandbox: 100, uat: 500, production: 1000 },
         requiredPermissions: ["sandbox"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
       },
       
       // AU Bank Payout APIs
-      { 
-        id: "2", category: "payments", name: "CNB Payment Creation", path: "/CNBPaymentService/paymentCreation", 
-        method: "POST", description: "Initiate Internal Fund Transfer/NEFT/RTGS/IMPS transactions (Single + Bulk payment up to 50 transactions)", 
-        isActive: true, version: "v1", parameters: [], responseSchema: {}, rateLimits: { sandbox: 100, uat: 500, production: 1000 }, 
-        requiredPermissions: ["sandbox"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
-      },
-      { 
-        id: "3", category: "payments", name: "Payment Enquiry", path: "/paymentEnquiry", 
-        method: "POST", description: "Get payment status and transaction details. Recommended to call every 15 minutes for NEFT transactions", 
-        isActive: true, version: "v1", parameters: [], responseSchema: {}, rateLimits: { sandbox: 100, uat: 500, production: 1000 }, 
-        requiredPermissions: ["sandbox"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
+      {
+        id: "2", categoryId: "cat-5", category: "Payments", name: "CNB Payment Creation", path: "/CNBPaymentService/paymentCreation",
+        method: "POST", description: "Initiate Internal Fund Transfer/NEFT/RTGS/IMPS transactions (Single + Bulk payment up to 50 transactions)",
+        summary: "Create payment transactions for various transfer types",
+        headers: [{name: "Authorization", value: "Bearer {token}"}, {name: "Content-Type", value: "application/json"}],
+        responses: [{status: "200", description: "Payment created successfully"}, {status: "400", description: "Invalid request"}],
+        requestExample: '{"amount": 1000, "beneficiary_account": "123456789", "transfer_type": "NEFT"}',
+        responseExample: '{"transaction_id": "TXN123", "status": "initiated"}',
+        documentation: "Comprehensive payment creation API supporting multiple transfer modes",
+        tags: ["payments", "neft", "rtgs", "imps"],
+        timeout: 45000, requiresAuth: true, authType: "bearer", status: "active",
+        isActive: true, version: "v1", parameters: [], responseSchema: {},
+        rateLimits: { sandbox: 50, uat: 200, production: 500 },
+        requiredPermissions: ["sandbox", "uat"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
       },
       
-      // Standard Banking APIs for compatibility
-      { 
-        id: "4", category: "accounts", name: "Get Account Balance", path: "/accounts/{id}/balance", 
-        method: "GET", description: "Retrieve the current balance of a specific account", 
-        isActive: true, version: "v1", parameters: [], responseSchema: {}, rateLimits: { sandbox: 100, uat: 500, production: 1000 }, 
-        requiredPermissions: ["sandbox"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
-      },
-      { 
-        id: "5", category: "accounts", name: "Get Account Transactions", path: "/accounts/{id}/transactions", 
-        method: "GET", description: "Get transaction history for an account", 
-        isActive: true, version: "v1", parameters: [], responseSchema: {}, rateLimits: { sandbox: 100, uat: 500, production: 1000 }, 
-        requiredPermissions: ["sandbox"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
-      },
-      { 
-        id: "6", category: "kyc", name: "Verify Identity", path: "/kyc/verify", 
-        method: "POST", description: "Submit documents for identity verification", 
-        isActive: true, version: "v1", parameters: [], responseSchema: {}, rateLimits: { sandbox: 100, uat: 500, production: 1000 }, 
-        requiredPermissions: ["sandbox"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
-      },
-      { 
-        id: "7", category: "kyc", name: "Get Verification Status", path: "/kyc/{id}/status", 
-        method: "GET", description: "Check the status of KYC verification", 
-        isActive: true, version: "v1", parameters: [], responseSchema: {}, rateLimits: { sandbox: 100, uat: 500, production: 1000 }, 
-        requiredPermissions: ["sandbox"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
-      },
+      // Customer 360 Service
+      {
+        id: "3", categoryId: "cat-1", category: "Customer", name: "Customer 360 Service", path: "/customer360/profile",
+        method: "GET", description: "Comprehensive customer profile API providing complete customer information, account details, and relationship data",
+        summary: "Get complete customer profile and relationship data",
+        headers: [{name: "Authorization", value: "Bearer {token}"}, {name: "X-Customer-ID", value: "{customer_id}"}],
+        responses: [{status: "200", description: "Customer data retrieved"}, {status: "404", description: "Customer not found"}],
+        requestExample: null,
+        responseExample: '{"customer_id": "CUST001", "profile": {...}, "accounts": [...], "relationships": [...]}',
+        documentation: "Complete customer 360-degree view API",
+        tags: ["customer", "profile", "360"],
+        timeout: 30000, requiresAuth: true, authType: "bearer", status: "active",
+        isActive: true, version: "v1", parameters: [], responseSchema: {},
+        rateLimits: { sandbox: 100, uat: 300, production: 800 },
+        requiredPermissions: ["sandbox", "uat"], isInternal: true, createdAt: new Date(), updatedAt: new Date()
+      }
     ];
     
     endpoints.forEach(endpoint => {
@@ -358,6 +414,18 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const endpoint: ApiEndpoint = { 
       ...insertEndpoint,
+      categoryId: insertEndpoint.categoryId || null,
+      summary: insertEndpoint.summary || null,
+      headers: insertEndpoint.headers || [],
+      responses: insertEndpoint.responses || [],
+      requestExample: insertEndpoint.requestExample || null,
+      responseExample: insertEndpoint.responseExample || null,
+      documentation: insertEndpoint.documentation || null,
+      tags: insertEndpoint.tags || [],
+      timeout: insertEndpoint.timeout || 30000,
+      requiresAuth: insertEndpoint.requiresAuth ?? true,
+      authType: insertEndpoint.authType || "bearer",
+      status: insertEndpoint.status || "active",
       version: insertEndpoint.version || 'v1',
       parameters: insertEndpoint.parameters || [],
       responseSchema: insertEndpoint.responseSchema || {},
@@ -371,6 +439,55 @@ export class MemStorage implements IStorage {
     };
     this.apiEndpoints.set(id, endpoint);
     return endpoint;
+  }
+
+  async updateApiEndpoint(id: string, updateData: UpdateApiEndpoint): Promise<ApiEndpoint | undefined> {
+    const existing = this.apiEndpoints.get(id);
+    if (!existing) return undefined;
+    
+    const updated: ApiEndpoint = { ...existing, ...updateData, updatedAt: new Date() };
+    this.apiEndpoints.set(id, updated);
+    return updated;
+  }
+
+  async deleteApiEndpoint(id: string): Promise<boolean> {
+    return this.apiEndpoints.delete(id);
+  }
+
+  // API Category operations
+  async getAllApiCategories(): Promise<ApiCategory[]> {
+    return Array.from(this.apiCategories.values()).sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async createApiCategory(insertCategory: InsertApiCategory): Promise<ApiCategory> {
+    const id = randomUUID();
+    const category: ApiCategory = {
+      ...insertCategory,
+      displayOrder: insertCategory.displayOrder || 0,
+      isActive: insertCategory.isActive ?? true,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.apiCategories.set(id, category);
+    return category;
+  }
+
+  async updateApiCategory(id: string, updateData: UpdateApiCategory): Promise<ApiCategory | undefined> {
+    const existing = this.apiCategories.get(id);
+    if (!existing) return undefined;
+    
+    const updated: ApiCategory = { ...existing, ...updateData, updatedAt: new Date() };
+    this.apiCategories.set(id, updated);
+    return updated;
+  }
+
+  async deleteApiCategory(id: string): Promise<boolean> {
+    return this.apiCategories.delete(id);
+  }
+
+  async getApiCategory(id: string): Promise<ApiCategory | undefined> {
+    return this.apiCategories.get(id);
   }
 
   // API Usage operations
