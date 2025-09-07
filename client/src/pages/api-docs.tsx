@@ -182,10 +182,10 @@ const apiCategories: APICategory[] = [
     ]
   },
   {
-    id: "building-blocks",
-    title: "Building Blocks",
-    icon: Building2,
-    description: "Essential APIs for core banking operations",
+    id: "customer",
+    title: "Customer",
+    icon: Users,
+    description: "Customer management and authentication APIs",
     endpoints: [],
     subcategories: [
       {
@@ -1759,7 +1759,7 @@ export default function APIDocs() {
               
               <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
-                  selectedCategory === "building-blocks" 
+                  selectedCategory === "customer" 
                     ? 'bg-primary/10 text-primary font-medium' 
                     : 'hover:bg-neutrals-50 text-neutrals-700'
                 }`}
@@ -1767,20 +1767,151 @@ export default function APIDocs() {
                 initial="initial"
                 whileHover="hover"
                 whileTap="tap"
-                animate={selectedCategory === "building-blocks" ? "selected" : "initial"}
+                animate={selectedCategory === "customer" ? "selected" : "initial"}
                 onClick={() => {
-                  setSelectedCategory(selectedCategory === "building-blocks" ? null : "building-blocks");
+                  setSelectedCategory(selectedCategory === "customer" ? null : "customer");
                   setSelectedEndpoint(null);
                 }}
               >
-                <span>Building Blocks</span>
+                <span>Customer</span>
                 <motion.div
-                  animate={{ rotate: selectedCategory === "building-blocks" ? 90 : 0 }}
+                  animate={{ rotate: selectedCategory === "customer" ? 90 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
                   <ChevronRight className="w-4 h-4" />
                 </motion.div>
               </motion.div>
+              
+              {/* Customer Subcategories */}
+              <AnimatePresence>
+                {selectedCategory === "customer" && (
+                  <motion.div 
+                    className="ml-4 border-l-2 border-[var(--au-primary)]/20 overflow-hidden"
+                    variants={subcategoryVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                  >
+                    {apiCategories.find(c => c.id === "customer")?.subcategories?.map((subcategory, subIndex) => (
+                      <motion.div 
+                        key={subcategory.id} 
+                        className="ml-4"
+                        variants={endpointVariants}
+                        custom={subIndex}
+                      >
+                        <motion.div 
+                          className="py-2 px-3 text-sm font-medium text-[var(--au-primary-600)] border-b border-neutrals-100 cursor-pointer hover:bg-neutrals-50 transition-colors flex items-center justify-between"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: subIndex * 0.1, duration: 0.3 }}
+                          onClick={() => {
+                            setExpandedSubcategories(prev => ({
+                              ...prev,
+                              [subcategory.id]: !prev[subcategory.id]
+                            }));
+                          }}
+                        >
+                          <span>{subcategory.title}</span>
+                          <motion.div
+                            animate={{ rotate: expandedSubcategories[subcategory.id] ? 90 : 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </motion.div>
+                        </motion.div>
+                        <AnimatePresence>
+                          {expandedSubcategories[subcategory.id] && (
+                            <motion.div 
+                              variants={subcategoryVariants} 
+                              initial="hidden" 
+                              animate="visible"
+                              exit="hidden"
+                              className="overflow-hidden"
+                            >
+                              {subcategory.endpoints.map((endpoint, endIndex) => (
+                            <Tooltip key={endpoint.id} delayDuration={300}>
+                              <TooltipTrigger asChild>
+                                <motion.div
+                                  className={`px-3 py-3 text-sm cursor-pointer transition-colors rounded-md ${
+                                    selectedEndpoint === endpoint.id
+                                      ? 'bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] font-medium border-r-2 border-[var(--au-primary)]'
+                                      : 'hover:bg-neutrals-50 text-neutrals-600 hover:text-[var(--au-primary-600)]'
+                                  }`}
+                                  variants={endpointVariants}
+                                  whileHover={{ 
+                                    scale: shouldReduceMotion ? 1 : 1.01, 
+                                    x: shouldReduceMotion ? 0 : 1,
+                                    transition: { duration: 0.2 }
+                                  }}
+                                  whileTap={{ 
+                                    scale: shouldReduceMotion ? 1 : 0.98,
+                                    transition: { duration: 0.1 }
+                                  }}
+                                  onClick={() => {
+                                    setSelectedEndpoint(endpoint.id);
+                                  }}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <motion.span 
+                                      className={`px-1.5 py-0.5 text-xs rounded font-mono flex-shrink-0 ${
+                                        endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
+                                        endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+                                        endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                      }`}
+                                      whileHover={{ scale: shouldReduceMotion ? 1 : 1.05 }}
+                                    >
+                                      {endpoint.method}
+                                    </motion.span>
+                                    <span 
+                                      className="text-sm leading-tight break-words hyphens-auto flex-1 min-w-0"
+                                      style={{ 
+                                        wordBreak: 'break-word',
+                                        overflowWrap: 'break-word',
+                                        lineHeight: '1.3'
+                                      }}
+                                    >
+                                      {endpoint.title}
+                                    </span>
+                                  </div>
+                                </motion.div>
+                                  </TooltipTrigger>
+                                  <TooltipContent 
+                                    side="right" 
+                                    align="start" 
+                                    sideOffset={10}
+                                    alignOffset={0}
+                                    className="max-w-sm p-3 text-sm rounded-lg shadow-lg border-0"
+                                    style={{
+                                      backgroundColor: '#603078',
+                                      color: 'white'
+                                    }}
+                                  >
+                                    <div className="space-y-1.5">
+                                      <div className="font-semibold text-white">{endpoint.method} {endpoint.title}</div>
+                                      <code 
+                                        className="text-xs px-1.5 py-0.5 rounded text-white block"
+                                        style={{
+                                          backgroundColor: 'rgba(255, 255, 255, 0.2)'
+                                        }}
+                                      >
+                                        {endpoint.path}
+                                      </code>
+                                      <div className="text-xs text-white/90 leading-relaxed">
+                                        {endpoint.description}
+                                      </div>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
               <motion.div
                 className={`p-3 rounded cursor-pointer transition-colors flex items-center justify-between ${
