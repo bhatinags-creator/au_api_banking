@@ -492,8 +492,8 @@ export default function Home() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#" className="text-neutrals-700 hover:text-primary transition-colors">Home</a>
-              <Link href="/docs" className="text-neutrals-700 hover:text-primary transition-colors">
-                <span data-testid="link-docs">Explore APIs</span>
+              <Link href="/apis" className="text-neutrals-700 hover:text-primary transition-colors">
+                <span data-testid="link-apis">Explore APIs</span>
               </Link>
               <Link href="/sandbox" className="text-neutrals-700 hover:text-primary transition-colors">
                 <span data-testid="link-sandbox">Sandbox</span>
@@ -533,7 +533,7 @@ export default function Home() {
           <div className="md:hidden bg-white border-t" data-testid="mobile-menu">
             <div className="px-4 py-4 space-y-4">
               <a href="#" className="block text-neutrals-700 hover:text-primary">Home</a>
-              <Link href="/docs" className="block text-neutrals-700 hover:text-primary">Explore APIs</Link>
+              <Link href="/apis" className="block text-neutrals-700 hover:text-primary">Explore APIs</Link>
               <Link href="/sandbox" className="block text-neutrals-700 hover:text-primary">Sandbox</Link>
               <a href="#" className="block text-neutrals-700 hover:text-primary">Strategic Partners</a>
               <a href="#" className="block text-neutrals-700 hover:text-primary">FAQ</a>
@@ -1026,7 +1026,7 @@ export default function Home() {
             </div>
             
             <div className="text-center mt-12">
-              <Link href="/docs">
+              <Link href="/apis">
                 <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
                   BROWSE ALL APIs
                 </Button>
