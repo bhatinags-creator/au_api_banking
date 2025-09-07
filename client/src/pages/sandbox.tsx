@@ -1392,13 +1392,128 @@ export default function Sandbox() {
           statusText: "OK",
           headers: { "Content-Type": "application/json" },
           data: {
-            TransactionStatus: { ResponseCode: "0", ResponseMessage: "Success" },
-            CustomerResponse: { 
-              CustomerBasicInquiry: { 
-                CustomerFullName: "KIRTI DOSHI", 
-                CustomerId: "22100033", 
-                MobileNumber: "7507396305" 
-              } 
+            TransactionStatus: {
+              ResponseCode: "0",
+              ResponseMessage: "Success",
+              ExtendedErrorDetails: {
+                messages: [
+                  { code: "0" }
+                ]
+              }
+            },
+            isSpecifiedCustomer: "N",
+            CustomerResponse: {
+              CustomerBasicInquiry: {
+                CustomerFullName: "KIRTI DOSHI",
+                IsSignatureAvailable: "false",
+                Sex: "M",
+                IsImageAvailable: "false",
+                AadhaarDetail: {
+                  AadhaarLinkAccount: "1712232110048131",
+                  AadhaarNumber: "475711812435"
+                },
+                CustomerId: "22100033",
+                CategoryType: "INDIVIDUAL - FULL KYC",
+                CustomerType: "100",
+                EmailAddress: "roshanchaudhari239@gmail.com",
+                IcTypeDesc: "Lead Number",
+                OfficerID: "First teller",
+                AgeOfCustRel: "2017-05-04",
+                MobileNumber: "7507396305",
+                AadharUpdateDate: "2025-07-10",
+                NationalIdentificationCode: "22100033",
+                BankShortName: "Mandsaur",
+                IcType: "L",
+                FlgInoperativePan: "N",
+                CustomerName: {
+                  MidName: "DOSHI",
+                  FirstName: "KIRTI",
+                  FullName: "KIRTI DOSHI",
+                  FormattedFullName: "KIRTI#DOSHI#",
+                  ShortName: "KIRTI DOSHI",
+                  Prefix: "MR."
+                },
+                HomeBranch: "2321",
+                PAN: "BJHPF5346G",
+                CombWithdrawBal: "829761.69",
+                CustomerAddress: {
+                  Zip: "458001",
+                  State: "MADHYA PRADESH",
+                  Country: "India",
+                  City: "MANDSAUR",
+                  Line1: "22100033",
+                  Line2: "22100033",
+                  Line3: "22100033"
+                },
+                BirthDateText: "1984-01-19"
+              }
+            },
+            AccountDetails: {
+              IsCustomerSchemeAvailable: "false",
+              CustomerAccount: [
+                {
+                  SafeDepositBoxId: "0",
+                  AccountId: "1712232110048131",
+                  ProductName: "20122-AU Employee Salary Account-Maximum",
+                  DateRelation: "2017-05-04",
+                  BalCombinedAcy: "804761.69",
+                  OtherArrear: "0",
+                  ExternalAccountId: "0",
+                  CurrencyCode: "1",
+                  ODLimitSactioned: "0",
+                  AvailableBalance: "804761.69",
+                  BalUncollectedInt: "0.00",
+                  IsTDLinkage: "N ",
+                  TotalAcyAmount: "924269.69",
+                  Classification: "NORMAL",
+                  TotalLcyAmount: "924269.69",
+                  BranchName: "Mandsaur",
+                  MonthsSinceActive: "100",
+                  BalUncollectedPrinc: "0.00",
+                  OperationMode: "SINGLYnull",
+                  TotalBalUncollecPrinc: "0.00",
+                  BalPrincipal: "0",
+                  CurrencyShortName: "INR",
+                  AmtGoal: "0",
+                  ProductCode: "20122",
+                  DateAccountOpen: "2017-05-04",
+                  InstallmentAmount: "0",
+                  IntRate: "0",
+                  CustomerRelationship: "SOW",
+                  LienAmount: "0",
+                  BranchCode: "2321",
+                  BalanceBook: "804761.69",
+                  TotalBalBook: "924269.69",
+                  UnclearFunds: "0.00",
+                  AcyAmount: "804761.69",
+                  Reason: "UNBLOCKED ",
+                  OriginalBalance: "0.00",
+                  Tenure: "0 Months 0 Days 0 Years ",
+                  ODLimitUtilized: "0",
+                  SmallClearingAccountNo: "000004",
+                  CurrentStatusDescription: "ACCOUNT OPEN REGULAR",
+                  CASAAccountName: "KIRTI DOSHI .",
+                  DateValue: "2017-05-04",
+                  FutureDatedAmount: "0.00",
+                  NomineeName: "RAJSHRI DOSHI",
+                  BalCombinedLcy: "804761.69",
+                  BillAmount: "0.00",
+                  CurrentStatus: "8",
+                  LcyAmount: "804761.69",
+                  CASARelationshipDetails: [
+                    {
+                      JointHolderName: "KIRTI DOSHI",
+                      MobileNo: "7507396305",
+                      Emailid: "roshanchaudhari239@gmail.com",
+                      Relationship: "SOW",
+                      CustomerId: "22100033"
+                    }
+                  ],
+                  ModuleCode: "C",
+                  HoldAmount: "0",
+                  TotalBalUncollecInt: "0.00"
+                }
+              ]
             }
           }
         };
