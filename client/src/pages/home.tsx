@@ -30,6 +30,7 @@ import {
   Settings
 } from "lucide-react";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 const heroSlides = [
   {
@@ -225,16 +226,84 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [dynamicApiCategories, setDynamicApiCategories] = useState(apiCategories);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
-  // Generate search suggestions
+  // Load dynamic API data from backend
+  useEffect(() => {
+    const loadDynamicData = async () => {
+      setLoading(true);
+      try {
+        // Load categories and APIs from backend
+        const [categoriesResponse, apisResponse] = await Promise.all([
+          fetch('/api/admin/categories'),
+          fetch('/api/admin/apis')
+        ]);
+        
+        if (categoriesResponse.ok && apisResponse.ok) {
+          const backendCategories = await categoriesResponse.json();
+          const backendApis = await apisResponse.json();
+          
+          // Calculate API counts per category and map to home format
+          const categoryApiCounts = new Map();
+          backendApis.forEach((api: any) => {
+            const count = categoryApiCounts.get(api.category) || 0;
+            categoryApiCounts.set(api.category, count + 1);
+          });
+          
+          // Update categories with real data and API counts
+          const updatedCategories = apiCategories.map(category => {
+            const backendCategory = backendCategories.find((bc: any) => bc.name === category.title);
+            const apiCount = categoryApiCounts.get(category.title) || category.apiCount;
+            
+            if (backendCategory) {
+              return {
+                ...category,
+                description: backendCategory.description || category.description,
+                apiCount: apiCount,
+                // Update APIs from backend data
+                apis: backendApis
+                  .filter((api: any) => api.category === category.title)
+                  .map((api: any) => ({
+                    name: api.name,
+                    method: api.method,
+                    endpoint: api.path
+                  }))
+                  .slice(0, 9) // Keep only first 9 APIs for display
+              };
+            }
+            
+            return {
+              ...category,
+              apiCount: apiCount
+            };
+          });
+          
+          setDynamicApiCategories(updatedCategories);
+        } else {
+          console.warn('Failed to load backend data, using fallback static data');
+        }
+      } catch (error) {
+        console.error('Error loading dynamic API data:', error);
+        // Keep using static data as fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadDynamicData();
+  }, []);
+
+  // Generate search suggestions - using dynamic data
   const generateSuggestions = (query: string) => {
     if (!query || query.length < 2) return [];
     
     const suggestions = new Set<string>();
     const queryLower = query.toLowerCase();
     
-    // Add category suggestions
-    apiCategories.forEach(category => {
+    // Add category suggestions from dynamic data
+    dynamicApiCategories.forEach(category => {
       if (category.title.toLowerCase().includes(queryLower)) {
         suggestions.add(category.title);
       }
@@ -276,8 +345,8 @@ export default function Home() {
 
   const suggestions = generateSuggestions(searchQuery);
 
-  // Filter APIs based on search query
-  const filteredApiCategories = apiCategories.filter(category =>
+  // Filter APIs based on search query - using dynamic data
+  const filteredApiCategories = dynamicApiCategories.filter(category =>
     searchQuery === "" || 
     category.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     category.description.toLowerCase().includes(searchQuery.toLowerCase())
