@@ -11,7 +11,7 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
-import { apiCategories, getAllApis, getTotalApiCount, getTotalCategoryCount } from "../shared/data";
+import { API_CATEGORIES, getTotalApiCount, getTotalCategoryCount } from "../shared/data";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
@@ -412,7 +412,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/categories", async (req, res) => {
     try {
       // Load from centralized data store with comprehensive banking categories
-      const categoriesWithApis = apiCategories.map(category => ({
+      const categoriesWithApis = API_CATEGORIES.map(category => ({
         id: category.id,
         name: category.name,
         description: category.description,
@@ -435,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/apis", async (req, res) => {
     try {
       // Load from centralized data store with comprehensive banking APIs
-      const allApis = getAllApis();
+      const allApis = API_CATEGORIES.flatMap(category => category.apis);
       
       console.log(`🔧 Backend serving ${allApis.length} APIs from centralized data store`);
       res.json(allApis);
