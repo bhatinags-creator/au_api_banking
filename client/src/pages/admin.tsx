@@ -296,26 +296,14 @@ export default function AdminPanel() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="apis" className="flex items-center gap-2">
-              <Code className="w-4 h-4" />
-              APIs
-            </TabsTrigger>
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Categories
-            </TabsTrigger>
-            <TabsTrigger value="documentation" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Docs
-            </TabsTrigger>
-            <TabsTrigger value="sandbox" className="flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              Sandbox
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -412,86 +400,6 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
 
-          {/* APIs Management Tab */}
-          <TabsContent value="apis" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[var(--au-primary)]">API Management</h2>
-                <p className="text-muted-foreground">Manage API endpoints, documentation, and configuration</p>
-              </div>
-              <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-                <DialogTrigger asChild>
-                  <Button 
-                    onClick={() => {
-                      setEditingApi(null);
-                      setShowApiDialog(true);
-                    }}
-                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add New API
-                  </Button>
-                </DialogTrigger>
-                <ApiEditDialog 
-                  api={editingApi}
-                  categories={categories}
-                  onSave={handleSaveApi}
-                  onClose={() => setShowApiDialog(false)}
-                />
-              </Dialog>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              {apis.map((api) => (
-                <Card key={api.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Badge variant={api.method === 'GET' ? 'secondary' : 'default'}>
-                          {api.method}
-                        </Badge>
-                        <div>
-                          <CardTitle className="text-lg">{api.name}</CardTitle>
-                          <CardDescription className="font-mono text-sm">{api.path}</CardDescription>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={api.status === 'active' ? 'default' : 'secondary'}>
-                          {api.status}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setEditingApi(api);
-                            setShowApiDialog(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteApi(api.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-sm">{api.description}</p>
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                        <span>Category: {api.category}</span>
-                        <span>Auth: {api.requiresAuth ? 'Required' : 'Not Required'}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
 
           {/* Categories Management Tab - Hierarchical View */}
           <TabsContent value="categories" className="space-y-6">
@@ -738,35 +646,7 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          {/* Documentation Tab */}
-          <TabsContent value="documentation" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[var(--au-primary)]">Documentation Management</h2>
-                <p className="text-muted-foreground">Manage API documentation and guides</p>
-              </div>
-            </div>
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-muted-foreground">Documentation management features coming soon...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Sandbox Tab */}
-          <TabsContent value="sandbox" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[var(--au-primary)]">Sandbox Configuration</h2>
-                <p className="text-muted-foreground">Configure sandbox settings and test environments</p>
-              </div>
-            </div>
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-muted-foreground">Sandbox configuration features coming soon...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
