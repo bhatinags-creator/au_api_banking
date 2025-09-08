@@ -95,6 +95,8 @@ export default function AdminPanel() {
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [apiConfigTab, setApiConfigTab] = useState("basic");
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [expandedApis, setExpandedApis] = useState<string[]>([]);
   
   const { toast } = useToast();
 
