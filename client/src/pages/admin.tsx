@@ -834,158 +834,569 @@ const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
 // API Edit Dialog Component
 const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const [formData, setFormData] = useState({
+    id: api?.id || "",
     name: api?.name || "",
     method: api?.method || "GET",
     path: api?.path || "",
     category: api?.category || "",
     description: api?.description || "",
+    summary: api?.summary || "",
     requiresAuth: api?.requiresAuth ?? true,
     authType: api?.authType || "bearer",
     status: api?.status || "active",
-    rateLimit: api?.rateLimit || 100,
-    timeout: api?.timeout || 30000
+    timeout: api?.timeout || 30000,
+    documentation: api?.documentation || "",
+    requestExample: api?.requestExample || "",
+    responseExample: api?.responseExample || "",
+    responseSchema: JSON.stringify(api?.responseSchema || {}, null, 2),
+    tags: (api?.tags || []).join(", "),
+    parameters: api?.parameters || [{ name: "", type: "string", required: false, description: "", example: "" }],
+    headers: api?.headers || [{ name: "", required: false, description: "", example: "" }],
+    responses: api?.responses || [{ statusCode: 200, description: "", schema: {}, example: "" }],
+    rateLimits: {
+      sandbox: api?.rateLimits?.sandbox || 100,
+      production: api?.rateLimits?.production || 1000
+    },
+    sandbox: {
+      enabled: api?.sandbox?.enabled ?? true,
+      testData: JSON.stringify(api?.sandbox?.testData || [], null, 2),
+      mockResponse: JSON.stringify(api?.sandbox?.mockResponse || {}, null, 2)
+    }
   });
+
+  const [activeTab, setActiveTab] = useState("basic");
+
+  const addParameter = () => {
+    setFormData({
+      ...formData,
+      parameters: [...formData.parameters, { name: "", type: "string", required: false, description: "", example: "" }]
+    });
+  };
+
+  const removeParameter = (index: number) => {
+    setFormData({
+      ...formData,
+      parameters: formData.parameters.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateParameter = (index: number, field: string, value: any) => {
+    const updated = formData.parameters.map((param, i) => 
+      i === index ? { ...param, [field]: value } : param
+    );
+    setFormData({ ...formData, parameters: updated });
+  };
+
+  const addHeader = () => {
+    setFormData({
+      ...formData,
+      headers: [...formData.headers, { name: "", required: false, description: "", example: "" }]
+    });
+  };
+
+  const removeHeader = (index: number) => {
+    setFormData({
+      ...formData,
+      headers: formData.headers.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateHeader = (index: number, field: string, value: any) => {
+    const updated = formData.headers.map((header, i) => 
+      i === index ? { ...header, [field]: value } : header
+    );
+    setFormData({ ...formData, headers: updated });
+  };
+
+  const addResponse = () => {
+    setFormData({
+      ...formData,
+      responses: [...formData.responses, { statusCode: 200, description: "", schema: {}, example: "" }]
+    });
+  };
+
+  const removeResponse = (index: number) => {
+    setFormData({
+      ...formData,
+      responses: formData.responses.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateResponse = (index: number, field: string, value: any) => {
+    const updated = formData.responses.map((response, i) => 
+      i === index ? { ...response, [field]: value } : response
+    );
+    setFormData({ ...formData, responses: updated });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    try {
+      const processedData = {
+        ...formData,
+        tags: formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
+        responseSchema: JSON.parse(formData.responseSchema),
+        sandbox: {
+          ...formData.sandbox,
+          testData: JSON.parse(formData.sandbox.testData),
+          mockResponse: JSON.parse(formData.sandbox.mockResponse),
+          rateLimits: formData.rateLimits
+        }
+      };
+      
+      onSave(processedData);
+    } catch (error) {
+      alert("Please check JSON formatting in schema and sandbox fields");
+    }
   };
 
   return (
-    <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{api ? 'Edit API' : 'Add New API'}</DialogTitle>
         <DialogDescription>
-          {api ? 'Update API endpoint information' : 'Create a new API endpoint'}
+          {api ? 'Update comprehensive API endpoint configuration' : 'Create a new API endpoint with full configuration'}
         </DialogDescription>
       </DialogHeader>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="apiName">API Name</Label>
-            <Input
-              id="apiName"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Enter API name"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="apiMethod">Method</Label>
-            <Select value={formData.method} onValueChange={(value) => setFormData({ ...formData, method: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="GET">GET</SelectItem>
-                <SelectItem value="POST">POST</SelectItem>
-                <SelectItem value="PUT">PUT</SelectItem>
-                <SelectItem value="DELETE">DELETE</SelectItem>
-                <SelectItem value="PATCH">PATCH</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <div>
-          <Label htmlFor="apiPath">API Path</Label>
-          <Input
-            id="apiPath"
-            value={formData.path}
-            onChange={(e) => setFormData({ ...formData, path: e.target.value })}
-            placeholder="/api/endpoint"
-            required
-          />
-        </div>
 
-        <div>
-          <Label htmlFor="apiCategory">Category</Label>
-          <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat: any) => (
-                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="basic">Basic Info</TabsTrigger>
+          <TabsTrigger value="parameters">Parameters</TabsTrigger>
+          <TabsTrigger value="headers">Headers</TabsTrigger>
+          <TabsTrigger value="responses">Responses</TabsTrigger>
+          <TabsTrigger value="config">Configuration</TabsTrigger>
+        </TabsList>
 
-        <div>
-          <Label htmlFor="apiDescription">Description</Label>
-          <Textarea
-            id="apiDescription"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Enter API description"
-            required
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TabsContent value="basic" className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="apiName">API Name *</Label>
+                <Input
+                  id="apiName"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Enter API name"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="apiMethod">Method *</Label>
+                <Select value={formData.method} onValueChange={(value) => setFormData({ ...formData, method: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GET">GET</SelectItem>
+                    <SelectItem value="POST">POST</SelectItem>
+                    <SelectItem value="PUT">PUT</SelectItem>
+                    <SelectItem value="DELETE">DELETE</SelectItem>
+                    <SelectItem value="PATCH">PATCH</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="authType">Authentication Type</Label>
-            <Select value={formData.authType} onValueChange={(value) => setFormData({ ...formData, authType: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select auth type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bearer">Bearer Token</SelectItem>
-                <SelectItem value="apiKey">API Key</SelectItem>
-                <SelectItem value="oauth2">OAuth2</SelectItem>
-                <SelectItem value="basic">Basic Auth</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="apiStatus">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="deprecated">Deprecated</SelectItem>
-                <SelectItem value="beta">Beta</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="apiPath">API Path *</Label>
+                <Input
+                  id="apiPath"
+                  value={formData.path}
+                  onChange={(e) => setFormData({ ...formData, path: e.target.value })}
+                  placeholder="/api/endpoint"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="apiCategory">Category *</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat: any) => (
+                      <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="rateLimit">Rate Limit (per minute)</Label>
-            <Input
-              id="rateLimit"
-              type="number"
-              value={formData.rateLimit}
-              onChange={(e) => setFormData({ ...formData, rateLimit: parseInt(e.target.value) })}
-              min="1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="timeout">Timeout (ms)</Label>
-            <Input
-              id="timeout"
-              type="number"
-              value={formData.timeout}
-              onChange={(e) => setFormData({ ...formData, timeout: parseInt(e.target.value) })}
-              min="1000"
-            />
-          </div>
-        </div>
+            <div>
+              <Label htmlFor="apiDescription">Description *</Label>
+              <Textarea
+                id="apiDescription"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Enter detailed API description"
+                required
+              />
+            </div>
 
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
-            {api ? 'Update API' : 'Create API'}
-          </Button>
-        </div>
-      </form>
+            <div>
+              <Label htmlFor="apiSummary">Summary</Label>
+              <Input
+                id="apiSummary"
+                value={formData.summary}
+                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                placeholder="Brief API summary"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="documentation">Documentation</Label>
+              <Textarea
+                id="documentation"
+                value={formData.documentation}
+                onChange={(e) => setFormData({ ...formData, documentation: e.target.value })}
+                placeholder="Detailed API documentation"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="tags">Tags (comma-separated)</Label>
+              <Input
+                id="tags"
+                value={formData.tags}
+                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                placeholder="customer, profile, banking"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="parameters" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Parameters</h3>
+              <Button type="button" onClick={addParameter} size="sm">
+                Add Parameter
+              </Button>
+            </div>
+            {formData.parameters.map((param, index) => (
+              <Card key={index} className="p-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label>Parameter Name *</Label>
+                    <Input
+                      value={param.name}
+                      onChange={(e) => updateParameter(index, "name", e.target.value)}
+                      placeholder="parameterName"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Type *</Label>
+                    <Select value={param.type} onValueChange={(value) => updateParameter(index, "type", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="string">String</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="boolean">Boolean</SelectItem>
+                        <SelectItem value="object">Object</SelectItem>
+                        <SelectItem value="array">Array</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label>Description</Label>
+                    <Input
+                      value={param.description}
+                      onChange={(e) => updateParameter(index, "description", e.target.value)}
+                      placeholder="Parameter description"
+                    />
+                  </div>
+                  <div>
+                    <Label>Example</Label>
+                    <Input
+                      value={param.example}
+                      onChange={(e) => updateParameter(index, "example", e.target.value)}
+                      placeholder="Example value"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={param.required}
+                      onChange={(e) => updateParameter(index, "required", e.target.checked)}
+                    />
+                    <Label>Required</Label>
+                  </div>
+                  <Button type="button" variant="destructive" size="sm" onClick={() => removeParameter(index)}>
+                    Remove
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="headers" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Headers</h3>
+              <Button type="button" onClick={addHeader} size="sm">
+                Add Header
+              </Button>
+            </div>
+            {formData.headers.map((header, index) => (
+              <Card key={index} className="p-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label>Header Name *</Label>
+                    <Input
+                      value={header.name}
+                      onChange={(e) => updateHeader(index, "name", e.target.value)}
+                      placeholder="Authorization"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Example</Label>
+                    <Input
+                      value={header.example}
+                      onChange={(e) => updateHeader(index, "example", e.target.value)}
+                      placeholder="Bearer token123"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Input
+                    value={header.description}
+                    onChange={(e) => updateHeader(index, "description", e.target.value)}
+                    placeholder="Header description"
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={header.required}
+                      onChange={(e) => updateHeader(index, "required", e.target.checked)}
+                    />
+                    <Label>Required</Label>
+                  </div>
+                  <Button type="button" variant="destructive" size="sm" onClick={() => removeHeader(index)}>
+                    Remove
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="responses" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Responses</h3>
+              <Button type="button" onClick={addResponse} size="sm">
+                Add Response
+              </Button>
+            </div>
+            {formData.responses.map((response, index) => (
+              <Card key={index} className="p-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label>Status Code *</Label>
+                    <Input
+                      type="number"
+                      value={response.statusCode}
+                      onChange={(e) => updateResponse(index, "statusCode", parseInt(e.target.value))}
+                      placeholder="200"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Description *</Label>
+                    <Input
+                      value={response.description}
+                      onChange={(e) => updateResponse(index, "description", e.target.value)}
+                      placeholder="Success response"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Example Response</Label>
+                  <Textarea
+                    value={response.example}
+                    onChange={(e) => updateResponse(index, "example", e.target.value)}
+                    placeholder='{"status": "success", "data": {}}'
+                  />
+                </div>
+                <div className="flex justify-end mt-4">
+                  <Button type="button" variant="destructive" size="sm" onClick={() => removeResponse(index)}>
+                    Remove Response
+                  </Button>
+                </div>
+              </Card>
+            ))}
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="requestExample">Request Example</Label>
+                <Textarea
+                  id="requestExample"
+                  value={formData.requestExample}
+                  onChange={(e) => setFormData({ ...formData, requestExample: e.target.value })}
+                  placeholder='{"param": "value"}'
+                />
+              </div>
+              <div>
+                <Label htmlFor="responseExample">Response Example</Label>
+                <Textarea
+                  id="responseExample"
+                  value={formData.responseExample}
+                  onChange={(e) => setFormData({ ...formData, responseExample: e.target.value })}
+                  placeholder='{"result": "success"}'
+                />
+              </div>
+              <div>
+                <Label htmlFor="responseSchema">Response Schema (JSON)</Label>
+                <Textarea
+                  id="responseSchema"
+                  value={formData.responseSchema}
+                  onChange={(e) => setFormData({ ...formData, responseSchema: e.target.value })}
+                  placeholder='{"property": "type"}'
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="config" className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="authType">Authentication Type</Label>
+                <Select value={formData.authType} onValueChange={(value) => setFormData({ ...formData, authType: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select auth type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bearer">Bearer Token</SelectItem>
+                    <SelectItem value="apiKey">API Key</SelectItem>
+                    <SelectItem value="oauth2">OAuth2</SelectItem>
+                    <SelectItem value="basic">Basic Auth</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="apiStatus">Status</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="deprecated">Deprecated</SelectItem>
+                    <SelectItem value="beta">Beta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="sandboxRateLimit">Sandbox Rate Limit</Label>
+                <Input
+                  id="sandboxRateLimit"
+                  type="number"
+                  value={formData.rateLimits.sandbox}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    rateLimits: { ...formData.rateLimits, sandbox: parseInt(e.target.value) }
+                  })}
+                  min="1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="productionRateLimit">Production Rate Limit</Label>
+                <Input
+                  id="productionRateLimit"
+                  type="number"
+                  value={formData.rateLimits.production}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    rateLimits: { ...formData.rateLimits, production: parseInt(e.target.value) }
+                  })}
+                  min="1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="timeout">Timeout (ms)</Label>
+              <Input
+                id="timeout"
+                type="number"
+                value={formData.timeout}
+                onChange={(e) => setFormData({ ...formData, timeout: parseInt(e.target.value) })}
+                min="1000"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={formData.requiresAuth}
+                  onChange={(e) => setFormData({ ...formData, requiresAuth: e.target.checked })}
+                />
+                <Label>Requires Authentication</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={formData.sandbox.enabled}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    sandbox: { ...formData.sandbox, enabled: e.target.checked }
+                  })}
+                />
+                <Label>Sandbox Enabled</Label>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="sandboxTestData">Sandbox Test Data (JSON)</Label>
+              <Textarea
+                id="sandboxTestData"
+                value={formData.sandbox.testData}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  sandbox: { ...formData.sandbox, testData: e.target.value }
+                })}
+                placeholder='[{"param": "value"}]'
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="sandboxMockResponse">Sandbox Mock Response (JSON)</Label>
+              <Textarea
+                id="sandboxMockResponse"
+                value={formData.sandbox.mockResponse}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  sandbox: { ...formData.sandbox, mockResponse: e.target.value }
+                })}
+                placeholder='{"result": "mock data"}'
+              />
+            </div>
+          </TabsContent>
+
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+              {api ? 'Update API' : 'Create API'}
+            </Button>
+          </div>
+        </form>
+      </Tabs>
     </DialogContent>
   );
 };
