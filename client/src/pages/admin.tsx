@@ -725,7 +725,267 @@ export default function AdminPanel() {
   );
 }
 
-// Placeholder components (will be implemented later)
-const LoginForm = ({ onLogin }: { onLogin: (username: string, password: string) => void }) => <div>Login Form</div>;
-const CategoryEditDialog = ({ category, onSave, onClose }: any) => <div>Category Edit Dialog</div>;
-const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => <div>API Edit Dialog</div>;
+// Login Form Component
+const LoginForm = ({ onLogin }: { onLogin: (username: string, password: string) => void }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onLogin(username, password);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="username">Username</Label>
+        <Input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter username"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter password"
+          required
+        />
+      </div>
+      <Button type="submit" className="w-full bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+        Sign In
+      </Button>
+    </form>
+  );
+};
+
+// Category Edit Dialog Component
+const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
+  const [formData, setFormData] = useState({
+    name: category?.name || "",
+    description: category?.description || "",
+    color: category?.color || "#603078",
+    isActive: category?.isActive ?? true
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>{category ? 'Edit Category' : 'Add New Category'}</DialogTitle>
+        <DialogDescription>
+          {category ? 'Update category information' : 'Create a new API category'}
+        </DialogDescription>
+      </DialogHeader>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="categoryName">Category Name</Label>
+          <Input
+            id="categoryName"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="Enter category name"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="categoryDescription">Description</Label>
+          <Textarea
+            id="categoryDescription"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Enter category description"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="categoryColor">Color</Label>
+          <Input
+            id="categoryColor"
+            type="color"
+            value={formData.color}
+            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+          />
+        </div>
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+            {category ? 'Update' : 'Create'}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  );
+};
+
+// API Edit Dialog Component
+const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
+  const [formData, setFormData] = useState({
+    name: api?.name || "",
+    method: api?.method || "GET",
+    path: api?.path || "",
+    category: api?.category || "",
+    description: api?.description || "",
+    requiresAuth: api?.requiresAuth ?? true,
+    authType: api?.authType || "bearer",
+    status: api?.status || "active",
+    rateLimit: api?.rateLimit || 100,
+    timeout: api?.timeout || 30000
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>{api ? 'Edit API' : 'Add New API'}</DialogTitle>
+        <DialogDescription>
+          {api ? 'Update API endpoint information' : 'Create a new API endpoint'}
+        </DialogDescription>
+      </DialogHeader>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="apiName">API Name</Label>
+            <Input
+              id="apiName"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Enter API name"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="apiMethod">Method</Label>
+            <Select value={formData.method} onValueChange={(value) => setFormData({ ...formData, method: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="GET">GET</SelectItem>
+                <SelectItem value="POST">POST</SelectItem>
+                <SelectItem value="PUT">PUT</SelectItem>
+                <SelectItem value="DELETE">DELETE</SelectItem>
+                <SelectItem value="PATCH">PATCH</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div>
+          <Label htmlFor="apiPath">API Path</Label>
+          <Input
+            id="apiPath"
+            value={formData.path}
+            onChange={(e) => setFormData({ ...formData, path: e.target.value })}
+            placeholder="/api/endpoint"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="apiCategory">Category</Label>
+          <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat: any) => (
+                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="apiDescription">Description</Label>
+          <Textarea
+            id="apiDescription"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Enter API description"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="authType">Authentication Type</Label>
+            <Select value={formData.authType} onValueChange={(value) => setFormData({ ...formData, authType: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select auth type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bearer">Bearer Token</SelectItem>
+                <SelectItem value="apiKey">API Key</SelectItem>
+                <SelectItem value="oauth2">OAuth2</SelectItem>
+                <SelectItem value="basic">Basic Auth</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="apiStatus">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="deprecated">Deprecated</SelectItem>
+                <SelectItem value="beta">Beta</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="rateLimit">Rate Limit (per minute)</Label>
+            <Input
+              id="rateLimit"
+              type="number"
+              value={formData.rateLimit}
+              onChange={(e) => setFormData({ ...formData, rateLimit: parseInt(e.target.value) })}
+              min="1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="timeout">Timeout (ms)</Label>
+            <Input
+              id="timeout"
+              type="number"
+              value={formData.timeout}
+              onChange={(e) => setFormData({ ...formData, timeout: parseInt(e.target.value) })}
+              min="1000"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
+            {api ? 'Update API' : 'Create API'}
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  );
+};
