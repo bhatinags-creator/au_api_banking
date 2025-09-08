@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { 
   ArrowLeft, Settings, Plus, Edit, Trash2, Save, Eye, Users, 
   Database, Shield, CreditCard, BookOpen, Code, FileText,
-  BarChart3, Activity, Globe, Lock, Check, X, ChevronDown, ChevronRight
+  BarChart3, Activity, Globe, Lock, Check, X, ChevronDown, ChevronRight, PlayCircle
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -95,8 +95,9 @@ export default function AdminPanel() {
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [apiConfigTab, setApiConfigTab] = useState("basic");
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const [expandedApis, setExpandedApis] = useState<string[]>([]);
+  // Navigation state for drill-down
+  const [selectedCategory, setSelectedCategory] = useState<APICategory | null>(null);
+  const [selectedApi, setSelectedApi] = useState<APIEndpoint | null>(null);
   
   const { toast } = useToast();
 
@@ -174,8 +175,7 @@ export default function AdminPanel() {
     
     setApis(allApis);
     
-    // Expand all categories by default to show hierarchical view
-    setExpandedCategories(API_CATEGORIES.map(cat => cat.id));
+    // Categories now use drill-down navigation instead of expansion
     
     const totalApis = getTotalApiCount();
     const totalCategories = getTotalCategoryCount();
@@ -401,252 +401,302 @@ export default function AdminPanel() {
           </TabsContent>
 
 
-          {/* Categories Management Tab - Hierarchical View */}
+          {/* Categories Management Tab - Drill-Down Navigation */}
           <TabsContent value="categories" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[var(--au-primary)]">Hierarchical API Management</h2>
-                <p className="text-muted-foreground">Categories → APIs → Documentation & Sandbox Configuration</p>
-              </div>
-              <div className="flex gap-2">
-                <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      onClick={() => {
-                        setEditingCategory(null);
-                        setShowCategoryDialog(true);
-                      }}
-                      className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+            {/* Breadcrumb Navigation */}
+            {(selectedCategory || selectedApi) && (
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <button 
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setSelectedApi(null);
+                  }}
+                  className="hover:text-[var(--au-primary)] transition-colors"
+                >
+                  Categories
+                </button>
+                {selectedCategory && (
+                  <>
+                    <ChevronRight className="w-4 h-4" />
+                    <button 
+                      onClick={() => setSelectedApi(null)}
+                      className="hover:text-[var(--au-primary)] transition-colors"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Category
-                    </Button>
-                  </DialogTrigger>
-                  <CategoryEditDialog 
-                    category={editingCategory}
-                    onSave={handleSaveCategory}
-                    onClose={() => setShowCategoryDialog(false)}
-                  />
-                </Dialog>
-                <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
-                  <DialogTrigger asChild>
-                    <Button 
+                      {selectedCategory.name}
+                    </button>
+                  </>
+                )}
+                {selectedApi && (
+                  <>
+                    <ChevronRight className="w-4 h-4" />
+                    <span className="text-[var(--au-primary)] font-medium">{selectedApi.name}</span>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* View 1: Categories Grid */}
+            {!selectedCategory && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[var(--au-primary)]">API Categories</h2>
+                    <p className="text-muted-foreground">Browse all API categories</p>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      setEditingCategory(null);
+                      setShowCategoryDialog(true);
+                    }}
+                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Category
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categories.map((category) => {
+                    const categoryApis = apis.filter(api => api.category === category.name);
+                    return (
+                      <Card 
+                        key={category.id} 
+                        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => setSelectedCategory(category)}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center space-x-3">
+                            <div 
+                              className="w-12 h-12 rounded-lg flex items-center justify-center text-white shadow-sm"
+                              style={{ backgroundColor: category.color }}
+                            >
+                              <Shield className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg font-semibold text-[var(--au-primary)]">{category.name}</CardTitle>
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                              <CardDescription className="text-sm text-muted-foreground mt-1">
+                                {category.description}
+                              </CardDescription>
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="secondary" className="bg-[var(--au-primary)]/10 text-[var(--au-primary)]">
+                                  {categoryApis.length} APIs
+                                </Badge>
+                                <Badge variant="outline">{categoryApis.filter(api => api.status === 'active').length} Active</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {/* View 2: APIs within Selected Category */}
+            {selectedCategory && !selectedApi && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div 
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                      style={{ backgroundColor: selectedCategory.color }}
+                    >
+                      <Shield className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-[var(--au-primary)]">{selectedCategory.name}</h2>
+                      <p className="text-muted-foreground">{selectedCategory.description}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      setEditingApi(null);
+                      setShowApiDialog(true);
+                    }}
+                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add API
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {apis.filter(api => api.category === selectedCategory.name).map((api) => (
+                    <Card 
+                      key={api.id} 
+                      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => setSelectedApi(api)}
+                    >
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Badge variant={api.method === 'GET' ? 'secondary' : 'default'}>
+                              {api.method}
+                            </Badge>
+                            <div className="flex-1">
+                              <CardTitle className="text-lg">{api.name}</CardTitle>
+                              <CardDescription className="font-mono text-sm">{api.path}</CardDescription>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={api.status === 'active' ? 'default' : 'secondary'}>
+                              {api.status}
+                            </Badge>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-2">{api.description}</p>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* View 3: API Details (Documentation & Sandbox) */}
+            {selectedApi && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Badge variant={selectedApi.method === 'GET' ? 'secondary' : 'default'}>
+                      {selectedApi.method}
+                    </Badge>
+                    <div>
+                      <h2 className="text-2xl font-bold text-[var(--au-primary)]">{selectedApi.name}</h2>
+                      <p className="font-mono text-muted-foreground">{selectedApi.path}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={selectedApi.status === 'active' ? 'default' : 'secondary'}>
+                      {selectedApi.status}
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
-                        setEditingApi(null);
+                        setEditingApi(selectedApi);
                         setShowApiDialog(true);
                       }}
-                      variant="outline"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add API
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
                     </Button>
-                  </DialogTrigger>
-                  <ApiEditDialog 
-                    api={editingApi}
-                    categories={categories}
-                    onSave={handleSaveApi}
-                    onClose={() => setShowApiDialog(false)}
-                  />
-                </Dialog>
-              </div>
-            </div>
+                  </div>
+                </div>
 
-            {/* Card-Based Grid View */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category) => {
-                const categoryApis = apis.filter(api => api.category === category.name);
-                return (
-                  <Card key={category.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <CardHeader className="cursor-pointer pb-3" 
-                      onClick={() => {
-                        const expandedCats = new Set(expandedCategories);
-                        if (expandedCats.has(category.id)) {
-                          expandedCats.delete(category.id);
-                        } else {
-                          expandedCats.add(category.id);
-                        }
-                        setExpandedCategories(Array.from(expandedCats));
-                      }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div 
-                          className="w-12 h-12 rounded-lg flex items-center justify-center text-white shadow-sm"
-                          style={{ backgroundColor: category.color }}
-                        >
-                          <Shield className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg font-semibold text-[var(--au-primary)]">{category.name}</CardTitle>
-                            {expandedCategories.includes(category.id) ? 
-                              <ChevronDown className="w-4 h-4 text-muted-foreground" /> : 
-                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                            }
-                          </div>
-                          <CardDescription className="text-sm text-muted-foreground mt-1">
-                            {category.description}
-                          </CardDescription>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary" className="bg-[var(--au-primary)]/10 text-[var(--au-primary)]">
-                              {categoryApis.length} APIs
-                            </Badge>
-                            <Badge variant="outline">{categoryApis.filter(api => api.status === 'active').length} Active</Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-end space-x-1 mt-2" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setEditingCategory(category);
-                            setShowCategoryDialog(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCategory(category.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Documentation Section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="w-5 h-5" />
+                        Documentation
+                      </CardTitle>
                     </CardHeader>
-                    
-                    {/* Expandable APIs Section */}
-                    {expandedCategories.includes(category.id) && (
-                      <CardContent className="pt-0">
-                        <div className="border-t pt-4">
-                          <div className="space-y-3">
-                            {categoryApis.length === 0 ? (
-                              <p className="text-sm text-muted-foreground italic">No APIs in this category</p>
-                            ) : (
-                              categoryApis.map((api) => (
-                                <Card key={api.id} className="ml-6 border-l-4" style={{ borderLeftColor: category.color }}>
-                                  <CardHeader 
-                                    className="cursor-pointer py-3"
-                                    onClick={() => {
-                                      const newExpandedApis = new Set(expandedApis);
-                                      if (newExpandedApis.has(api.id)) {
-                                        newExpandedApis.delete(api.id);
-                                      } else {
-                                        newExpandedApis.add(api.id);
-                                      }
-                                      setExpandedApis(Array.from(newExpandedApis));
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center space-x-3">
-                                        <Badge variant={api.method === 'GET' ? 'secondary' : 'default'}>
-                                          {api.method}
-                                        </Badge>
-                                        <div className="flex-1">
-                                          <div className="flex items-center gap-2">
-                                            <CardTitle className="text-base">{api.name}</CardTitle>
-                                            <Badge variant="outline">{api.status}</Badge>
-                                            {expandedApis.includes(api.id) ? 
-                                              <ChevronDown className="w-3 h-3" /> : 
-                                              <ChevronRight className="w-3 h-3" />
-                                            }
-                                          </div>
-                                          <CardDescription className="font-mono text-xs">{api.path}</CardDescription>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => {
-                                            setEditingApi(api);
-                                            setShowApiDialog(true);
-                                          }}
-                                        >
-                                          <Edit className="w-3 h-3" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => handleDeleteApi(api.id)}
-                                        >
-                                          <Trash2 className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </CardHeader>
-                                  
-                                  {/* Expandable API Details - Documentation & Sandbox */}
-                                  {expandedApis.includes(api.id) && (
-                                    <CardContent className="pt-0">
-                                      <div className="ml-4 space-y-4 text-sm">
-                                        <div>
-                                          <h4 className="font-medium text-[var(--au-primary)] mb-2">📋 Documentation</h4>
-                                          <p className="text-muted-foreground">{api.description}</p>
-                                        </div>
-                                        
-                                        <div>
-                                          <h4 className="font-medium text-[var(--au-primary)] mb-2">🧪 Sandbox Configuration</h4>
-                                          <div className="bg-muted p-3 rounded">
-                                            <div className="grid grid-cols-2 gap-3 text-xs">
-                                              <div>
-                                                <strong>Rate Limit:</strong> {api.rateLimit}/min
-                                              </div>
-                                              <div>
-                                                <strong>Timeout:</strong> {api.timeout}ms
-                                              </div>
-                                              <div>
-                                                <strong>Auth Required:</strong> {api.requiresAuth ? 'Yes' : 'No'}
-                                              </div>
-                                              <div>
-                                                <strong>Auth Type:</strong> {api.authType || 'N/A'}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        
-                                        {api.bodyParameters && api.bodyParameters.length > 0 && (
-                                          <div>
-                                            <h4 className="font-medium text-[var(--au-primary)] mb-2">📥 Parameters</h4>
-                                            <div className="space-y-2">
-                                              {api.bodyParameters.map((param, idx) => (
-                                                <div key={idx} className="bg-muted p-2 rounded text-xs">
-                                                  <div className="font-medium">{param.name} 
-                                                    <Badge variant="outline" className="ml-2 text-xs">{param.type}</Badge>
-                                                    {param.required && <Badge variant="destructive" className="ml-1 text-xs">Required</Badge>}
-                                                  </div>
-                                                  <div className="text-muted-foreground mt-1">{param.description}</div>
-                                                  {param.example && <div className="text-muted-foreground mt-1">Example: {param.example}</div>}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                        
-                                        {api.responses && api.responses.length > 0 && (
-                                          <div>
-                                            <h4 className="font-medium text-[var(--au-primary)] mb-2">📤 Response Schema</h4>
-                                            <div className="bg-muted p-3 rounded">
-                                              <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-                                                {api.responses[0]?.schema || 'No schema defined'}
-                                              </pre>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </CardContent>
-                                  )}
-                                </Card>
-                              ))
-                            )}
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="font-medium text-[var(--au-primary)] mb-2">Description</h4>
+                        <p className="text-sm text-muted-foreground">{selectedApi.description}</p>
+                      </div>
+                      
+                      {selectedApi.bodyParameters && selectedApi.bodyParameters.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-[var(--au-primary)] mb-2">Parameters</h4>
+                          <div className="space-y-2">
+                            {selectedApi.bodyParameters.map((param, idx) => (
+                              <div key={idx} className="bg-muted p-3 rounded text-sm">
+                                <div className="font-mono">
+                                  <span className="font-semibold">{param.name}</span>
+                                  <span className="text-muted-foreground"> ({param.type})</span>
+                                  {param.required && <span className="text-red-500 ml-1">*</span>}
+                                </div>
+                                <p className="text-muted-foreground mt-1">{param.description}</p>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      </CardContent>
-                    )}
+                      )}
+                      
+                      {selectedApi.responses && selectedApi.responses.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-[var(--au-primary)] mb-2">Response Schema</h4>
+                          <div className="bg-muted p-3 rounded">
+                            <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                              {selectedApi.responses[0]?.schema || 'No schema defined'}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
                   </Card>
-                );
-              })}
-            </div>
+
+                  {/* Sandbox Configuration Section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <PlayCircle className="w-5 h-5" />
+                        Sandbox Configuration
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <h5 className="font-medium text-[var(--au-primary)] mb-1">Rate Limit</h5>
+                          <p className="text-muted-foreground">{selectedApi.rateLimit}/min</p>
+                        </div>
+                        <div>
+                          <h5 className="font-medium text-[var(--au-primary)] mb-1">Timeout</h5>
+                          <p className="text-muted-foreground">{selectedApi.timeout}ms</p>
+                        </div>
+                        <div>
+                          <h5 className="font-medium text-[var(--au-primary)] mb-1">Authentication</h5>
+                          <p className="text-muted-foreground">{selectedApi.requiresAuth ? 'Required' : 'Not Required'}</p>
+                        </div>
+                        <div>
+                          <h5 className="font-medium text-[var(--au-primary)] mb-1">Auth Type</h5>
+                          <p className="text-muted-foreground">{selectedApi.authType || 'N/A'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 border-t">
+                        <h4 className="font-medium text-[var(--au-primary)] mb-3">Test Configuration</h4>
+                        <div className="space-y-3">
+                          <Button className="w-full" variant="outline">
+                            <PlayCircle className="w-4 h-4 mr-2" />
+                            Open in Sandbox
+                          </Button>
+                          <Button className="w-full" variant="outline">
+                            <FileText className="w-4 h-4 mr-2" />
+                            View OpenAPI Spec
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            )}
+
+            {/* Dialogs */}
+            <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+              <CategoryEditDialog 
+                category={editingCategory}
+                onSave={handleSaveCategory}
+                onClose={() => setShowCategoryDialog(false)}
+              />
+            </Dialog>
+            <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+              <ApiEditDialog 
+                api={editingApi}
+                categories={categories}
+                onSave={handleSaveApi}
+                onClose={() => setShowApiDialog(false)}
+              />
+            </Dialog>
           </TabsContent>
 
 
