@@ -492,6 +492,307 @@ export const API_CATEGORIES: APICategory[] = [
           mockResponse: { account_number: "1234567890", available_balance: 50000.00, currency: "INR" },
           rateLimits: { sandbox: 1000, production: 10000 }
         }
+      },
+      {
+        id: "aadhar-vault-insert-token",
+        name: "Aadhar Vault - Insert Token",
+        method: "POST",
+        path: "/auth/otp/generate",
+        category: "Customer",
+        description: "Generate One-Time Password for customer authentication",
+        summary: "Generate OTP for customer verification",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "clientId", type: "string", required: true, description: "Client identifier", example: "CLIENT123" },
+          { name: "phoneNumber", type: "string", required: true, description: "Customer phone number", example: "9876543210" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          { statusCode: 200, description: "OTP generated successfully", schema: { status: "string", otpId: "string" }, example: '{"status": "success", "otpId": "OTP123456"}' }
+        ],
+        requestExample: '{"clientId": "CLIENT123", "phoneNumber": "9876543210"}',
+        responseExample: '{"status": "success", "otpId": "OTP123456"}',
+        responseSchema: { status: "string", otpId: "string" },
+        status: "active",
+        tags: ["customer", "authentication", "otp"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 30000,
+        documentation: "Generate OTP for customer authentication and verification",
+        sandbox: { enabled: true, testData: [], mockResponse: { status: "success", otpId: "OTP123456" }, rateLimits: { sandbox: 100, production: 1000 } }
+      },
+      {
+        id: "aadhar-vault-get-value",
+        name: "Aadhar Vault - Get Value",
+        method: "GET",
+        path: "/auth/otp/verify",
+        category: "Customer",
+        description: "Verify One-Time Password for customer authentication",
+        summary: "Verify OTP entered by customer",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "otpId", type: "string", required: true, description: "OTP identifier", example: "OTP123456" },
+          { name: "otp", type: "string", required: true, description: "One-time password", example: "123456" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "OTP verified successfully", schema: { verified: "boolean", message: "string" }, example: '{"verified": true, "message": "OTP verified successfully"}' }
+        ],
+        requestExample: '',
+        responseExample: '{"verified": true, "message": "OTP verified successfully"}',
+        responseSchema: { verified: "boolean", message: "string" },
+        status: "active",
+        tags: ["customer", "authentication", "verification"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 30000,
+        documentation: "Verify OTP for customer authentication",
+        sandbox: { enabled: true, testData: [], mockResponse: { verified: true, message: "OTP verified successfully" }, rateLimits: { sandbox: 100, production: 1000 } }
+      },
+      {
+        id: "aadhar-vault-get-token",
+        name: "Aadhar Vault - Get Token",
+        method: "POST",
+        path: "/auth/otp/generate",
+        category: "Customer",
+        description: "Generate One-Time Password for customer authentication",
+        summary: "Generate OTP for secure customer verification",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "clientId", type: "string", required: true, description: "Client identifier", example: "CLIENT123" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "Token generated successfully", schema: { token: "string", expiresIn: "number" }, example: '{"token": "TOKEN123456", "expiresIn": 3600}' }
+        ],
+        requestExample: '{"clientId": "CLIENT123"}',
+        responseExample: '{"token": "TOKEN123456", "expiresIn": 3600}',
+        responseSchema: { token: "string", expiresIn: "number" },
+        status: "active",
+        tags: ["customer", "authentication", "token"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 30000,
+        documentation: "Generate authentication token for customer verification",
+        sandbox: { enabled: true, testData: [], mockResponse: { token: "TOKEN123456", expiresIn: 3600 }, rateLimits: { sandbox: 100, production: 1000 } }
+      },
+      {
+        id: "cibil-service",
+        name: "CIBIL Service",
+        method: "POST",
+        path: "/customer/cibil/check",
+        category: "Customer",
+        description: "Check customer credit score and history through CIBIL integration",
+        summary: "Retrieve customer credit information",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "customerId", type: "string", required: true, description: "Customer ID", example: "CUST123" },
+          { name: "panNumber", type: "string", required: true, description: "PAN card number", example: "ABCDE1234F" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "Credit score retrieved", schema: { score: "number", grade: "string", history: "array" }, example: '{"score": 750, "grade": "GOOD", "history": []}' }
+        ],
+        requestExample: '{"customerId": "CUST123", "panNumber": "ABCDE1234F"}',
+        responseExample: '{"score": 750, "grade": "GOOD", "history": []}',
+        responseSchema: { score: "number", grade: "string", history: "array" },
+        status: "active",
+        tags: ["customer", "credit", "cibil"],
+        rateLimits: { sandbox: 50, production: 500 },
+        timeout: 45000,
+        documentation: "Retrieve customer credit score and history from CIBIL",
+        sandbox: { enabled: true, testData: [], mockResponse: { score: 750, grade: "GOOD", history: [] }, rateLimits: { sandbox: 50, production: 500 } }
+      },
+      {
+        id: "cif-creation-service",
+        name: "CIF Creation Service",
+        method: "POST",
+        path: "/customer/cif/create",
+        category: "Customer",
+        description: "Create Customer Information File (CIF) for new customer onboarding",
+        summary: "Create new customer CIF record",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "customerDetails", type: "object", required: true, description: "Customer personal details", example: '{"name": "John Doe", "email": "john@email.com"}' },
+          { name: "address", type: "object", required: true, description: "Customer address information", example: '{"street": "123 Main St", "city": "Mumbai"}' }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 201, description: "CIF created successfully", schema: { cifNumber: "string", customerId: "string" }, example: '{"cifNumber": "CIF123456", "customerId": "CUST123"}' }
+        ],
+        requestExample: '{"customerDetails": {"name": "John Doe", "email": "john@email.com"}, "address": {"street": "123 Main St", "city": "Mumbai"}}',
+        responseExample: '{"cifNumber": "CIF123456", "customerId": "CUST123"}',
+        responseSchema: { cifNumber: "string", customerId: "string" },
+        status: "active",
+        tags: ["customer", "onboarding", "cif"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 60000,
+        documentation: "Create Customer Information File for new customer onboarding",
+        sandbox: { enabled: true, testData: [], mockResponse: { cifNumber: "CIF123456", customerId: "CUST123" }, rateLimits: { sandbox: 100, production: 1000 } }
+      },
+      {
+        id: "ckyc-search",
+        name: "CKYC Search",
+        method: "GET",
+        path: "/customer/ckyc/search",
+        category: "Customer",
+        description: "Search customer records in Central KYC Registry",
+        summary: "Search CKYC database for customer records",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "ckycNumber", type: "string", required: true, description: "CKYC identifier", example: "CKYC123456" },
+          { name: "searchType", type: "string", required: false, description: "Type of search", example: "PAN" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "CKYC records found", schema: { records: "array", count: "number" }, example: '{"records": [], "count": 0}' }
+        ],
+        requestExample: '',
+        responseExample: '{"records": [], "count": 0}',
+        responseSchema: { records: "array", count: "number" },
+        status: "active",
+        tags: ["customer", "kyc", "search"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 30000,
+        documentation: "Search Central KYC Registry for customer records",
+        sandbox: { enabled: true, testData: [], mockResponse: { records: [], count: 0 }, rateLimits: { sandbox: 100, production: 1000 } }
+      },
+      {
+        id: "customer-dedupe-service",
+        name: "Customer Dedupe Service",
+        method: "POST",
+        path: "/customer/dedupe",
+        category: "Customer",
+        description: "Check for duplicate customer records to prevent multiple accounts",
+        summary: "Deduplicate customer records",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "customerData", type: "object", required: true, description: "Customer data for deduplication", example: '{"name": "John Doe", "dob": "1990-01-01"}' },
+          { name: "checkType", type: "string", required: false, description: "Type of check to perform", example: "FULL" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "Deduplication check completed", schema: { isDuplicate: "boolean", matches: "array" }, example: '{"isDuplicate": false, "matches": []}' }
+        ],
+        requestExample: '{"customerData": {"name": "John Doe", "dob": "1990-01-01"}, "checkType": "FULL"}',
+        responseExample: '{"isDuplicate": false, "matches": []}',
+        responseSchema: { isDuplicate: "boolean", matches: "array" },
+        status: "active",
+        tags: ["customer", "deduplication", "validation"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 45000,
+        documentation: "Check for duplicate customer records in the system",
+        sandbox: { enabled: true, testData: [], mockResponse: { isDuplicate: false, matches: [] }, rateLimits: { sandbox: 100, production: 1000 } }
+      },
+      {
+        id: "customer-image-upload-service",
+        name: "Customer Image Upload Service",
+        method: "POST",
+        path: "/customer/image/upload",
+        category: "Customer",
+        description: "Upload and store customer images and documents securely",
+        summary: "Upload customer images and documents",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "customerId", type: "string", required: true, description: "Customer identifier", example: "CUST123" },
+          { name: "imageType", type: "string", required: true, description: "Type of image", example: "PROFILE" },
+          { name: "imageData", type: "string", required: true, description: "Base64 encoded image", example: "data:image/jpeg;base64,..." }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "Image uploaded successfully", schema: { imageId: "string", url: "string" }, example: '{"imageId": "IMG123", "url": "/images/IMG123.jpg"}' }
+        ],
+        requestExample: '{"customerId": "CUST123", "imageType": "PROFILE", "imageData": "data:image/jpeg;base64,..."}',
+        responseExample: '{"imageId": "IMG123", "url": "/images/IMG123.jpg"}',
+        responseSchema: { imageId: "string", url: "string" },
+        status: "active",
+        tags: ["customer", "upload", "images"],
+        rateLimits: { sandbox: 50, production: 500 },
+        timeout: 60000,
+        documentation: "Upload and store customer images and documents",
+        sandbox: { enabled: true, testData: [], mockResponse: { imageId: "IMG123", url: "/images/IMG123.jpg" }, rateLimits: { sandbox: 50, production: 500 } }
+      },
+      {
+        id: "posidex-fetch-ucic",
+        name: "POSIDEX - Fetch UCIC",
+        method: "GET",
+        path: "/customer/posidex/ucic",
+        category: "Customer",
+        description: "Fetch Unique Customer Identification Code (UCIC) from POSIDEX system",
+        summary: "Retrieve customer UCIC from POSIDEX",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "customerId", type: "string", required: true, description: "Customer identifier", example: "CUST123" },
+          { name: "searchCriteria", type: "object", required: false, description: "Search criteria", example: '{"type": "PAN"}' }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "UCIC retrieved successfully", schema: { ucic: "string", status: "string" }, example: '{"ucic": "UCIC123456", "status": "ACTIVE"}' }
+        ],
+        requestExample: '',
+        responseExample: '{"ucic": "UCIC123456", "status": "ACTIVE"}',
+        responseSchema: { ucic: "string", status: "string" },
+        status: "active",
+        tags: ["customer", "posidex", "ucic"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 30000,
+        documentation: "Fetch Unique Customer Identification Code from POSIDEX system",
+        sandbox: { enabled: true, testData: [], mockResponse: { ucic: "UCIC123456", status: "ACTIVE" }, rateLimits: { sandbox: 100, production: 1000 } }
+      },
+      {
+        id: "update-customer-details-service",
+        name: "Update Customer Details Service",
+        method: "PUT",
+        path: "/customer/update",
+        category: "Customer",
+        description: "Update existing customer information and profile details",
+        summary: "Update customer profile information",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "customerId", type: "string", required: true, description: "Customer identifier", example: "CUST123" },
+          { name: "updateFields", type: "object", required: true, description: "Fields to update", example: '{"email": "newemail@example.com"}' }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer token123" }
+        ],
+        responses: [
+          { statusCode: 200, description: "Customer updated successfully", schema: { success: "boolean", updatedFields: "array" }, example: '{"success": true, "updatedFields": ["email"]}' }
+        ],
+        requestExample: '{"customerId": "CUST123", "updateFields": {"email": "newemail@example.com"}}',
+        responseExample: '{"success": true, "updatedFields": ["email"]}',
+        responseSchema: { success: "boolean", updatedFields: "array" },
+        status: "active",
+        tags: ["customer", "update", "profile"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 30000,
+        documentation: "Update existing customer profile information",
+        sandbox: { enabled: true, testData: [], mockResponse: { success: true, updatedFields: ["email"] }, rateLimits: { sandbox: 100, production: 1000 } }
       }
     ]
   },
