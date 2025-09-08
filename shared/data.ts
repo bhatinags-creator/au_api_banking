@@ -658,6 +658,47 @@ export const API_CATEGORIES: APICategory[] = [
           mockResponse: { account_id: "ACC123456789", available_balance: 50000.00, current_balance: 52000.00, currency: "INR" },
           rateLimits: { sandbox: 200, production: 2000 }
         }
+      },
+      {
+        id: "fixed-deposit-creation",
+        name: "Fixed Deposit Creation",
+        method: "POST",
+        path: "/liabilities/fd/create",
+        category: "Liabilities",
+        description: "Create fixed deposit accounts with flexible terms and competitive interest rates",
+        summary: "Create fixed deposit",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "amount", type: "number", required: true, description: "Deposit amount", example: "100000" },
+          { name: "tenure_months", type: "number", required: true, description: "Tenure in months", example: "12" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Fixed deposit created successfully",
+            schema: { fd_number: "string", interest_rate: "number", maturity_amount: "number" },
+            example: '{"fd_number": "FD123456", "interest_rate": 7.5, "maturity_amount": 107500}'
+          }
+        ],
+        requestExample: '{"amount": 100000, "tenure_months": 12}',
+        responseExample: '{"fd_number": "FD123456", "interest_rate": 7.5, "maturity_amount": 107500}',
+        responseSchema: { fd_number: "string", interest_rate: "number", maturity_amount: "number" },
+        status: "active",
+        tags: ["liabilities", "fd", "investment"],
+        rateLimits: { sandbox: 50, production: 500 },
+        timeout: 30000,
+        documentation: "Fixed deposit creation with competitive interest rates",
+        sandbox: {
+          enabled: true,
+          testData: [{ amount: 100000, tenure_months: 12 }],
+          mockResponse: { fd_number: "FD_TEST_123", interest_rate: 7.5, maturity_amount: 107500 },
+          rateLimits: { sandbox: 50, production: 500 }
+        }
       }
     ]
   },
@@ -721,6 +762,47 @@ export const API_CATEGORIES: APICategory[] = [
           testData: [{ card_type: "CREDIT", card_variant: "PLATINUM" }],
           mockResponse: { application_id: "CARD_TEST_123", status: "APPROVED", estimated_delivery: "7-10 business days" },
           rateLimits: { sandbox: 20, production: 200 }
+        }
+      },
+      {
+        id: "card-block-unblock",
+        name: "Card Block/Unblock",
+        method: "POST",
+        path: "/cards/block-unblock",
+        category: "Cards",
+        description: "Block or unblock cards for security purposes",
+        summary: "Block or unblock cards",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "card_number", type: "string", required: true, description: "Card number", example: "1234567890123456" },
+          { name: "action", type: "string", required: true, description: "Action to perform", example: "BLOCK" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Card action completed successfully",
+            schema: { card_number: "string", status: "string", timestamp: "string" },
+            example: '{"card_number": "****3456", "status": "BLOCKED", "timestamp": "2024-01-01T10:00:00Z"}'
+          }
+        ],
+        requestExample: '{"card_number": "1234567890123456", "action": "BLOCK"}',
+        responseExample: '{"card_number": "****3456", "status": "BLOCKED", "timestamp": "2024-01-01T10:00:00Z"}',
+        responseSchema: { card_number: "string", status: "string", timestamp: "string" },
+        status: "active",
+        tags: ["cards", "security", "block"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 10000,
+        documentation: "Card security management API",
+        sandbox: {
+          enabled: true,
+          testData: [{ card_number: "1234567890123456", action: "BLOCK" }],
+          mockResponse: { card_number: "****3456", status: "BLOCKED", timestamp: "2024-01-01T10:00:00Z" },
+          rateLimits: { sandbox: 100, production: 1000 }
         }
       }
     ]
@@ -793,6 +875,46 @@ export const API_CATEGORIES: APICategory[] = [
           mockResponse: { transaction_id: "CNB_TEST_123", status: "SUCCESS", amount: 5000.00, settlement_time: "2024-01-01T10:00:00Z" },
           rateLimits: { sandbox: 50, production: 500 }
         }
+      },
+      {
+        id: "bulk-payment-processing",
+        name: "Bulk Payment Processing",
+        method: "POST",
+        path: "/payments/bulk",
+        category: "Payments",
+        description: "Process multiple payments in a single batch operation",
+        summary: "Process bulk payments",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "payments", type: "array", required: true, description: "Array of payment objects", example: "[{\"to_account\": \"ACC123\", \"amount\": 1000}]" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Bulk payments processed successfully",
+            schema: { batch_id: "string", processed_count: "number", failed_count: "number" },
+            example: '{"batch_id": "BULK123", "processed_count": 5, "failed_count": 0}'
+          }
+        ],
+        requestExample: '{"payments": [{"to_account": "ACC123", "amount": 1000}]}',
+        responseExample: '{"batch_id": "BULK123", "processed_count": 5, "failed_count": 0}',
+        responseSchema: { batch_id: "string", processed_count: "number", failed_count: "number" },
+        status: "active",
+        tags: ["payments", "bulk", "batch"],
+        rateLimits: { sandbox: 10, production: 100 },
+        timeout: 120000,
+        documentation: "Bulk payment processing API for high-volume transactions",
+        sandbox: {
+          enabled: true,
+          testData: [{ payments: [{"to_account": "ACC123", "amount": 1000}] }],
+          mockResponse: { batch_id: "BULK_TEST_123", processed_count: 1, failed_count: 0 },
+          rateLimits: { sandbox: 10, production: 100 }
+        }
       }
     ]
   },
@@ -864,6 +986,47 @@ export const API_CATEGORIES: APICategory[] = [
           mockResponse: { lc_number: "LC_TEST_123", status: "ISSUED", expiry_date: "2024-12-31" },
           rateLimits: { sandbox: 10, production: 100 }
         }
+      },
+      {
+        id: "bank-guarantee",
+        name: "Bank Guarantee Issuance",
+        method: "POST",
+        path: "/trade/guarantee",
+        category: "Trade Services",
+        description: "Issue bank guarantees for business and trade transactions",
+        summary: "Issue bank guarantees",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "guarantee_type", type: "string", required: true, description: "Type of guarantee", example: "PERFORMANCE" },
+          { name: "amount", type: "number", required: true, description: "Guarantee amount", example: "500000" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Bank guarantee issued successfully",
+            schema: { guarantee_id: "string", status: "string", reference_number: "string" },
+            example: '{"guarantee_id": "BG123456", "status": "ISSUED", "reference_number": "AUBG001234"}'
+          }
+        ],
+        requestExample: '{"guarantee_type": "PERFORMANCE", "amount": 500000}',
+        responseExample: '{"guarantee_id": "BG123456", "status": "ISSUED", "reference_number": "AUBG001234"}',
+        responseSchema: { guarantee_id: "string", status: "string", reference_number: "string" },
+        status: "active",
+        tags: ["trade", "guarantee", "business"],
+        rateLimits: { sandbox: 20, production: 200 },
+        timeout: 60000,
+        documentation: "Bank guarantee issuance for trade and business operations",
+        sandbox: {
+          enabled: true,
+          testData: [{ guarantee_type: "PERFORMANCE", amount: 500000 }],
+          mockResponse: { guarantee_id: "BG_TEST_123", status: "ISSUED", reference_number: "AUBG001234" },
+          rateLimits: { sandbox: 20, production: 200 }
+        }
       }
     ]
   },
@@ -927,6 +1090,86 @@ export const API_CATEGORIES: APICategory[] = [
           testData: [{ batch_id: "BATCH123456", payments: [{ to_account: "ACC123", amount: 1000 }] }],
           mockResponse: { batch_id: "BATCH123456", total_amount: 1000.00, successful_payments: 1, failed_payments: 0 },
           rateLimits: { sandbox: 5, production: 50 }
+        }
+      },
+      {
+        id: "corporate-account-statement",
+        name: "Corporate Account Statement",
+        method: "GET",
+        path: "/corporate/statements",
+        category: "Corporate API Suite",
+        description: "Generate detailed corporate account statements with transaction history",
+        summary: "Get corporate account statements",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "account_id", type: "string", required: true, description: "Corporate account ID", example: "CORP123456" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Account statement generated successfully",
+            schema: { statement_id: "string", transactions: "array", balance_summary: "object" },
+            example: '{"statement_id": "STMT123", "transactions": [], "balance_summary": {"opening_balance": 100000, "closing_balance": 95000}}'
+          }
+        ],
+        requestExample: '',
+        responseExample: '{"statement_id": "STMT123", "transactions": [], "balance_summary": {"opening_balance": 100000, "closing_balance": 95000}}',
+        responseSchema: { statement_id: "string", transactions: "array", balance_summary: "object" },
+        status: "active",
+        tags: ["corporate", "statements", "reporting"],
+        rateLimits: { sandbox: 100, production: 1000 },
+        timeout: 30000,
+        documentation: "Corporate account statement generation with detailed transaction history",
+        sandbox: {
+          enabled: true,
+          testData: [{ account_id: "CORP123456" }],
+          mockResponse: { statement_id: "STMT_TEST_123", transactions: [], balance_summary: {"opening_balance": 100000, "closing_balance": 95000} },
+          rateLimits: { sandbox: 100, production: 1000 }
+        }
+      },
+      {
+        id: "treasury-management",
+        name: "Treasury Management",
+        method: "POST",
+        path: "/corporate/treasury",
+        category: "Corporate API Suite",
+        description: "Advanced treasury management for corporate liquidity and cash flow optimization",
+        summary: "Manage corporate treasury operations",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "operation_type", type: "string", required: true, description: "Treasury operation type", example: "CASH_SWEEP" },
+          { name: "amount", type: "number", required: true, description: "Operation amount", example: "1000000" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Treasury operation executed successfully",
+            schema: { operation_id: "string", status: "string", yield_rate: "number" },
+            example: '{"operation_id": "TREAS123", "status": "EXECUTED", "yield_rate": 6.5}'
+          }
+        ],
+        requestExample: '{"operation_type": "CASH_SWEEP", "amount": 1000000}',
+        responseExample: '{"operation_id": "TREAS123", "status": "EXECUTED", "yield_rate": 6.5}',
+        responseSchema: { operation_id: "string", status: "string", yield_rate: "number" },
+        status: "active",
+        tags: ["corporate", "treasury", "liquidity"],
+        rateLimits: { sandbox: 20, production: 200 },
+        timeout: 60000,
+        documentation: "Treasury management for corporate cash flow optimization",
+        sandbox: {
+          enabled: true,
+          testData: [{ operation_type: "CASH_SWEEP", amount: 1000000 }],
+          mockResponse: { operation_id: "TREAS_TEST_123", status: "EXECUTED", yield_rate: 6.5 },
+          rateLimits: { sandbox: 20, production: 200 }
         }
       }
     ]
