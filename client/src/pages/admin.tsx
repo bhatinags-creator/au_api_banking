@@ -451,13 +451,13 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            {/* Hierarchical Tree View */}
-            <div className="space-y-4">
+            {/* Card-Based Grid View */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((category) => {
                 const categoryApis = apis.filter(api => api.category === category.name);
                 return (
-                  <Card key={category.id} className="overflow-hidden">
-                    <CardHeader className="cursor-pointer" 
+                  <Card key={category.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <CardHeader className="cursor-pointer pb-3" 
                       onClick={() => {
                         const expandedCats = new Set(expandedCategories);
                         if (expandedCats.has(category.id)) {
@@ -468,47 +468,50 @@ export default function AdminPanel() {
                         setExpandedCategories(Array.from(expandedCats));
                       }}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div 
-                            className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
-                            style={{ backgroundColor: category.color }}
-                          >
-                            <Shield className="w-5 h-5" />
+                      <div className="flex items-center space-x-3">
+                        <div 
+                          className="w-12 h-12 rounded-lg flex items-center justify-center text-white shadow-sm"
+                          style={{ backgroundColor: category.color }}
+                        >
+                          <Shield className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg font-semibold text-[var(--au-primary)]">{category.name}</CardTitle>
+                            {expandedCategories.includes(category.id) ? 
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" /> : 
+                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            }
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <CardTitle className="text-lg">{category.name}</CardTitle>
-                              <Badge variant="secondary">{categoryApis.length} APIs</Badge>
-                              {expandedCategories.includes(category.id) ? 
-                                <ChevronDown className="w-4 h-4" /> : 
-                                <ChevronRight className="w-4 h-4" />
-                              }
-                            </div>
-                            <CardDescription className="text-sm text-muted-foreground">
-                              {category.description}
-                            </CardDescription>
+                          <CardDescription className="text-sm text-muted-foreground mt-1">
+                            {category.description}
+                          </CardDescription>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="secondary" className="bg-[var(--au-primary)]/10 text-[var(--au-primary)]">
+                              {categoryApis.length} APIs
+                            </Badge>
+                            <Badge variant="outline">{categoryApis.filter(api => api.status === 'active').length} Active</Badge>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingCategory(category);
-                              setShowCategoryDialog(true);
-                            }}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteCategory(category.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                      </div>
+                      <div className="flex items-center justify-end space-x-1 mt-2" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingCategory(category);
+                            setShowCategoryDialog(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </CardHeader>
                     
