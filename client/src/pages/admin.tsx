@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { 
   ArrowLeft, Settings, Plus, Edit, Trash2, Save, Eye, Users, 
   Database, Shield, CreditCard, BookOpen, Code, FileText,
-  BarChart3, Activity, Globe, Lock, Check, X
+  BarChart3, Activity, Globe, Lock, Check, X, ChevronDown, ChevronRight
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -126,10 +126,16 @@ export default function AdminPanel() {
   const loadAdminData = async () => {
     try {
       // Load hierarchical data from the same endpoint as home page
+      console.log('🔧 ADMIN - Loading data...');
       const categoriesResponse = await fetch('/api/categories');
       
       if (categoriesResponse.ok) {
         const hierarchicalData = await categoriesResponse.json();
+        
+        console.log('🔧 ADMIN - Loaded hierarchical data:', hierarchicalData.length, 'categories');
+        hierarchicalData.forEach((cat: any) => {
+          console.log(`📁 ${cat.name}: ${cat.apis ? cat.apis.length : 0} APIs`);
+        });
         
         // Transform hierarchical data for admin panel
         const adminCategories: APICategory[] = hierarchicalData.map((cat: any) => ({
@@ -186,14 +192,15 @@ export default function AdminPanel() {
         });
         
         setApis(allApis);
-        // All APIs processed with full documentation and sandbox details
+        console.log('🔧 ADMIN - Total APIs loaded:', allApis.length);
         
         toast({
-          title: "Hierarchical Data Loaded",
+          title: "Admin Data Loaded", 
           description: `Loaded ${adminCategories.length} categories with ${allApis.length} APIs`
         });
         
-        return;
+        // Continue to load comprehensive fallback data to supplement database data
+        console.log('🔧 ADMIN - Also loading comprehensive static data for complete admin view');
       }
     } catch (error) {
       console.error('Error loading hierarchical data:', error);
@@ -204,7 +211,71 @@ export default function AdminPanel() {
       });
     }
     
-    // Fallback: Load minimal static data
+    // Fallback: Load the original comprehensive static data that should be in the database
+    console.log('🔧 ADMIN - Loading fallback static data with all categories and APIs');
+    
+    // Add all original categories to database and admin panel
+    const allOriginalCategories = [
+      {
+        id: "customer",
+        name: "Customer",
+        description: "Essential APIs for integrating with core banking services. Run checks and validations using fundamental APIs such as KYC verification, account validation, and identity checks.",
+        icon: "Shield",
+        color: "#2563eb",
+        endpoints: ["customer-360-service", "customer-dedupe", "ckyc-search", "customer-image-upload", "posidex-fetch-ucic", "update-customer-details", "aadhar-vault-insert", "aadhar-vault-get", "cibil-service"]
+      },
+      {
+        id: "loans",
+        name: "Loans", 
+        description: "Comprehensive loan management APIs for personal loans, home loans, and business financing with automated approval workflows and real-time status tracking.",
+        icon: "CreditCard",
+        color: "#16a34a",
+        endpoints: ["loan-application", "loan-status", "emi-calculator", "loan-prepayment", "loan-documents", "loan-eligibility"]
+      },
+      {
+        id: "liabilities",
+        name: "Liabilities",
+        description: "Enable customers to invest and bank with you by integrating savings accounts, corporate accounts, fixed deposits, and recurring deposit services.",
+        icon: "Database", 
+        color: "#9333ea",
+        endpoints: ["account-balance", "account-transactions", "fd-creation", "fd-maturity", "rd-creation", "account-statement", "interest-calculation"]
+      },
+      {
+        id: "cards",
+        name: "Cards",
+        description: "Empower your corporate banking with seamless APIs for credit card management, debit card services, and card transaction processing.",
+        icon: "CreditCard",
+        color: "#ea580c", 
+        endpoints: ["card-application", "card-status", "card-block-unblock", "card-transactions", "card-pin", "card-limit", "virtual-card", "card-rewards"]
+      },
+      {
+        id: "payments",
+        name: "Payments",
+        description: "Industry-leading payment APIs to introduce tailored payment services. Multiple payment options to integrate your services with the outside world.",
+        icon: "Building2",
+        color: "#dc2626",
+        endpoints: ["cnb-payment", "upi-payment", "payment-status", "payment-reconciliation"]
+      },
+      {
+        id: "trade-services", 
+        name: "Trade Services",
+        description: "Incorporate remittances and bank guarantees APIs to make trade and business operations easy with our latest market-tailored offerings.",
+        icon: "FileCheck",
+        color: "#be185d",
+        endpoints: ["letter-of-credit", "bank-guarantee", "export-financing", "import-financing", "trade-documents"]
+      },
+      {
+        id: "corporate",
+        name: "Corporate API Suite", 
+        description: "A curated collection of APIs specially selected to cater to evolving corporate client needs, studied after careful analysis of corporate journeys.",
+        icon: "Layers",
+        color: "#4338ca",
+        endpoints: ["corporate-onboard", "bulk-payments", "virtual-account-mgmt", "corporate-account", "cash-management", "reconciliation"]
+      }
+    ];
+    
+    setCategories(allOriginalCategories);
+    
     const realApiData: APIEndpoint[] = [];
     
     // Customer APIs
@@ -893,35 +964,58 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          {/* Categories Management Tab */}
+          {/* Categories Management Tab - Hierarchical View */}
           <TabsContent value="categories" className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-[var(--au-primary)]">Category Management</h2>
-                <p className="text-muted-foreground">Organize APIs into logical groups and categories</p>
+                <h2 className="text-2xl font-bold text-[var(--au-primary)]">Hierarchical API Management</h2>
+                <p className="text-muted-foreground">Categories → APIs → Documentation & Sandbox Configuration</p>
               </div>
-              <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
-                <DialogTrigger asChild>
-                  <Button 
-                    onClick={() => {
-                      setEditingCategory(null);
-                      setShowCategoryDialog(true);
-                    }}
-                    className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add New Category
-                  </Button>
-                </DialogTrigger>
-                <CategoryEditDialog 
-                  category={editingCategory}
-                  onSave={handleSaveCategory}
-                  onClose={() => setShowCategoryDialog(false)}
-                />
-              </Dialog>
+              <div className="flex gap-2">
+                <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      onClick={() => {
+                        setEditingCategory(null);
+                        setShowCategoryDialog(true);
+                      }}
+                      className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Category
+                    </Button>
+                  </DialogTrigger>
+                  <CategoryEditDialog 
+                    category={editingCategory}
+                    onSave={handleSaveCategory}
+                    onClose={() => setShowCategoryDialog(false)}
+                  />
+                </Dialog>
+                <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      onClick={() => {
+                        setEditingApi(null);
+                        setShowApiDialog(true);
+                      }}
+                      variant="outline"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add API
+                    </Button>
+                  </DialogTrigger>
+                  <ApiEditDialog 
+                    api={editingApi}
+                    categories={categories}
+                    onSave={handleSaveApi}
+                    onClose={() => setShowApiDialog(false)}
+                  />
+                </Dialog>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Hierarchical Tree View */}
+            <div className="space-y-4">
               {categories.map((category) => (
                 <Card key={category.id}>
                   <CardHeader>
