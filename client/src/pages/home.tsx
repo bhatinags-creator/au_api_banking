@@ -257,9 +257,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  // Categories are now loaded dynamically from hierarchical backend data
-
-  // Load dynamic API data from backend
+  // Load comprehensive data from centralized store
   useEffect(() => {
     const loadDynamicData = async () => {
       setLoading(true);
