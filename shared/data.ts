@@ -113,6 +113,83 @@ export const API_CATEGORIES: APICategory[] = [
           mockResponse: { access_token: "test_token_123", token_type: "Bearer", expires_in: 3600 },
           rateLimits: { sandbox: 100, production: 1000 }
         }
+      },
+      {
+        id: "jwt-refresh",
+        name: "JWT Token Refresh",
+        method: "POST",
+        path: "/auth/refresh",
+        category: "Authentication",
+        description: "Refresh expired JWT tokens with refresh token validation",
+        summary: "Refresh JWT access token",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "refresh_token", type: "string", required: true, description: "Valid refresh token", example: "refresh_abc123" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer refresh token", example: "Bearer refresh_abc123" },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Token refreshed successfully",
+            schema: { access_token: "string", expires_in: "number" },
+            example: '{"access_token": "new_jwt_token", "expires_in": 3600}'
+          }
+        ],
+        requestExample: '{"refresh_token": "refresh_abc123"}',
+        responseExample: '{"access_token": "new_jwt_token", "expires_in": 3600}',
+        responseSchema: { access_token: "string", expires_in: "number" },
+        status: "active",
+        tags: ["authentication", "jwt", "refresh"],
+        rateLimits: { sandbox: 200, production: 2000 },
+        timeout: 15000,
+        documentation: "JWT token refresh endpoint for maintaining secure sessions",
+        sandbox: {
+          enabled: true,
+          testData: [{ refresh_token: "test_refresh_token" }],
+          mockResponse: { access_token: "refreshed_jwt_123", expires_in: 3600 },
+          rateLimits: { sandbox: 200, production: 2000 }
+        }
+      },
+      {
+        id: "user-profile",
+        name: "User Profile Management",
+        method: "GET",
+        path: "/auth/profile",
+        category: "Authentication", 
+        description: "Retrieve authenticated user profile information and permissions",
+        summary: "Get user profile data",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer JWT token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "User profile retrieved successfully",
+            schema: { user_id: "string", username: "string", permissions: "array" },
+            example: '{"user_id": "usr_123", "username": "john.doe", "permissions": ["read", "write"]}'
+          }
+        ],
+        requestExample: '',
+        responseExample: '{"user_id": "usr_123", "username": "john.doe", "permissions": ["read", "write"]}',
+        responseSchema: { user_id: "string", username: "string", permissions: "array" },
+        status: "active",
+        tags: ["authentication", "profile", "user"],
+        rateLimits: { sandbox: 500, production: 5000 },
+        timeout: 10000,
+        documentation: "User profile API for retrieving authenticated user information",
+        sandbox: {
+          enabled: true,
+          testData: [],
+          mockResponse: { user_id: "test_user_123", username: "test.user", permissions: ["read", "write"] },
+          rateLimits: { sandbox: 500, production: 5000 }
+        }
       }
     ]
   },
@@ -376,6 +453,45 @@ export const API_CATEGORIES: APICategory[] = [
           mockResponse: { verification_status: "VERIFIED", confidence_score: 95, details: { name_match: true, address_verified: true } },
           rateLimits: { sandbox: 50, production: 500 }
         }
+      },
+      {
+        id: "account-balance-inquiry",
+        name: "Account Balance Inquiry",
+        method: "GET",
+        path: "/customer/balance",
+        category: "Customer",
+        description: "Retrieve real-time account balance and available funds",
+        summary: "Get account balance information",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "account_number", type: "string", required: true, description: "Account number", example: "1234567890" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Balance retrieved successfully",
+            schema: { account_number: "string", available_balance: "number", currency: "string" },
+            example: '{"account_number": "1234567890", "available_balance": 50000.00, "currency": "INR"}'
+          }
+        ],
+        requestExample: '',
+        responseExample: '{"account_number": "1234567890", "available_balance": 50000.00, "currency": "INR"}',
+        responseSchema: { account_number: "string", available_balance: "number", currency: "string" },
+        status: "active",
+        tags: ["customer", "balance", "inquiry"],
+        rateLimits: { sandbox: 1000, production: 10000 },
+        timeout: 5000,
+        documentation: "Real-time account balance inquiry API",
+        sandbox: {
+          enabled: true,
+          testData: [{ account_number: "1234567890" }],
+          mockResponse: { account_number: "1234567890", available_balance: 50000.00, currency: "INR" },
+          rateLimits: { sandbox: 1000, production: 10000 }
+        }
       }
     ]
   },
@@ -446,6 +562,45 @@ export const API_CATEGORIES: APICategory[] = [
           testData: [{ loan_type: "PERSONAL", amount: 500000, tenure_months: 36 }],
           mockResponse: { application_id: "LOAN_TEST_123", status: "PRE_APPROVED", pre_approved_amount: 450000 },
           rateLimits: { sandbox: 25, production: 250 }
+        }
+      },
+      {
+        id: "loan-status-inquiry",
+        name: "Loan Status Inquiry",
+        method: "GET",
+        path: "/loans/status",
+        category: "Loans",
+        description: "Check real-time loan application status and approval progress",
+        summary: "Get loan application status",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "application_id", type: "string", required: true, description: "Loan application ID", example: "LOAN12345" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "Loan status retrieved successfully",
+            schema: { application_id: "string", status: "string", approved_amount: "number" },
+            example: '{"application_id": "LOAN12345", "status": "APPROVED", "approved_amount": 400000}'
+          }
+        ],
+        requestExample: '',
+        responseExample: '{"application_id": "LOAN12345", "status": "APPROVED", "approved_amount": 400000}',
+        responseSchema: { application_id: "string", status: "string", approved_amount: "number" },
+        status: "active",
+        tags: ["loans", "status", "inquiry"],
+        rateLimits: { sandbox: 1000, production: 10000 },
+        timeout: 5000,
+        documentation: "Real-time loan status tracking API",
+        sandbox: {
+          enabled: true,
+          testData: [{ application_id: "LOAN12345" }],
+          mockResponse: { application_id: "LOAN12345", status: "APPROVED", approved_amount: 400000 },
+          rateLimits: { sandbox: 1000, production: 10000 }
         }
       }
     ]
