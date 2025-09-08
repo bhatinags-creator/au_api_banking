@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
+import { apiCategories, getAllApis, getTotalApiCount, getTotalCategoryCount } from "../shared/data";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
@@ -410,26 +411,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public Categories endpoint for main portal with hierarchical structure
   app.get("/api/categories", async (req, res) => {
     try {
-      const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
+      // Load from centralized data store with comprehensive banking categories
+      const categoriesWithApis = apiCategories.map(category => ({
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        icon: category.icon,
+        color: category.color,
+        displayOrder: category.displayOrder,
+        isActive: category.isActive,
+        endpoints: category.apis?.map(api => api.id) || []
+      }));
+      
+      console.log(`📊 Backend serving ${categoriesWithApis.length} categories from centralized data store`);
       res.json(categoriesWithApis);
     } catch (error) {
       console.error("Error fetching hierarchical categories:", error);
-      // Fallback to basic categories if hierarchical fails
-      try {
-        const categories = await storage.getAllApiCategories();
-        res.json(categories);
-      } catch (fallbackError) {
-        console.error("Fallback error:", fallbackError);
-        res.status(500).json({ error: "Failed to fetch categories" });
-      }
+      res.status(500).json({ error: "Failed to fetch categories" });
     }
   });
 
   // Public APIs endpoint for main portal (read-only)
   app.get("/api/apis", async (req, res) => {
     try {
-      const apis = await storage.getAllApiEndpoints();
-      res.json(apis);
+      // Load from centralized data store with comprehensive banking APIs
+      const allApis = getAllApis();
+      
+      console.log(`🔧 Backend serving ${allApis.length} APIs from centralized data store`);
+      res.json(allApis);
     } catch (error) {
       console.error("Error fetching APIs:", error);
       res.status(500).json({ error: "Failed to fetch APIs" });
