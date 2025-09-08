@@ -164,7 +164,7 @@ export default function AdminPanel() {
           responses: api.responses,
           requestExample: api.requestExample,
           responseExample: api.responseExample,
-          status: api.status,
+          status: api.status === 'beta' ? 'draft' : api.status,
           tags: api.tags,
           rateLimit: api.rateLimits.sandbox,
           timeout: api.timeout
@@ -249,7 +249,7 @@ export default function AdminPanel() {
             <CardDescription>Sign in to access the admin panel</CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm onLogin={handleLogin} />
+            <LoginForm onLogin={handleAdminLogin} />
           </CardContent>
         </Card>
       </div>
@@ -606,13 +606,13 @@ export default function AdminPanel() {
                                   <CardHeader 
                                     className="cursor-pointer py-3"
                                     onClick={() => {
-                                      const expandedApis = new Set(expandedApis);
-                                      if (expandedApis.has(api.id)) {
-                                        expandedApis.delete(api.id);
+                                      const newExpandedApis = new Set(expandedApis);
+                                      if (newExpandedApis.has(api.id)) {
+                                        newExpandedApis.delete(api.id);
                                       } else {
-                                        expandedApis.add(api.id);
+                                        newExpandedApis.add(api.id);
                                       }
-                                      setExpandedApis(Array.from(expandedApis));
+                                      setExpandedApis(Array.from(newExpandedApis));
                                     }}
                                   >
                                     <div className="flex items-center justify-between">
