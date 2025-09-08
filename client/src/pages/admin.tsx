@@ -779,6 +779,3 @@ export default function AdminPanel() {
 const LoginForm = ({ onLogin }: { onLogin: (username: string, password: string) => void }) => <div>Login Form</div>;
 const CategoryEditDialog = ({ category, onSave, onClose }: any) => <div>Category Edit Dialog</div>;
 const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => <div>API Edit Dialog</div>;
-        category: "Customer",
-        description: "Comprehensive customer information API providing complete customer profile, account details, and relationship information",
-        summary: "Get complete customer profile data",
