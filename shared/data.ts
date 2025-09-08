@@ -184,6 +184,88 @@ export const API_CATEGORIES: APICategory[] = [
           mockResponse: { transaction_id: "UPI_TEST_123", status: "SUCCESS", amount: 1000.00, timestamp: "2024-01-01T10:00:00Z" },
           rateLimits: { sandbox: 50, production: 500 }
         }
+      },
+      {
+        id: "neft-transfer",
+        name: "NEFT Transfer",
+        method: "POST", 
+        path: "/payments/neft",
+        category: "Digital Payments",
+        description: "Process NEFT transfers with secure fund transfer and real-time status tracking",
+        summary: "NEFT fund transfer endpoint",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "amount", type: "number", required: true, description: "Transfer amount", example: "50000" },
+          { name: "beneficiary_account", type: "string", required: true, description: "Beneficiary account number", example: "1234567890" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "NEFT transfer initiated successfully",
+            schema: { transfer_id: "string", status: "string", amount: "number" },
+            example: '{"transfer_id": "NEFT123456", "status": "INITIATED", "amount": 50000}'
+          }
+        ],
+        requestExample: '{"amount": 50000, "beneficiary_account": "1234567890"}',
+        responseExample: '{"transfer_id": "NEFT123456", "status": "INITIATED", "amount": 50000}',
+        responseSchema: { transfer_id: "string", status: "string", amount: "number" },
+        status: "active",
+        tags: ["payments", "neft", "transfer"],
+        rateLimits: { sandbox: 50, production: 500 },
+        timeout: 45000,
+        documentation: "NEFT transfer API for secure fund transfers",
+        sandbox: {
+          enabled: true,
+          testData: [{ amount: 50000, beneficiary_account: "1234567890" }],
+          mockResponse: { transfer_id: "NEFT123456", status: "INITIATED", amount: 50000 },
+          rateLimits: { sandbox: 50, production: 500 }
+        }
+      },
+      {
+        id: "rtgs-transfer",
+        name: "RTGS Transfer",
+        method: "POST",
+        path: "/payments/rtgs", 
+        category: "Digital Payments",
+        description: "Real-time gross settlement transfers for high-value transactions",
+        summary: "RTGS transfer endpoint",
+        requiresAuth: true,
+        authType: "bearer",
+        parameters: [
+          { name: "amount", type: "number", required: true, description: "Transfer amount (minimum 2 lakhs)", example: "500000" },
+          { name: "beneficiary_account", type: "string", required: true, description: "Beneficiary account", example: "9876543210" }
+        ],
+        headers: [
+          { name: "Authorization", required: true, description: "Bearer token", example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          { name: "Content-Type", required: true, description: "Content type", example: "application/json" }
+        ],
+        responses: [
+          {
+            statusCode: 200,
+            description: "RTGS transfer completed successfully",
+            schema: { transfer_id: "string", status: "string", amount: "number" },
+            example: '{"transfer_id": "RTGS789123", "status": "COMPLETED", "amount": 500000}'
+          }
+        ],
+        requestExample: '{"amount": 500000, "beneficiary_account": "9876543210"}',
+        responseExample: '{"transfer_id": "RTGS789123", "status": "COMPLETED", "amount": 500000}',
+        responseSchema: { transfer_id: "string", status: "string", amount: "number" },
+        status: "active",
+        tags: ["payments", "rtgs", "high-value"],
+        rateLimits: { sandbox: 20, production: 200 },
+        timeout: 60000,
+        documentation: "RTGS API for real-time high-value fund transfers",
+        sandbox: {
+          enabled: true,
+          testData: [{ amount: 500000, beneficiary_account: "9876543210" }],
+          mockResponse: { transfer_id: "RTGS789123", status: "COMPLETED", amount: 500000 },
+          rateLimits: { sandbox: 20, production: 200 }
+        }
       }
     ]
   },

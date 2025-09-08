@@ -435,7 +435,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/apis", async (req, res) => {
     try {
       // Load from centralized data store with comprehensive banking APIs
-      const allApis = API_CATEGORIES.flatMap(category => category.apis);
+      console.log(`🔍 Debug: API_CATEGORIES length: ${API_CATEGORIES.length}`);
+      API_CATEGORIES.forEach((cat, index) => {
+        console.log(`🔍 Category ${index}: ${cat.name} has ${cat.apis?.length || 0} APIs`);
+      });
+      
+      const allApis = API_CATEGORIES.flatMap(category => category.apis || []);
       
       console.log(`🔧 Backend serving ${allApis.length} APIs from centralized data store`);
       res.json(allApis);
