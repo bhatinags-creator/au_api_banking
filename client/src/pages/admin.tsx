@@ -626,7 +626,11 @@ export default function AdminPanel() {
                           <h4 className="font-medium text-[var(--au-primary)] mb-2">Response Schema</h4>
                           <div className="bg-muted p-3 rounded">
                             <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-                              {selectedApi.responses[0]?.schema || 'No schema defined'}
+                              {selectedApi.responses[0]?.schema 
+                                ? (typeof selectedApi.responses[0].schema === 'string' 
+                                   ? selectedApi.responses[0].schema 
+                                   : JSON.stringify(selectedApi.responses[0].schema, null, 2))
+                                : 'No schema defined'}
                             </pre>
                           </div>
                         </div>
