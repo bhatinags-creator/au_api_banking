@@ -174,10 +174,21 @@ export default function AdminPanel() {
     
     setApis(allApis);
     
+    // Expand all categories by default to show hierarchical view
+    setExpandedCategories(API_CATEGORIES.map(cat => cat.id));
+    
     const totalApis = getTotalApiCount();
     const totalCategories = getTotalCategoryCount();
     
     console.log(`🔧 ADMIN - Loaded ${totalCategories} categories with ${totalApis} APIs from centralized data store`);
+    
+    // Debug API category matching
+    console.log('🔍 ADMIN - Debug API Category Matching:');
+    API_CATEGORIES.forEach((cat) => {
+      const matchingApis = allApis.filter(api => api.category === cat.name);
+      console.log(`🔍 Category "${cat.name}" should have ${cat.apis.length} APIs, filtered ${matchingApis.length} APIs:`, 
+        matchingApis.map(api => api.name));
+    });
     
     toast({
       title: "Comprehensive Data Loaded",
