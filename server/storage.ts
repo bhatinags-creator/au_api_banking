@@ -1441,6 +1441,663 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Failed to fetch hierarchical categories data');
     }
   }
+
+  // Missing API Endpoint operations
+  async updateApiEndpoint(id: string, updates: UpdateApiEndpoint): Promise<ApiEndpoint | undefined> {
+    try {
+      const [updated] = await db
+        .update(apiEndpoints)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(apiEndpoints.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateApiEndpoint:', error);
+      throw new Error('Failed to update API endpoint');
+    }
+  }
+
+  async deleteApiEndpoint(id: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(apiEndpoints)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(apiEndpoints.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteApiEndpoint:', error);
+      throw new Error('Failed to delete API endpoint');
+    }
+  }
+
+  // Configuration operations - Config Categories
+  async getAllConfigCategories(): Promise<ConfigCategory[]> {
+    try {
+      return await db
+        .select()
+        .from(configCategories)
+        .where(eq(configCategories.isActive, true))
+        .orderBy(asc(configCategories.displayOrder));
+    } catch (error) {
+      console.error('Database error in getAllConfigCategories:', error);
+      throw new Error('Failed to fetch config categories');
+    }
+  }
+
+  async getConfigCategory(id: string): Promise<ConfigCategory | undefined> {
+    try {
+      const [category] = await db
+        .select()
+        .from(configCategories)
+        .where(and(eq(configCategories.id, id), eq(configCategories.isActive, true)));
+      return category;
+    } catch (error) {
+      console.error('Database error in getConfigCategory:', error);
+      throw new Error('Failed to get config category');
+    }
+  }
+
+  async getConfigCategoryByName(name: string): Promise<ConfigCategory | undefined> {
+    try {
+      const [category] = await db
+        .select()
+        .from(configCategories)
+        .where(and(eq(configCategories.name, name), eq(configCategories.isActive, true)));
+      return category;
+    } catch (error) {
+      console.error('Database error in getConfigCategoryByName:', error);
+      throw new Error('Failed to get config category by name');
+    }
+  }
+
+  async createConfigCategory(categoryData: InsertConfigCategory): Promise<ConfigCategory> {
+    try {
+      const [category] = await db
+        .insert(configCategories)
+        .values({
+          ...categoryData,
+          displayOrder: categoryData.displayOrder || 0,
+          isActive: categoryData.isActive ?? true
+        })
+        .returning();
+      return category;
+    } catch (error) {
+      console.error('Database error in createConfigCategory:', error);
+      throw new Error('Failed to create config category');
+    }
+  }
+
+  async updateConfigCategory(id: string, updates: UpdateConfigCategory): Promise<ConfigCategory | undefined> {
+    try {
+      const [updated] = await db
+        .update(configCategories)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(configCategories.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateConfigCategory:', error);
+      throw new Error('Failed to update config category');
+    }
+  }
+
+  async deleteConfigCategory(id: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(configCategories)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(configCategories.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteConfigCategory:', error);
+      throw new Error('Failed to delete config category');
+    }
+  }
+
+  // General Configurations
+  async getAllConfigurations(environment?: string): Promise<Configuration[]> {
+    try {
+      let query = db.select().from(configurations);
+      if (environment && environment !== 'all') {
+        query = query.where(eq(configurations.environment, environment));
+      }
+      return await query.orderBy(configurations.categoryId, configurations.key);
+    } catch (error) {
+      console.error('Database error in getAllConfigurations:', error);
+      throw new Error('Failed to fetch configurations');
+    }
+  }
+
+  async getConfigurationsByCategory(categoryId: string, environment?: string): Promise<Configuration[]> {
+    try {
+      let query = db.select().from(configurations).where(eq(configurations.categoryId, categoryId));
+      if (environment && environment !== 'all') {
+        query = query.where(and(
+          eq(configurations.categoryId, categoryId),
+          eq(configurations.environment, environment)
+        ));
+      }
+      return await query.orderBy(configurations.key);
+    } catch (error) {
+      console.error('Database error in getConfigurationsByCategory:', error);
+      throw new Error('Failed to fetch configurations by category');
+    }
+  }
+
+  async getConfiguration(id: string): Promise<Configuration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(configurations)
+        .where(eq(configurations.id, id));
+      return config;
+    } catch (error) {
+      console.error('Database error in getConfiguration:', error);
+      throw new Error('Failed to get configuration');
+    }
+  }
+
+  async getConfigurationByKey(key: string, environment?: string): Promise<Configuration | undefined> {
+    try {
+      let query = db.select().from(configurations).where(eq(configurations.key, key));
+      if (environment && environment !== 'all') {
+        query = query.where(and(
+          eq(configurations.key, key),
+          eq(configurations.environment, environment)
+        ));
+      }
+      const [config] = await query;
+      return config;
+    } catch (error) {
+      console.error('Database error in getConfigurationByKey:', error);
+      throw new Error('Failed to get configuration by key');
+    }
+  }
+
+  async createConfiguration(configData: InsertConfiguration): Promise<Configuration> {
+    try {
+      const [config] = await db
+        .insert(configurations)
+        .values(configData)
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createConfiguration:', error);
+      throw new Error('Failed to create configuration');
+    }
+  }
+
+  async updateConfiguration(id: string, updates: UpdateConfiguration): Promise<Configuration | undefined> {
+    try {
+      const [updated] = await db
+        .update(configurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(configurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateConfiguration:', error);
+      throw new Error('Failed to update configuration');
+    }
+  }
+
+  async deleteConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(configurations).where(eq(configurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteConfiguration:', error);
+      throw new Error('Failed to delete configuration');
+    }
+  }
+
+  // UI Configurations
+  async getAllUiConfigurations(environment?: string): Promise<UiConfiguration[]> {
+    try {
+      let query = db.select().from(uiConfigurations).where(eq(uiConfigurations.isActive, true));
+      if (environment && environment !== 'all') {
+        query = query.where(and(
+          eq(uiConfigurations.isActive, true),
+          eq(uiConfigurations.environment, environment)
+        ));
+      }
+      return await query.orderBy(uiConfigurations.environment);
+    } catch (error) {
+      console.error('Database error in getAllUiConfigurations:', error);
+      throw new Error('Failed to fetch UI configurations');
+    }
+  }
+
+  async getUiConfiguration(id: string): Promise<UiConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(uiConfigurations)
+        .where(and(eq(uiConfigurations.id, id), eq(uiConfigurations.isActive, true)));
+      return config;
+    } catch (error) {
+      console.error('Database error in getUiConfiguration:', error);
+      throw new Error('Failed to get UI configuration');
+    }
+  }
+
+  async getUiConfigurationByEnvironment(environment: string): Promise<UiConfiguration | undefined> {
+    try {
+      // First try to find environment-specific config
+      let [config] = await db
+        .select()
+        .from(uiConfigurations)
+        .where(and(
+          eq(uiConfigurations.environment, environment),
+          eq(uiConfigurations.isActive, true)
+        ));
+
+      // If not found, try 'all' environment as fallback
+      if (!config && environment !== 'all') {
+        [config] = await db
+          .select()
+          .from(uiConfigurations)
+          .where(and(
+            eq(uiConfigurations.environment, 'all'),
+            eq(uiConfigurations.isActive, true)
+          ));
+      }
+
+      return config;
+    } catch (error) {
+      console.error('Database error in getUiConfigurationByEnvironment:', error);
+      throw new Error('Failed to get UI configuration by environment');
+    }
+  }
+
+  async createUiConfiguration(configData: InsertUiConfiguration): Promise<UiConfiguration> {
+    try {
+      const [config] = await db
+        .insert(uiConfigurations)
+        .values({
+          ...configData,
+          isActive: configData.isActive ?? true
+        })
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createUiConfiguration:', error);
+      throw new Error('Failed to create UI configuration');
+    }
+  }
+
+  async updateUiConfiguration(id: string, updates: UpdateUiConfiguration): Promise<UiConfiguration | undefined> {
+    try {
+      const [updated] = await db
+        .update(uiConfigurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(uiConfigurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateUiConfiguration:', error);
+      throw new Error('Failed to update UI configuration');
+    }
+  }
+
+  async deleteUiConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(uiConfigurations)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(uiConfigurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteUiConfiguration:', error);
+      throw new Error('Failed to delete UI configuration');
+    }
+  }
+
+  // Form Configurations
+  async getAllFormConfigurations(environment?: string): Promise<FormConfiguration[]> {
+    try {
+      let query = db.select().from(formConfigurations);
+      if (environment && environment !== 'all') {
+        query = query.where(eq(formConfigurations.environment, environment));
+      }
+      return await query.orderBy(formConfigurations.formType);
+    } catch (error) {
+      console.error('Database error in getAllFormConfigurations:', error);
+      throw new Error('Failed to fetch form configurations');
+    }
+  }
+
+  async getFormConfiguration(id: string): Promise<FormConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(formConfigurations)
+        .where(eq(formConfigurations.id, id));
+      return config;
+    } catch (error) {
+      console.error('Database error in getFormConfiguration:', error);
+      throw new Error('Failed to get form configuration');
+    }
+  }
+
+  async getFormConfigurationByType(formType: string, environment?: string): Promise<FormConfiguration | undefined> {
+    try {
+      let query = db.select().from(formConfigurations).where(eq(formConfigurations.formType, formType));
+      if (environment && environment !== 'all') {
+        query = query.where(and(
+          eq(formConfigurations.formType, formType),
+          eq(formConfigurations.environment, environment)
+        ));
+      }
+      const [config] = await query;
+      return config;
+    } catch (error) {
+      console.error('Database error in getFormConfigurationByType:', error);
+      throw new Error('Failed to get form configuration by type');
+    }
+  }
+
+  async createFormConfiguration(configData: InsertFormConfiguration): Promise<FormConfiguration> {
+    try {
+      const [config] = await db
+        .insert(formConfigurations)
+        .values(configData)
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createFormConfiguration:', error);
+      throw new Error('Failed to create form configuration');
+    }
+  }
+
+  async updateFormConfiguration(id: string, updates: UpdateFormConfiguration): Promise<FormConfiguration | undefined> {
+    try {
+      const [updated] = await db
+        .update(formConfigurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(formConfigurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateFormConfiguration:', error);
+      throw new Error('Failed to update form configuration');
+    }
+  }
+
+  async deleteFormConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(formConfigurations).where(eq(formConfigurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteFormConfiguration:', error);
+      throw new Error('Failed to delete form configuration');
+    }
+  }
+
+  // Validation Configurations
+  async getAllValidationConfigurations(environment?: string): Promise<ValidationConfiguration[]> {
+    try {
+      let query = db.select().from(validationConfigurations);
+      if (environment && environment !== 'all') {
+        query = query.where(eq(validationConfigurations.environment, environment));
+      }
+      return await query.orderBy(validationConfigurations.entityType, validationConfigurations.field);
+    } catch (error) {
+      console.error('Database error in getAllValidationConfigurations:', error);
+      throw new Error('Failed to fetch validation configurations');
+    }
+  }
+
+  async getValidationConfiguration(id: string): Promise<ValidationConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(validationConfigurations)
+        .where(eq(validationConfigurations.id, id));
+      return config;
+    } catch (error) {
+      console.error('Database error in getValidationConfiguration:', error);
+      throw new Error('Failed to get validation configuration');
+    }
+  }
+
+  async getValidationConfigurationsByEntity(entityType: string, environment?: string): Promise<ValidationConfiguration[]> {
+    try {
+      let query = db.select().from(validationConfigurations).where(eq(validationConfigurations.entityType, entityType));
+      if (environment && environment !== 'all') {
+        query = query.where(and(
+          eq(validationConfigurations.entityType, entityType),
+          eq(validationConfigurations.environment, environment)
+        ));
+      }
+      return await query.orderBy(validationConfigurations.field);
+    } catch (error) {
+      console.error('Database error in getValidationConfigurationsByEntity:', error);
+      throw new Error('Failed to get validation configurations by entity');
+    }
+  }
+
+  async createValidationConfiguration(configData: InsertValidationConfiguration): Promise<ValidationConfiguration> {
+    try {
+      const [config] = await db
+        .insert(validationConfigurations)
+        .values(configData)
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createValidationConfiguration:', error);
+      throw new Error('Failed to create validation configuration');
+    }
+  }
+
+  async updateValidationConfiguration(id: string, updates: UpdateValidationConfiguration): Promise<ValidationConfiguration | undefined> {
+    try {
+      const [updated] = await db
+        .update(validationConfigurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(validationConfigurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateValidationConfiguration:', error);
+      throw new Error('Failed to update validation configuration');
+    }
+  }
+
+  async deleteValidationConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(validationConfigurations).where(eq(validationConfigurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteValidationConfiguration:', error);
+      throw new Error('Failed to delete validation configuration');
+    }
+  }
+
+  // System Configurations
+  async getAllSystemConfigurations(environment?: string): Promise<SystemConfiguration[]> {
+    try {
+      let query = db.select().from(systemConfigurations);
+      if (environment && environment !== 'all') {
+        query = query.where(eq(systemConfigurations.environment, environment));
+      }
+      return await query.orderBy(systemConfigurations.module, systemConfigurations.setting);
+    } catch (error) {
+      console.error('Database error in getAllSystemConfigurations:', error);
+      throw new Error('Failed to fetch system configurations');
+    }
+  }
+
+  async getSystemConfiguration(id: string): Promise<SystemConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(systemConfigurations)
+        .where(eq(systemConfigurations.id, id));
+      return config;
+    } catch (error) {
+      console.error('Database error in getSystemConfiguration:', error);
+      throw new Error('Failed to get system configuration');
+    }
+  }
+
+  async getSystemConfigurationsByModule(module: string, environment?: string): Promise<SystemConfiguration[]> {
+    try {
+      let query = db.select().from(systemConfigurations).where(eq(systemConfigurations.module, module));
+      if (environment && environment !== 'all') {
+        query = query.where(and(
+          eq(systemConfigurations.module, module),
+          eq(systemConfigurations.environment, environment)
+        ));
+      }
+      return await query.orderBy(systemConfigurations.setting);
+    } catch (error) {
+      console.error('Database error in getSystemConfigurationsByModule:', error);
+      throw new Error('Failed to get system configurations by module');
+    }
+  }
+
+  async getSystemConfigurationBySetting(module: string, setting: string, environment?: string): Promise<SystemConfiguration | undefined> {
+    try {
+      let query = db.select().from(systemConfigurations).where(and(
+        eq(systemConfigurations.module, module),
+        eq(systemConfigurations.setting, setting)
+      ));
+      if (environment && environment !== 'all') {
+        query = query.where(and(
+          eq(systemConfigurations.module, module),
+          eq(systemConfigurations.setting, setting),
+          eq(systemConfigurations.environment, environment)
+        ));
+      }
+      const [config] = await query;
+      return config;
+    } catch (error) {
+      console.error('Database error in getSystemConfigurationBySetting:', error);
+      throw new Error('Failed to get system configuration by setting');
+    }
+  }
+
+  async createSystemConfiguration(configData: InsertSystemConfiguration): Promise<SystemConfiguration> {
+    try {
+      const [config] = await db
+        .insert(systemConfigurations)
+        .values({
+          ...configData,
+          isEditable: configData.isEditable ?? true,
+          requiresRestart: configData.requiresRestart ?? false
+        })
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createSystemConfiguration:', error);
+      throw new Error('Failed to create system configuration');
+    }
+  }
+
+  async updateSystemConfiguration(id: string, updates: UpdateSystemConfiguration): Promise<SystemConfiguration | undefined> {
+    try {
+      const [updated] = await db
+        .update(systemConfigurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(systemConfigurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateSystemConfiguration:', error);
+      throw new Error('Failed to update system configuration');
+    }
+  }
+
+  async deleteSystemConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(systemConfigurations).where(eq(systemConfigurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteSystemConfiguration:', error);
+      throw new Error('Failed to delete system configuration');
+    }
+  }
+
+  // Environment Configurations
+  async getAllEnvironmentConfigurations(environment?: string): Promise<EnvironmentConfiguration[]> {
+    try {
+      let query = db.select().from(environmentConfigurations);
+      if (environment && environment !== 'all') {
+        query = query.where(eq(environmentConfigurations.environment, environment));
+      }
+      return await query.orderBy(environmentConfigurations.configKey);
+    } catch (error) {
+      console.error('Database error in getAllEnvironmentConfigurations:', error);
+      throw new Error('Failed to fetch environment configurations');
+    }
+  }
+
+  async getEnvironmentConfiguration(id: string): Promise<EnvironmentConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(environmentConfigurations)
+        .where(eq(environmentConfigurations.id, id));
+      return config;
+    } catch (error) {
+      console.error('Database error in getEnvironmentConfiguration:', error);
+      throw new Error('Failed to get environment configuration');
+    }
+  }
+
+  async getEnvironmentConfigurationByKey(configKey: string, environment: string): Promise<EnvironmentConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(environmentConfigurations)
+        .where(and(
+          eq(environmentConfigurations.configKey, configKey),
+          eq(environmentConfigurations.environment, environment)
+        ));
+      return config;
+    } catch (error) {
+      console.error('Database error in getEnvironmentConfigurationByKey:', error);
+      throw new Error('Failed to get environment configuration by key');
+    }
+  }
+
+  async createEnvironmentConfiguration(configData: InsertEnvironmentConfiguration): Promise<EnvironmentConfiguration> {
+    try {
+      const [config] = await db
+        .insert(environmentConfigurations)
+        .values(configData)
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createEnvironmentConfiguration:', error);
+      throw new Error('Failed to create environment configuration');
+    }
+  }
+
+  async updateEnvironmentConfiguration(id: string, updates: UpdateEnvironmentConfiguration): Promise<EnvironmentConfiguration | undefined> {
+    try {
+      const [updated] = await db
+        .update(environmentConfigurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(environmentConfigurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateEnvironmentConfiguration:', error);
+      throw new Error('Failed to update environment configuration');
+    }
+  }
+
+  async deleteEnvironmentConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(environmentConfigurations).where(eq(environmentConfigurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteEnvironmentConfiguration:', error);
+      throw new Error('Failed to delete environment configuration');
+    }
+  }
 }
 
 // Use database storage for production

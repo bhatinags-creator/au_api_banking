@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminFormConfigurations } from "@/hooks/useConfigurations";
 
 interface APIParameter {
   name: string;
@@ -795,12 +796,25 @@ const LoginForm = ({ onLogin }: { onLogin: (email: string, password: string) => 
 
 // Category Edit Dialog Component
 const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
+  const { merged: config, isLoading: configLoading } = useAdminFormConfigurations();
+  
   const [formData, setFormData] = useState({
     name: category?.name || "",
     description: category?.description || "",
-    color: category?.color || "#603078",
-    isActive: category?.isActive ?? true
+    color: category?.color || config.form.categoryDefaults.color,
+    isActive: category?.isActive ?? config.form.categoryDefaults.isActive
   });
+
+  // Update form data when config loads or changes
+  useEffect(() => {
+    if (!category && !configLoading) {
+      setFormData(prev => ({
+        ...prev,
+        color: prev.color === "#603078" ? config.form.categoryDefaults.color : prev.color,
+        isActive: config.form.categoryDefaults.isActive
+      }));
+    }
+  }, [config, configLoading, category]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -815,7 +829,12 @@ const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
           {category ? 'Update category information' : 'Create a new API category'}
         </DialogDescription>
       </DialogHeader>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {configLoading && (
+        <div className="flex items-center justify-center py-4">
+          <div className="text-sm text-muted-foreground">Loading configuration...</div>
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4" style={{ opacity: configLoading ? 0.5 : 1 }}>
         <div>
           <Label htmlFor="categoryName">Category Name</Label>
           <Input
@@ -860,18 +879,20 @@ const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
 
 // API Edit Dialog Component
 const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
+  const { merged: config, isLoading: configLoading } = useAdminFormConfigurations();
+  
   const [formData, setFormData] = useState({
     id: api?.id || "",
     name: api?.name || "",
-    method: api?.method || "GET",
+    method: api?.method || config.form.apiDefaults.method,
     path: api?.path || "",
     category: api?.category || "",
     description: api?.description || "",
     summary: api?.summary || "",
-    requiresAuth: api?.requiresAuth ?? true,
-    authType: api?.authType || "bearer",
-    status: api?.status || "active",
-    timeout: api?.timeout || 30000,
+    requiresAuth: api?.requiresAuth ?? config.form.apiDefaults.requiresAuth,
+    authType: api?.authType || config.form.apiDefaults.authType,
+    status: api?.status || config.form.apiDefaults.status,
+    timeout: api?.timeout || config.form.apiDefaults.timeout,
     documentation: api?.documentation || "",
     requestExample: api?.requestExample || "",
     responseExample: api?.responseExample || "",
@@ -881,15 +902,37 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     headers: api?.headers || [{ name: "", required: false, description: "", example: "" }],
     responses: api?.responses || [{ statusCode: 200, description: "", schema: {}, example: "" }],
     rateLimits: {
-      sandbox: api?.rateLimits?.sandbox || 100,
-      production: api?.rateLimits?.production || 1000
+      sandbox: api?.rateLimits?.sandbox || config.form.apiDefaults.rateLimits.sandbox,
+      production: api?.rateLimits?.production || config.form.apiDefaults.rateLimits.production
     },
     sandbox: {
-      enabled: api?.sandbox?.enabled ?? true,
-      testData: JSON.stringify(api?.sandbox?.testData || [], null, 2),
-      mockResponse: JSON.stringify(api?.sandbox?.mockResponse || {}, null, 2)
+      enabled: api?.sandbox?.enabled ?? config.form.apiDefaults.sandbox.enabled,
+      testData: JSON.stringify(api?.sandbox?.testData || config.form.apiDefaults.sandbox.testData, null, 2),
+      mockResponse: JSON.stringify(api?.sandbox?.mockResponse || config.form.apiDefaults.sandbox.mockResponse, null, 2)
     }
   });
+
+  // Update form data when config loads or changes
+  useEffect(() => {
+    if (!api && !configLoading) {
+      setFormData(prev => ({
+        ...prev,
+        method: prev.method === "GET" ? config.form.apiDefaults.method : prev.method,
+        authType: prev.authType === "bearer" ? config.form.apiDefaults.authType : prev.authType,
+        status: prev.status === "active" ? config.form.apiDefaults.status : prev.status,
+        timeout: prev.timeout === 30000 ? config.form.apiDefaults.timeout : prev.timeout,
+        requiresAuth: config.form.apiDefaults.requiresAuth,
+        rateLimits: {
+          sandbox: prev.rateLimits.sandbox === 100 ? config.form.apiDefaults.rateLimits.sandbox : prev.rateLimits.sandbox,
+          production: prev.rateLimits.production === 1000 ? config.form.apiDefaults.rateLimits.production : prev.rateLimits.production
+        },
+        sandbox: {
+          ...prev.sandbox,
+          enabled: config.form.apiDefaults.sandbox.enabled
+        }
+      }));
+    }
+  }, [config, configLoading, api]);
 
   const [activeTab, setActiveTab] = useState("basic");
 
@@ -986,8 +1029,13 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
           {api ? 'Update comprehensive API endpoint configuration' : 'Create a new API endpoint with full configuration'}
         </DialogDescription>
       </DialogHeader>
+      {configLoading && (
+        <div className="flex items-center justify-center py-4">
+          <div className="text-sm text-muted-foreground">Loading configuration...</div>
+        </div>
+      )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" style={{ opacity: configLoading ? 0.5 : 1 }}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="parameters">Parameters</TabsTrigger>
@@ -1016,11 +1064,9 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                     <SelectValue placeholder="Select method" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GET">GET</SelectItem>
-                    <SelectItem value="POST">POST</SelectItem>
-                    <SelectItem value="PUT">PUT</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
-                    <SelectItem value="PATCH">PATCH</SelectItem>
+                    {config.form.fieldOptions.httpMethods.map((method) => (
+                      <SelectItem key={method} value={method}>{method}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1120,11 +1166,11 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="string">String</SelectItem>
-                        <SelectItem value="number">Number</SelectItem>
-                        <SelectItem value="boolean">Boolean</SelectItem>
-                        <SelectItem value="object">Object</SelectItem>
-                        <SelectItem value="array">Array</SelectItem>
+                        {config.form.fieldOptions.parameterTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1303,10 +1349,14 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                     <SelectValue placeholder="Select auth type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bearer">Bearer Token</SelectItem>
-                    <SelectItem value="apiKey">API Key</SelectItem>
-                    <SelectItem value="oauth2">OAuth2</SelectItem>
-                    <SelectItem value="basic">Basic Auth</SelectItem>
+                    {config.form.fieldOptions.authTypes.map((authType) => (
+                      <SelectItem key={authType} value={authType}>
+                        {authType === 'bearer' ? 'Bearer Token' : 
+                         authType === 'apiKey' ? 'API Key' : 
+                         authType === 'oauth2' ? 'OAuth2' : 
+                         authType === 'basic' ? 'Basic Auth' : authType}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1317,9 +1367,11 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="deprecated">Deprecated</SelectItem>
-                    <SelectItem value="beta">Beta</SelectItem>
+                    {config.form.fieldOptions.statusOptions.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
