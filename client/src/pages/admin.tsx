@@ -2391,12 +2391,19 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
               <h3 className="text-lg font-semibold">Responses</h3>
               <Button 
                 type="button"
-                onClick={() => {
-                  console.log('🔧 DEBUG: Add Response button clicked!');
-                  console.log('🔧 DEBUG: formData before addResponse:', formData);
-                  console.log('🔧 DEBUG: formData.responses before addResponse:', formData.responses);
-                  addResponse();
-                  console.log('🔧 DEBUG: Add Response button click handler completed');
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  try {
+                    console.log('🔧 DEBUG: Add Response button clicked!');
+                    console.log('🔧 DEBUG: formData before addResponse:', formData);
+                    console.log('🔧 DEBUG: formData.responses before addResponse:', formData.responses);
+                    addResponse();
+                    console.log('🔧 DEBUG: Add Response button click handler completed');
+                  } catch (err) {
+                    console.error('❌ ERROR in Add Response:', err);
+                    alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
+                  }
                 }}
                 size="sm"
                 data-testid="button-add-response"
@@ -2440,12 +2447,19 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                     type="button"
                     variant="destructive" 
                     size="sm" 
-                    onClick={() => {
-                      console.log(`🔧 DEBUG: Remove Response button clicked for index: ${index}`);
-                      console.log('🔧 DEBUG: formData.responses before remove:', formData.responses);
-                      console.log(`🔧 DEBUG: Response to remove:`, formData.responses[index]);
-                      removeResponse(index);
-                      console.log('🔧 DEBUG: Remove Response button click handler completed');
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      try {
+                        console.log(`🔧 DEBUG: Remove Response button clicked for index: ${index}`);
+                        console.log('🔧 DEBUG: formData.responses before remove:', formData.responses);
+                        console.log(`🔧 DEBUG: Response to remove:`, formData.responses[index]);
+                        removeResponse(index);
+                        console.log('🔧 DEBUG: Remove Response button click handler completed');
+                      } catch (err) {
+                        console.error('❌ ERROR in Remove Response:', err);
+                        alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
+                      }
                     }}
                     data-testid={`button-remove-response-${index}`}
                   >
