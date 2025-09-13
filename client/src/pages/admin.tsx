@@ -88,7 +88,7 @@ export default function AdminPanel() {
   const [apis, setApis] = useState<APIEndpoint[]>([]);
   const [categories, setCategories] = useState<APICategory[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminCredentials, setAdminCredentials] = useState({ username: "", password: "" });
   const [editingApi, setEditingApi] = useState<APIEndpoint | null>(null);
   const [editingCategory, setEditingCategory] = useState<APICategory | null>(null);
@@ -101,19 +101,46 @@ export default function AdminPanel() {
   
   const { toast } = useToast();
 
-  // Simple admin authentication
-  const handleAdminLogin = () => {
-    // In production, this would be a proper authentication system
-    if (adminCredentials.username === "admin" && adminCredentials.password === "aubank2024") {
-      setIsAuthenticated(true);
-      toast({
-        title: "Admin Access Granted",
-        description: "Welcome to the AU Bank API Developer Portal Admin Panel"
+  // Backend admin authentication
+  const handleAdminLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: adminCredentials.username,
+          password: adminCredentials.password
+        }),
       });
-    } else {
+
+      const data = await response.json();
+
+      if (response.ok && data.user && data.user.role === 'admin') {
+        setIsAuthenticated(true);
+        toast({
+          title: "Admin Access Granted",
+          description: `Welcome ${data.user.firstName} ${data.user.lastName}`
+        });
+      } else if (response.ok && data.user.role !== 'admin') {
+        toast({
+          title: "Access Denied",
+          description: "Admin privileges required to access this panel",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Authentication Failed",
+          description: data.message || "Invalid credentials",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
-        title: "Authentication Failed",
-        description: "Invalid admin credentials",
+        title: "Login Error",
+        description: "Unable to connect to authentication server",
         variant: "destructive"
       });
     }
@@ -738,13 +765,13 @@ const LoginForm = ({ onLogin }: { onLogin: (username: string, password: string) 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="username">Email</Label>
         <Input
           id="username"
-          type="text"
+          type="email"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="Enter username"
+          placeholder="Enter email address"
           required
         />
       </div>
