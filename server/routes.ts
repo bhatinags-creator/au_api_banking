@@ -2208,6 +2208,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoints (authenticated with role-based access)
+  app.get("/api/analytics/summary", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { environment = 'sandbox' } = req.query;
+      const summary = await storage.getAnalyticsSummary(environment as string);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'analytics_summary_viewed',
+        resource: 'analytics',
+        details: { environment },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: summary });
+    } catch (error) {
+      console.error('Get analytics summary error:', error);
+      res.status(500).json({ error: 'Failed to get analytics summary' });
+    }
+  });
+
+  app.get("/api/analytics/usage", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { days = '7', environment = 'sandbox' } = req.query;
+      const usageData = await storage.getUsageOverTime(parseInt(days as string), environment as string);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'analytics_usage_viewed',
+        resource: 'analytics',
+        details: { days, environment },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: usageData });
+    } catch (error) {
+      console.error('Get analytics usage error:', error);
+      res.status(500).json({ error: 'Failed to get usage analytics' });
+    }
+  });
+
+  app.get("/api/analytics/distribution", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { environment = 'sandbox' } = req.query;
+      const distribution = await storage.getApiDistribution(environment as string);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'analytics_distribution_viewed',
+        resource: 'analytics',
+        details: { environment },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: distribution });
+    } catch (error) {
+      console.error('Get analytics distribution error:', error);
+      res.status(500).json({ error: 'Failed to get API distribution analytics' });
+    }
+  });
+
+  app.get("/api/analytics/developers", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { limit = '5', environment = 'sandbox' } = req.query;
+      const topDevelopers = await storage.getTopDevelopers(parseInt(limit as string), environment as string);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'analytics_developers_viewed',
+        resource: 'analytics',
+        details: { limit, environment },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: topDevelopers });
+    } catch (error) {
+      console.error('Get top developers analytics error:', error);
+      res.status(500).json({ error: 'Failed to get top developers analytics' });
+    }
+  });
+
+  app.get("/api/analytics/activity", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { limit = '50', environment = 'sandbox' } = req.query;
+      const recentActivity = await storage.getRecentApiActivity(parseInt(limit as string), environment as string);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'analytics_activity_viewed',
+        resource: 'analytics',
+        details: { limit, environment },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: recentActivity });
+    } catch (error) {
+      console.error('Get recent activity analytics error:', error);
+      res.status(500).json({ error: 'Failed to get recent activity analytics' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

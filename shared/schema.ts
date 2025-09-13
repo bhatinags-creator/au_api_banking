@@ -134,6 +134,41 @@ export const apiUsage = pgTable("api_usage", {
   month: text("month").notNull(), // YYYY-MM format for easy querying
 });
 
+// Daily analytics summary for performance optimization
+export const dailyAnalytics = pgTable("daily_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: text("date").notNull(), // YYYY-MM-DD format
+  totalRequests: integer("total_requests").notNull().default(0),
+  totalSuccessfulRequests: integer("total_successful_requests").notNull().default(0),
+  totalErrorRequests: integer("total_error_requests").notNull().default(0),
+  averageResponseTime: integer("average_response_time").notNull().default(0),
+  uniqueDevelopers: integer("unique_developers").notNull().default(0),
+  topCategoryRequests: jsonb("top_category_requests").default(sql`'{}'::jsonb`), // category breakdown
+  environment: text("environment").notNull().default("sandbox"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_daily_analytics_date_env").on(table.date, table.environment),
+]);
+
+// Real-time API activity tracking for recent activity feed
+export const apiActivity = pgTable("api_activity", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  developerId: varchar("developer_id").references(() => developers.id).notNull(),
+  endpointId: varchar("endpoint_id").references(() => apiEndpoints.id).notNull(),
+  method: text("method").notNull(),
+  path: text("path").notNull(),
+  statusCode: integer("status_code").notNull(),
+  responseTime: integer("response_time").notNull(), // in milliseconds
+  environment: text("environment").notNull().default("sandbox"),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+}, (table) => [
+  index("idx_api_activity_timestamp").on(table.timestamp),
+  index("idx_api_activity_developer").on(table.developerId),
+]);
+
 // New table for audit logs
 export const auditLogs = pgTable("audit_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -354,6 +389,17 @@ export const insertApiUsageSchema = createInsertSchema(apiUsage).omit({
   month: true,
 });
 
+export const insertDailyAnalyticsSchema = createInsertSchema(dailyAnalytics).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertApiActivitySchema = createInsertSchema(apiActivity).omit({
+  id: true,
+  timestamp: true,
+});
+
 export const insertApiCategorySchema = createInsertSchema(apiCategories).omit({
   id: true,
   createdAt: true,
@@ -469,6 +515,10 @@ export type UpdateApiCategory = z.infer<typeof updateApiCategorySchema>;
 export type UpdateApiEndpoint = z.infer<typeof updateApiEndpointSchema>;
 export type ApiUsage = typeof apiUsage.$inferSelect;
 export type InsertApiUsage = z.infer<typeof insertApiUsageSchema>;
+export type DailyAnalytics = typeof dailyAnalytics.$inferSelect;
+export type InsertDailyAnalytics = z.infer<typeof insertDailyAnalyticsSchema>;
+export type ApiActivity = typeof apiActivity.$inferSelect;
+export type InsertApiActivity = z.infer<typeof insertApiActivitySchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type ApiToken = typeof apiTokens.$inferSelect;

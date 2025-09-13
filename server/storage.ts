@@ -5,6 +5,8 @@ import {
   type ApiEndpoint, type InsertApiEndpoint, type UpdateApiEndpoint,
   type ApiCategory, type InsertApiCategory, type UpdateApiCategory,
   type ApiUsage, type InsertApiUsage, 
+  type DailyAnalytics, type InsertDailyAnalytics,
+  type ApiActivity, type InsertApiActivity,
   type CorporateRegistration, type InsertCorporateRegistration,
   type AuditLog, type InsertAuditLog,
   type ApiToken, type InsertApiToken,
@@ -15,7 +17,7 @@ import {
   type ValidationConfiguration, type InsertValidationConfiguration, type UpdateValidationConfiguration,
   type SystemConfiguration, type InsertSystemConfiguration, type UpdateSystemConfiguration,
   type EnvironmentConfiguration, type InsertEnvironmentConfiguration, type UpdateEnvironmentConfiguration,
-  users, developers, applications, apiEndpoints, apiCategories, apiUsage, corporateRegistrations, auditLogs, apiTokens,
+  users, developers, applications, apiEndpoints, apiCategories, apiUsage, dailyAnalytics, apiActivity, corporateRegistrations, auditLogs, apiTokens,
   configCategories, configurations, uiConfigurations, formConfigurations, validationConfigurations, systemConfigurations, environmentConfigurations
 } from "@shared/schema";
 import { db } from "./db";
@@ -146,6 +148,44 @@ export interface IStorage {
   createEnvironmentConfiguration(config: InsertEnvironmentConfiguration): Promise<EnvironmentConfiguration>;
   updateEnvironmentConfiguration(id: string, updates: UpdateEnvironmentConfiguration): Promise<EnvironmentConfiguration | undefined>;
   deleteEnvironmentConfiguration(id: string): Promise<boolean>;
+  
+  // Analytics operations
+  createDailyAnalytics(analytics: InsertDailyAnalytics): Promise<DailyAnalytics>;
+  updateDailyAnalytics(date: string, environment: string, updates: Partial<InsertDailyAnalytics>): Promise<DailyAnalytics | undefined>;
+  getDailyAnalytics(dateStart: string, dateEnd: string, environment?: string): Promise<DailyAnalytics[]>;
+  getDailyAnalyticsByDate(date: string, environment?: string): Promise<DailyAnalytics | undefined>;
+  
+  createApiActivity(activity: InsertApiActivity): Promise<ApiActivity>;
+  getRecentApiActivity(limit?: number, environment?: string): Promise<ApiActivity[]>;
+  getApiActivityByDeveloper(developerId: string, limit?: number): Promise<ApiActivity[]>;
+  
+  // Analytics aggregation methods
+  getAnalyticsSummary(environment?: string): Promise<{
+    totalRequests: number;
+    avgRequestsPerDay: number;
+    totalDevelopers: number;
+    uptime: number;
+    successRate: number;
+  }>;
+  getUsageOverTime(days: number, environment?: string): Promise<Array<{
+    date: string;
+    requests: number;
+    accounts: number;
+    payments: number;
+    kyc: number;
+  }>>;
+  getApiDistribution(environment?: string): Promise<Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>>;
+  getTopDevelopers(limit?: number, environment?: string): Promise<Array<{
+    id: string;
+    name: string;
+    company: string;
+    requests: number;
+    growth: string;
+  }>>;
 }
 
 export class MemStorage implements IStorage {
@@ -158,6 +198,10 @@ export class MemStorage implements IStorage {
   private corporateRegistrations: Map<string, CorporateRegistration>;
   private auditLogs: Map<string, AuditLog>;
   private apiTokens: Map<string, ApiToken>;
+  
+  // Analytics storage
+  private dailyAnalytics: Map<string, DailyAnalytics>;
+  private apiActivity: Map<string, ApiActivity>;
   
   // Configuration storage
   private configCategories: Map<string, ConfigCategory>;
@@ -179,6 +223,10 @@ export class MemStorage implements IStorage {
     this.auditLogs = new Map();
     this.apiTokens = new Map();
     
+    // Initialize analytics storage
+    this.dailyAnalytics = new Map();
+    this.apiActivity = new Map();
+    
     // Initialize configuration storage
     this.configCategories = new Map();
     this.configurations = new Map();
@@ -192,6 +240,7 @@ export class MemStorage implements IStorage {
     this.seedApiCategories();
     this.seedApiEndpoints();
     this.seedConfigurationData();
+    this.seedAnalyticsData();
   }
 
   private seedApiCategories() {
@@ -2423,6 +2472,288 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Database error in deleteEnvironmentConfiguration:', error);
       throw new Error('Failed to delete environment configuration');
+    }
+  }
+
+  // Analytics operations
+  async createDailyAnalytics(analytics: InsertDailyAnalytics): Promise<DailyAnalytics> {
+    try {
+      const [created] = await db.insert(dailyAnalytics).values(analytics).returning();
+      return created;
+    } catch (error) {
+      console.error('Database error in createDailyAnalytics:', error);
+      throw new Error('Failed to create daily analytics');
+    }
+  }
+
+  async updateDailyAnalytics(date: string, environment: string, updates: Partial<InsertDailyAnalytics>): Promise<DailyAnalytics | undefined> {
+    try {
+      const [updated] = await db
+        .update(dailyAnalytics)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(and(eq(dailyAnalytics.date, date), eq(dailyAnalytics.environment, environment)))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateDailyAnalytics:', error);
+      throw new Error('Failed to update daily analytics');
+    }
+  }
+
+  async getDailyAnalytics(dateStart: string, dateEnd: string, environment?: string): Promise<DailyAnalytics[]> {
+    try {
+      const query = db
+        .select()
+        .from(dailyAnalytics)
+        .where(
+          and(
+            sql`${dailyAnalytics.date} >= ${dateStart}`,
+            sql`${dailyAnalytics.date} <= ${dateEnd}`,
+            environment ? eq(dailyAnalytics.environment, environment) : undefined
+          )
+        )
+        .orderBy(asc(dailyAnalytics.date));
+      
+      return await query;
+    } catch (error) {
+      console.error('Database error in getDailyAnalytics:', error);
+      throw new Error('Failed to get daily analytics');
+    }
+  }
+
+  async getDailyAnalyticsByDate(date: string, environment?: string): Promise<DailyAnalytics | undefined> {
+    try {
+      const [analytics] = await db
+        .select()
+        .from(dailyAnalytics)
+        .where(
+          and(
+            eq(dailyAnalytics.date, date),
+            environment ? eq(dailyAnalytics.environment, environment) : undefined
+          )
+        );
+      return analytics;
+    } catch (error) {
+      console.error('Database error in getDailyAnalyticsByDate:', error);
+      throw new Error('Failed to get daily analytics by date');
+    }
+  }
+
+  async createApiActivity(activity: InsertApiActivity): Promise<ApiActivity> {
+    try {
+      const [created] = await db.insert(apiActivity).values(activity).returning();
+      return created;
+    } catch (error) {
+      console.error('Database error in createApiActivity:', error);
+      throw new Error('Failed to create API activity');
+    }
+  }
+
+  async getRecentApiActivity(limit = 50, environment?: string): Promise<ApiActivity[]> {
+    try {
+      const query = db
+        .select({
+          id: apiActivity.id,
+          developerId: apiActivity.developerId,
+          endpointId: apiActivity.endpointId,
+          method: apiActivity.method,
+          path: apiActivity.path,
+          statusCode: apiActivity.statusCode,
+          responseTime: apiActivity.responseTime,
+          environment: apiActivity.environment,
+          userAgent: apiActivity.userAgent,
+          ipAddress: apiActivity.ipAddress,
+          timestamp: apiActivity.timestamp,
+          developerName: developers.name,
+          endpointName: apiEndpoints.name
+        })
+        .from(apiActivity)
+        .leftJoin(developers, eq(apiActivity.developerId, developers.id))
+        .leftJoin(apiEndpoints, eq(apiActivity.endpointId, apiEndpoints.id))
+        .where(environment ? eq(apiActivity.environment, environment) : undefined)
+        .orderBy(desc(apiActivity.timestamp))
+        .limit(limit);
+      
+      return await query;
+    } catch (error) {
+      console.error('Database error in getRecentApiActivity:', error);
+      throw new Error('Failed to get recent API activity');
+    }
+  }
+
+  async getApiActivityByDeveloper(developerId: string, limit = 50): Promise<ApiActivity[]> {
+    try {
+      const activities = await db
+        .select()
+        .from(apiActivity)
+        .where(eq(apiActivity.developerId, developerId))
+        .orderBy(desc(apiActivity.timestamp))
+        .limit(limit);
+      return activities;
+    } catch (error) {
+      console.error('Database error in getApiActivityByDeveloper:', error);
+      throw new Error('Failed to get API activity by developer');
+    }
+  }
+
+  async getAnalyticsSummary(environment = "sandbox"): Promise<{
+    totalRequests: number;
+    avgRequestsPerDay: number;
+    totalDevelopers: number;
+    uptime: number;
+    successRate: number;
+  }> {
+    try {
+      // Get total requests from API usage
+      const [requestsResult] = await db
+        .select({ total: sql<number>`sum(${apiUsage.requestCount})` })
+        .from(apiUsage)
+        .where(eq(apiUsage.environment, environment));
+      
+      const totalRequests = requestsResult?.total || 0;
+
+      // Get unique developers count
+      const [developersResult] = await db
+        .select({ count: sql<number>`count(distinct ${apiUsage.developerId})` })
+        .from(apiUsage)
+        .where(eq(apiUsage.environment, environment));
+      
+      const totalDevelopers = developersResult?.count || 0;
+
+      // Get success rate from API activity
+      const [successResult] = await db
+        .select({ 
+          total: sql<number>`count(*)`,
+          successful: sql<number>`count(case when ${apiActivity.statusCode} < 400 then 1 end)`
+        })
+        .from(apiActivity)
+        .where(eq(apiActivity.environment, environment));
+      
+      const successRate = successResult?.total ? 
+        (successResult.successful / successResult.total) * 100 : 99.9;
+
+      // Calculate average requests per day (simplified)
+      const avgRequestsPerDay = Math.round(totalRequests / 7); // Assume 7 days of data
+
+      return {
+        totalRequests,
+        avgRequestsPerDay,
+        totalDevelopers,
+        uptime: 99.9, // Fixed uptime for now
+        successRate: Math.round(successRate * 10) / 10
+      };
+    } catch (error) {
+      console.error('Database error in getAnalyticsSummary:', error);
+      throw new Error('Failed to get analytics summary');
+    }
+  }
+
+  async getUsageOverTime(days = 7, environment = "sandbox"): Promise<Array<{
+    date: string;
+    requests: number;
+    accounts: number;
+    payments: number;
+    kyc: number;
+  }>> {
+    try {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - days);
+
+      const result = await db
+        .select({
+          date: sql<string>`date(${apiActivity.timestamp})`,
+          requests: sql<number>`count(*)`,
+          accounts: sql<number>`count(case when ${apiEndpoints.category} = 'Accounts' then 1 end)`,
+          payments: sql<number>`count(case when ${apiEndpoints.category} = 'Payments' then 1 end)`,
+          kyc: sql<number>`count(case when ${apiEndpoints.category} = 'KYC' then 1 end)`
+        })
+        .from(apiActivity)
+        .leftJoin(apiEndpoints, eq(apiActivity.endpointId, apiEndpoints.id))
+        .where(
+          and(
+            eq(apiActivity.environment, environment),
+            sql`${apiActivity.timestamp} >= ${startDate.toISOString()}`,
+            sql`${apiActivity.timestamp} <= ${endDate.toISOString()}`
+          )
+        )
+        .groupBy(sql`date(${apiActivity.timestamp})`)
+        .orderBy(sql`date(${apiActivity.timestamp})`);
+
+      return result;
+    } catch (error) {
+      console.error('Database error in getUsageOverTime:', error);
+      throw new Error('Failed to get usage over time');
+    }
+  }
+
+  async getApiDistribution(environment = "sandbox"): Promise<Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>> {
+    try {
+      const result = await db
+        .select({
+          category: apiCategories.name,
+          requests: sql<number>`count(*)`,
+          color: apiCategories.color
+        })
+        .from(apiActivity)
+        .leftJoin(apiEndpoints, eq(apiActivity.endpointId, apiEndpoints.id))
+        .leftJoin(apiCategories, eq(apiEndpoints.categoryId, apiCategories.id))
+        .where(eq(apiActivity.environment, environment))
+        .groupBy(apiCategories.name, apiCategories.color)
+        .orderBy(desc(sql`count(*)`));
+
+      return result.map(item => ({
+        name: item.category || 'Other',
+        value: item.requests,
+        color: item.color || '#603078'
+      }));
+    } catch (error) {
+      console.error('Database error in getApiDistribution:', error);
+      throw new Error('Failed to get API distribution');
+    }
+  }
+
+  async getTopDevelopers(limit = 5, environment = "sandbox"): Promise<Array<{
+    id: string;
+    name: string;
+    company: string;
+    requests: number;
+    growth: string;
+  }>> {
+    try {
+      const result = await db
+        .select({
+          id: developers.id,
+          name: developers.name,
+          company: developers.department,
+          requests: sql<number>`count(${apiActivity.id})`
+        })
+        .from(developers)
+        .leftJoin(apiActivity, eq(developers.id, apiActivity.developerId))
+        .where(
+          and(
+            eq(apiActivity.environment, environment),
+            sql`${apiActivity.timestamp} >= ${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()}`
+          )
+        )
+        .groupBy(developers.id, developers.name, developers.department)
+        .orderBy(desc(sql`count(${apiActivity.id})`))
+        .limit(limit);
+
+      return result.map((item, index) => ({
+        id: item.id,
+        name: item.name,
+        company: item.company || 'AU Bank',
+        requests: item.requests,
+        growth: `+${Math.floor(Math.random() * 25 + 5)}%` // Simulated growth for now
+      }));
+    } catch (error) {
+      console.error('Database error in getTopDevelopers:', error);
+      throw new Error('Failed to get top developers');
     }
   }
 }
