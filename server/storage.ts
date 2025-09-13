@@ -8,7 +8,15 @@ import {
   type CorporateRegistration, type InsertCorporateRegistration,
   type AuditLog, type InsertAuditLog,
   type ApiToken, type InsertApiToken,
-  users, developers, applications, apiEndpoints, apiCategories, apiUsage, corporateRegistrations, auditLogs, apiTokens
+  type ConfigCategory, type InsertConfigCategory, type UpdateConfigCategory,
+  type Configuration, type InsertConfiguration, type UpdateConfiguration,
+  type UiConfiguration, type InsertUiConfiguration, type UpdateUiConfiguration,
+  type FormConfiguration, type InsertFormConfiguration, type UpdateFormConfiguration,
+  type ValidationConfiguration, type InsertValidationConfiguration, type UpdateValidationConfiguration,
+  type SystemConfiguration, type InsertSystemConfiguration, type UpdateSystemConfiguration,
+  type EnvironmentConfiguration, type InsertEnvironmentConfiguration, type UpdateEnvironmentConfiguration,
+  users, developers, applications, apiEndpoints, apiCategories, apiUsage, corporateRegistrations, auditLogs, apiTokens,
+  configCategories, configurations, uiConfigurations, formConfigurations, validationConfigurations, systemConfigurations, environmentConfigurations
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -79,6 +87,65 @@ export interface IStorage {
   getApiTokensByDeveloper(developerId: string): Promise<ApiToken[]>;
   revokeApiToken(id: string): Promise<boolean>;
   updateTokenLastUsed(token: string): Promise<void>;
+  
+  // Configuration operations
+  // Config Categories
+  getAllConfigCategories(): Promise<ConfigCategory[]>;
+  getConfigCategory(id: string): Promise<ConfigCategory | undefined>;
+  getConfigCategoryByName(name: string): Promise<ConfigCategory | undefined>;
+  createConfigCategory(category: InsertConfigCategory): Promise<ConfigCategory>;
+  updateConfigCategory(id: string, updates: UpdateConfigCategory): Promise<ConfigCategory | undefined>;
+  deleteConfigCategory(id: string): Promise<boolean>;
+  
+  // General Configurations
+  getAllConfigurations(environment?: string): Promise<Configuration[]>;
+  getConfigurationsByCategory(categoryId: string, environment?: string): Promise<Configuration[]>;
+  getConfiguration(id: string): Promise<Configuration | undefined>;
+  getConfigurationByKey(key: string, environment?: string): Promise<Configuration | undefined>;
+  createConfiguration(config: InsertConfiguration): Promise<Configuration>;
+  updateConfiguration(id: string, updates: UpdateConfiguration): Promise<Configuration | undefined>;
+  deleteConfiguration(id: string): Promise<boolean>;
+  
+  // UI Configurations
+  getAllUiConfigurations(environment?: string): Promise<UiConfiguration[]>;
+  getUiConfiguration(id: string): Promise<UiConfiguration | undefined>;
+  getUiConfigurationByEnvironment(environment: string): Promise<UiConfiguration | undefined>;
+  createUiConfiguration(config: InsertUiConfiguration): Promise<UiConfiguration>;
+  updateUiConfiguration(id: string, updates: UpdateUiConfiguration): Promise<UiConfiguration | undefined>;
+  deleteUiConfiguration(id: string): Promise<boolean>;
+  
+  // Form Configurations
+  getAllFormConfigurations(environment?: string): Promise<FormConfiguration[]>;
+  getFormConfiguration(id: string): Promise<FormConfiguration | undefined>;
+  getFormConfigurationByType(formType: string, environment?: string): Promise<FormConfiguration | undefined>;
+  createFormConfiguration(config: InsertFormConfiguration): Promise<FormConfiguration>;
+  updateFormConfiguration(id: string, updates: UpdateFormConfiguration): Promise<FormConfiguration | undefined>;
+  deleteFormConfiguration(id: string): Promise<boolean>;
+  
+  // Validation Configurations
+  getAllValidationConfigurations(environment?: string): Promise<ValidationConfiguration[]>;
+  getValidationConfiguration(id: string): Promise<ValidationConfiguration | undefined>;
+  getValidationConfigurationsByEntity(entityType: string, environment?: string): Promise<ValidationConfiguration[]>;
+  createValidationConfiguration(config: InsertValidationConfiguration): Promise<ValidationConfiguration>;
+  updateValidationConfiguration(id: string, updates: UpdateValidationConfiguration): Promise<ValidationConfiguration | undefined>;
+  deleteValidationConfiguration(id: string): Promise<boolean>;
+  
+  // System Configurations
+  getAllSystemConfigurations(environment?: string): Promise<SystemConfiguration[]>;
+  getSystemConfiguration(id: string): Promise<SystemConfiguration | undefined>;
+  getSystemConfigurationsByModule(module: string, environment?: string): Promise<SystemConfiguration[]>;
+  getSystemConfigurationBySetting(module: string, setting: string, environment?: string): Promise<SystemConfiguration | undefined>;
+  createSystemConfiguration(config: InsertSystemConfiguration): Promise<SystemConfiguration>;
+  updateSystemConfiguration(id: string, updates: UpdateSystemConfiguration): Promise<SystemConfiguration | undefined>;
+  deleteSystemConfiguration(id: string): Promise<boolean>;
+  
+  // Environment Configurations
+  getAllEnvironmentConfigurations(environment?: string): Promise<EnvironmentConfiguration[]>;
+  getEnvironmentConfiguration(id: string): Promise<EnvironmentConfiguration | undefined>;
+  getEnvironmentConfigurationByKey(configKey: string, environment: string): Promise<EnvironmentConfiguration | undefined>;
+  createEnvironmentConfiguration(config: InsertEnvironmentConfiguration): Promise<EnvironmentConfiguration>;
+  updateEnvironmentConfiguration(id: string, updates: UpdateEnvironmentConfiguration): Promise<EnvironmentConfiguration | undefined>;
+  deleteEnvironmentConfiguration(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -91,6 +158,15 @@ export class MemStorage implements IStorage {
   private corporateRegistrations: Map<string, CorporateRegistration>;
   private auditLogs: Map<string, AuditLog>;
   private apiTokens: Map<string, ApiToken>;
+  
+  // Configuration storage
+  private configCategories: Map<string, ConfigCategory>;
+  private configurations: Map<string, Configuration>;
+  private uiConfigurations: Map<string, UiConfiguration>;
+  private formConfigurations: Map<string, FormConfiguration>;
+  private validationConfigurations: Map<string, ValidationConfiguration>;
+  private systemConfigurations: Map<string, SystemConfiguration>;
+  private environmentConfigurations: Map<string, EnvironmentConfiguration>;
 
   constructor() {
     this.users = new Map();
@@ -103,9 +179,19 @@ export class MemStorage implements IStorage {
     this.auditLogs = new Map();
     this.apiTokens = new Map();
     
+    // Initialize configuration storage
+    this.configCategories = new Map();
+    this.configurations = new Map();
+    this.uiConfigurations = new Map();
+    this.formConfigurations = new Map();
+    this.validationConfigurations = new Map();
+    this.systemConfigurations = new Map();
+    this.environmentConfigurations = new Map();
+    
     // Seed with sample data
     this.seedApiCategories();
     this.seedApiEndpoints();
+    this.seedConfigurationData();
   }
 
   private seedApiCategories() {
@@ -206,6 +292,35 @@ export class MemStorage implements IStorage {
     endpoints.forEach(endpoint => {
       this.apiEndpoints.set(endpoint.id, endpoint);
     });
+  }
+
+  private seedConfigurationData() {
+    // Seed config categories
+    const configCats: ConfigCategory[] = [
+      { id: "ui", name: "UI", description: "User interface settings", displayOrder: 1, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { id: "forms", name: "Forms", description: "Form configurations", displayOrder: 2, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { id: "validation", name: "Validation", description: "Validation rules", displayOrder: 3, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { id: "system", name: "System", description: "System settings", displayOrder: 4, isActive: true, createdAt: new Date(), updatedAt: new Date() },
+      { id: "api", name: "API", description: "API configurations", displayOrder: 5, isActive: true, createdAt: new Date(), updatedAt: new Date() }
+    ];
+    configCats.forEach(cat => this.configCategories.set(cat.id, cat));
+
+    // Seed UI configurations
+    const uiConfig: UiConfiguration = {
+      id: "ui-default", theme: "default", primaryColor: "#603078", secondaryColor: "#4d2661",
+      accentColor: "#f59e0b", backgroundColor: "#fefefe", textColor: "#111827",
+      borderRadius: "14px", fontFamily: "Inter", logoUrl: "", faviconUrl: "",
+      customCss: "", sidebarWidth: "16rem", headerHeight: "4rem",
+      environment: "all", isActive: true, createdAt: new Date(), updatedAt: new Date()
+    };
+    this.uiConfigurations.set(uiConfig.id, uiConfig);
+
+    // Seed system configurations
+    const systemConfigs: SystemConfiguration[] = [
+      { id: "sys-1", module: "api", setting: "rate_limit", value: 100, description: "API rate limit per minute", dataType: "number", environment: "sandbox", isEditable: true, requiresRestart: false, lastModifiedBy: null, createdAt: new Date(), updatedAt: new Date() },
+      { id: "sys-2", module: "auth", setting: "session_timeout", value: 3600, description: "Session timeout in seconds", dataType: "number", environment: "all", isEditable: true, requiresRestart: false, lastModifiedBy: null, createdAt: new Date(), updatedAt: new Date() }
+    ];
+    systemConfigs.forEach(config => this.systemConfigurations.set(config.id, config));
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -606,6 +721,309 @@ export class MemStorage implements IStorage {
       apiToken.lastUsedAt = new Date();
       this.apiTokens.set(apiToken.id, apiToken);
     }
+  }
+
+  // Configuration Category operations
+  async getAllConfigCategories(): Promise<ConfigCategory[]> {
+    return Array.from(this.configCategories.values())
+      .filter(cat => cat.isActive)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async getConfigCategory(id: string): Promise<ConfigCategory | undefined> {
+    return this.configCategories.get(id);
+  }
+
+  async getConfigCategoryByName(name: string): Promise<ConfigCategory | undefined> {
+    return Array.from(this.configCategories.values()).find(cat => cat.name === name);
+  }
+
+  async createConfigCategory(category: InsertConfigCategory): Promise<ConfigCategory> {
+    const id = randomUUID();
+    const newCategory: ConfigCategory = {
+      ...category,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.configCategories.set(id, newCategory);
+    return newCategory;
+  }
+
+  async updateConfigCategory(id: string, updates: UpdateConfigCategory): Promise<ConfigCategory | undefined> {
+    const category = this.configCategories.get(id);
+    if (!category) return undefined;
+    const updated = { ...category, ...updates, updatedAt: new Date() };
+    this.configCategories.set(id, updated);
+    return updated;
+  }
+
+  async deleteConfigCategory(id: string): Promise<boolean> {
+    return this.configCategories.delete(id);
+  }
+
+  // General Configuration operations
+  async getAllConfigurations(environment?: string): Promise<Configuration[]> {
+    return Array.from(this.configurations.values()).filter(config => 
+      !environment || config.environment === 'all' || config.environment === environment
+    );
+  }
+
+  async getConfigurationsByCategory(categoryId: string, environment?: string): Promise<Configuration[]> {
+    return Array.from(this.configurations.values()).filter(config => 
+      config.categoryId === categoryId && 
+      (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async getConfiguration(id: string): Promise<Configuration | undefined> {
+    return this.configurations.get(id);
+  }
+
+  async getConfigurationByKey(key: string, environment?: string): Promise<Configuration | undefined> {
+    return Array.from(this.configurations.values()).find(config => 
+      config.key === key && 
+      (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async createConfiguration(config: InsertConfiguration): Promise<Configuration> {
+    const id = randomUUID();
+    const newConfig: Configuration = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.configurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateConfiguration(id: string, updates: UpdateConfiguration): Promise<Configuration | undefined> {
+    const config = this.configurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.configurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteConfiguration(id: string): Promise<boolean> {
+    return this.configurations.delete(id);
+  }
+
+  // UI Configuration operations
+  async getAllUiConfigurations(environment?: string): Promise<UiConfiguration[]> {
+    return Array.from(this.uiConfigurations.values()).filter(config => 
+      config.isActive && (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async getUiConfiguration(id: string): Promise<UiConfiguration | undefined> {
+    return this.uiConfigurations.get(id);
+  }
+
+  async getUiConfigurationByEnvironment(environment: string): Promise<UiConfiguration | undefined> {
+    return Array.from(this.uiConfigurations.values()).find(config => 
+      config.isActive && (config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async createUiConfiguration(config: InsertUiConfiguration): Promise<UiConfiguration> {
+    const id = randomUUID();
+    const newConfig: UiConfiguration = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.uiConfigurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateUiConfiguration(id: string, updates: UpdateUiConfiguration): Promise<UiConfiguration | undefined> {
+    const config = this.uiConfigurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.uiConfigurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteUiConfiguration(id: string): Promise<boolean> {
+    return this.uiConfigurations.delete(id);
+  }
+
+  // Form Configuration operations
+  async getAllFormConfigurations(environment?: string): Promise<FormConfiguration[]> {
+    return Array.from(this.formConfigurations.values()).filter(config => 
+      config.isActive && (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async getFormConfiguration(id: string): Promise<FormConfiguration | undefined> {
+    return this.formConfigurations.get(id);
+  }
+
+  async getFormConfigurationByType(formType: string, environment?: string): Promise<FormConfiguration | undefined> {
+    return Array.from(this.formConfigurations.values()).find(config => 
+      config.isActive && config.formType === formType && 
+      (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async createFormConfiguration(config: InsertFormConfiguration): Promise<FormConfiguration> {
+    const id = randomUUID();
+    const newConfig: FormConfiguration = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.formConfigurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateFormConfiguration(id: string, updates: UpdateFormConfiguration): Promise<FormConfiguration | undefined> {
+    const config = this.formConfigurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.formConfigurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteFormConfiguration(id: string): Promise<boolean> {
+    return this.formConfigurations.delete(id);
+  }
+
+  // Validation Configuration operations
+  async getAllValidationConfigurations(environment?: string): Promise<ValidationConfiguration[]> {
+    return Array.from(this.validationConfigurations.values()).filter(config => 
+      config.isActive && (!environment || config.environment === 'all' || config.environment === environment)
+    ).sort((a, b) => a.priority - b.priority);
+  }
+
+  async getValidationConfiguration(id: string): Promise<ValidationConfiguration | undefined> {
+    return this.validationConfigurations.get(id);
+  }
+
+  async getValidationConfigurationsByEntity(entityType: string, environment?: string): Promise<ValidationConfiguration[]> {
+    return Array.from(this.validationConfigurations.values()).filter(config => 
+      config.isActive && config.entityType === entityType && 
+      (!environment || config.environment === 'all' || config.environment === environment)
+    ).sort((a, b) => a.priority - b.priority);
+  }
+
+  async createValidationConfiguration(config: InsertValidationConfiguration): Promise<ValidationConfiguration> {
+    const id = randomUUID();
+    const newConfig: ValidationConfiguration = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.validationConfigurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateValidationConfiguration(id: string, updates: UpdateValidationConfiguration): Promise<ValidationConfiguration | undefined> {
+    const config = this.validationConfigurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.validationConfigurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteValidationConfiguration(id: string): Promise<boolean> {
+    return this.validationConfigurations.delete(id);
+  }
+
+  // System Configuration operations
+  async getAllSystemConfigurations(environment?: string): Promise<SystemConfiguration[]> {
+    return Array.from(this.systemConfigurations.values()).filter(config => 
+      (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async getSystemConfiguration(id: string): Promise<SystemConfiguration | undefined> {
+    return this.systemConfigurations.get(id);
+  }
+
+  async getSystemConfigurationsByModule(module: string, environment?: string): Promise<SystemConfiguration[]> {
+    return Array.from(this.systemConfigurations.values()).filter(config => 
+      config.module === module && 
+      (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async getSystemConfigurationBySetting(module: string, setting: string, environment?: string): Promise<SystemConfiguration | undefined> {
+    return Array.from(this.systemConfigurations.values()).find(config => 
+      config.module === module && config.setting === setting && 
+      (!environment || config.environment === 'all' || config.environment === environment)
+    );
+  }
+
+  async createSystemConfiguration(config: InsertSystemConfiguration): Promise<SystemConfiguration> {
+    const id = randomUUID();
+    const newConfig: SystemConfiguration = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.systemConfigurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateSystemConfiguration(id: string, updates: UpdateSystemConfiguration): Promise<SystemConfiguration | undefined> {
+    const config = this.systemConfigurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.systemConfigurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteSystemConfiguration(id: string): Promise<boolean> {
+    return this.systemConfigurations.delete(id);
+  }
+
+  // Environment Configuration operations
+  async getAllEnvironmentConfigurations(environment?: string): Promise<EnvironmentConfiguration[]> {
+    return Array.from(this.environmentConfigurations.values()).filter(config => 
+      !environment || config.environment === environment
+    );
+  }
+
+  async getEnvironmentConfiguration(id: string): Promise<EnvironmentConfiguration | undefined> {
+    return this.environmentConfigurations.get(id);
+  }
+
+  async getEnvironmentConfigurationByKey(configKey: string, environment: string): Promise<EnvironmentConfiguration | undefined> {
+    return Array.from(this.environmentConfigurations.values()).find(config => 
+      config.configKey === configKey && config.environment === environment
+    );
+  }
+
+  async createEnvironmentConfiguration(config: InsertEnvironmentConfiguration): Promise<EnvironmentConfiguration> {
+    const id = randomUUID();
+    const newConfig: EnvironmentConfiguration = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.environmentConfigurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateEnvironmentConfiguration(id: string, updates: UpdateEnvironmentConfiguration): Promise<EnvironmentConfiguration | undefined> {
+    const config = this.environmentConfigurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.environmentConfigurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteEnvironmentConfiguration(id: string): Promise<boolean> {
+    return this.environmentConfigurations.delete(id);
   }
 }
 

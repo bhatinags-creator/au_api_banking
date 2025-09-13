@@ -162,6 +162,118 @@ export const apiTokens = pgTable("api_tokens", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Configuration management tables for dynamic admin UI settings
+export const configCategories = pgTable("config_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(), // ui, forms, validation, system, api
+  description: text("description").notNull(),
+  displayOrder: integer("display_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Main configuration settings table
+export const configurations = pgTable("configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar("category_id").references(() => configCategories.id).notNull(),
+  key: text("key").notNull(), // unique identifier like 'primary_color', 'max_upload_size'
+  name: text("name").notNull(), // human readable name
+  description: text("description").notNull(),
+  value: jsonb("value").notNull(), // actual configuration value
+  defaultValue: jsonb("default_value").notNull(), // fallback default
+  dataType: text("data_type").notNull().default("string"), // string, number, boolean, object, array
+  environment: text("environment").notNull().default("all"), // all, sandbox, uat, production
+  isEditable: boolean("is_editable").notNull().default(true),
+  isRequired: boolean("is_required").notNull().default(false),
+  validationRules: jsonb("validation_rules").default(sql`'{}'::jsonb`), // min, max, pattern, enum
+  displayOrder: integer("display_order").notNull().default(0),
+  lastModifiedBy: varchar("last_modified_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// UI Theme and Appearance configurations
+export const uiConfigurations = pgTable("ui_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  theme: text("theme").notNull().default("default"), // default, dark, light, au-bank
+  primaryColor: text("primary_color").notNull().default("#603078"),
+  secondaryColor: text("secondary_color").notNull().default("#4d2661"),
+  accentColor: text("accent_color").notNull().default("#f59e0b"),
+  backgroundColor: text("background_color").notNull().default("#fefefe"),
+  textColor: text("text_color").notNull().default("#111827"),
+  borderRadius: text("border_radius").notNull().default("14px"),
+  fontFamily: text("font_family").notNull().default("Inter"),
+  logoUrl: text("logo_url"),
+  faviconUrl: text("favicon_url"),
+  customCss: text("custom_css"),
+  sidebarWidth: text("sidebar_width").notNull().default("16rem"),
+  headerHeight: text("header_height").notNull().default("4rem"),
+  environment: text("environment").notNull().default("all"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Form default values and configurations
+export const formConfigurations = pgTable("form_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  formType: text("form_type").notNull(), // registration, login, api-request, developer-profile
+  formName: text("form_name").notNull(),
+  fieldDefaults: jsonb("field_defaults").default(sql`'{}'::jsonb`), // default values for form fields
+  fieldVisibility: jsonb("field_visibility").default(sql`'{}'::jsonb`), // which fields to show/hide
+  fieldValidation: jsonb("field_validation").default(sql`'{}'::jsonb`), // field-specific validation rules
+  submitBehavior: jsonb("submit_behavior").default(sql`'{}'::jsonb`), // redirect, message, etc.
+  autoSave: boolean("auto_save").notNull().default(false),
+  environment: text("environment").notNull().default("all"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Validation rules and business constraints
+export const validationConfigurations = pgTable("validation_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: text("entity_type").notNull(), // user, developer, application, api
+  fieldName: text("field_name").notNull(),
+  validationType: text("validation_type").notNull(), // required, length, pattern, range, custom
+  rules: jsonb("rules").notNull(), // specific validation parameters
+  errorMessage: text("error_message").notNull(),
+  environment: text("environment").notNull().default("all"),
+  isActive: boolean("is_active").notNull().default(true),
+  priority: integer("priority").notNull().default(0), // for ordering validation rules
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// System-wide settings and constants
+export const systemConfigurations = pgTable("system_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  module: text("module").notNull(), // auth, api, storage, email, etc.
+  setting: text("setting").notNull(), // rate_limit, timeout, max_file_size, etc.
+  value: jsonb("value").notNull(),
+  description: text("description").notNull(),
+  dataType: text("data_type").notNull().default("string"),
+  environment: text("environment").notNull().default("all"),
+  isEditable: boolean("is_editable").notNull().default(true),
+  requiresRestart: boolean("requires_restart").notNull().default(false),
+  lastModifiedBy: varchar("last_modified_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Environment-specific configurations
+export const environmentConfigurations = pgTable("environment_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  environment: text("environment").notNull(), // sandbox, uat, production
+  configKey: text("config_key").notNull(),
+  configValue: jsonb("config_value").notNull(),
+  description: text("description"),
+  isOverride: boolean("is_override").notNull().default(false), // overrides default config
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // User schema for internal developers
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -258,6 +370,84 @@ export const updateApiEndpointSchema = createInsertSchema(apiEndpoints).omit({
   createdAt: true,
 }).partial();
 
+// Configuration schemas
+export const insertConfigCategorySchema = createInsertSchema(configCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateConfigCategorySchema = createInsertSchema(configCategories).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertConfigurationSchema = createInsertSchema(configurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateConfigurationSchema = createInsertSchema(configurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertUiConfigurationSchema = createInsertSchema(uiConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUiConfigurationSchema = createInsertSchema(uiConfigurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertFormConfigurationSchema = createInsertSchema(formConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateFormConfigurationSchema = createInsertSchema(formConfigurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertValidationConfigurationSchema = createInsertSchema(validationConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateValidationConfigurationSchema = createInsertSchema(validationConfigurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertSystemConfigurationSchema = createInsertSchema(systemConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateSystemConfigurationSchema = createInsertSchema(systemConfigurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertEnvironmentConfigurationSchema = createInsertSchema(environmentConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateEnvironmentConfigurationSchema = createInsertSchema(environmentConfigurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
 // Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
@@ -283,3 +473,26 @@ export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type ApiToken = typeof apiTokens.$inferSelect;
 export type InsertApiToken = z.infer<typeof insertApiTokenSchema>;
+
+// Configuration type exports
+export type ConfigCategory = typeof configCategories.$inferSelect;
+export type InsertConfigCategory = z.infer<typeof insertConfigCategorySchema>;
+export type UpdateConfigCategory = z.infer<typeof updateConfigCategorySchema>;
+export type Configuration = typeof configurations.$inferSelect;
+export type InsertConfiguration = z.infer<typeof insertConfigurationSchema>;
+export type UpdateConfiguration = z.infer<typeof updateConfigurationSchema>;
+export type UiConfiguration = typeof uiConfigurations.$inferSelect;
+export type InsertUiConfiguration = z.infer<typeof insertUiConfigurationSchema>;
+export type UpdateUiConfiguration = z.infer<typeof updateUiConfigurationSchema>;
+export type FormConfiguration = typeof formConfigurations.$inferSelect;
+export type InsertFormConfiguration = z.infer<typeof insertFormConfigurationSchema>;
+export type UpdateFormConfiguration = z.infer<typeof updateFormConfigurationSchema>;
+export type ValidationConfiguration = typeof validationConfigurations.$inferSelect;
+export type InsertValidationConfiguration = z.infer<typeof insertValidationConfigurationSchema>;
+export type UpdateValidationConfiguration = z.infer<typeof updateValidationConfigurationSchema>;
+export type SystemConfiguration = typeof systemConfigurations.$inferSelect;
+export type InsertSystemConfiguration = z.infer<typeof insertSystemConfigurationSchema>;
+export type UpdateSystemConfiguration = z.infer<typeof updateSystemConfigurationSchema>;
+export type EnvironmentConfiguration = typeof environmentConfigurations.$inferSelect;
+export type InsertEnvironmentConfiguration = z.infer<typeof insertEnvironmentConfigurationSchema>;
+export type UpdateEnvironmentConfiguration = z.infer<typeof updateEnvironmentConfigurationSchema>;

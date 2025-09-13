@@ -7,7 +7,14 @@ import {
   insertUserSchema, updateUserSchema, loginSchema,
   insertDeveloperSchema, updateDeveloperSchema, insertApplicationSchema,
   insertCorporateRegistrationSchema, verifyOtpSchema,
-  insertApiEndpointSchema, insertApiTokenSchema
+  insertApiEndpointSchema, insertApiTokenSchema,
+  insertConfigCategorySchema, updateConfigCategorySchema,
+  insertConfigurationSchema, updateConfigurationSchema,
+  insertUiConfigurationSchema, updateUiConfigurationSchema,
+  insertFormConfigurationSchema, updateFormConfigurationSchema,
+  insertValidationConfigurationSchema, updateValidationConfigurationSchema,
+  insertSystemConfigurationSchema, updateSystemConfigurationSchema,
+  insertEnvironmentConfigurationSchema, updateEnvironmentConfigurationSchema
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
@@ -1370,6 +1377,764 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Seeding error:", error);
       res.status(500).json({ error: "Failed to seed data" });
+    }
+  });
+
+  // ==============================================
+  // CONFIGURATION MANAGEMENT ROUTES
+  // ==============================================
+
+  // Config Categories Management
+  app.get("/api/config/categories", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const categories = await storage.getAllConfigCategories();
+      res.json({ success: true, data: categories });
+    } catch (error) {
+      console.error('Get config categories error:', error);
+      res.status(500).json({ error: 'Failed to fetch configuration categories' });
+    }
+  });
+
+  app.post("/api/config/categories", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const categoryData = insertConfigCategorySchema.parse(req.body);
+      const category = await storage.createConfigCategory(categoryData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'config_category_created',
+        resource: 'config_category',
+        resourceId: category.id,
+        details: { name: category.name },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: category });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create config category error:', error);
+      res.status(500).json({ error: 'Failed to create configuration category' });
+    }
+  });
+
+  app.put("/api/config/categories/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateConfigCategorySchema.parse(req.body);
+      const category = await storage.updateConfigCategory(id, updates);
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Configuration category not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'config_category_updated',
+        resource: 'config_category',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: category });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update config category error:', error);
+      res.status(500).json({ error: 'Failed to update configuration category' });
+    }
+  });
+
+  // General Configuration Settings (Admin/Manager only - contains sensitive data)
+  app.get("/api/config/settings", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { environment, category } = req.query;
+      let configurations;
+      
+      if (category) {
+        configurations = await storage.getConfigurationsByCategory(category as string, environment as string);
+      } else {
+        configurations = await storage.getAllConfigurations(environment as string);
+      }
+      
+      res.json({ success: true, data: configurations });
+    } catch (error) {
+      console.error('Get configurations error:', error);
+      res.status(500).json({ error: 'Failed to fetch configurations' });
+    }
+  });
+
+  app.post("/api/config/settings", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const configData = insertConfigurationSchema.parse(req.body);
+      configData.lastModifiedBy = req.user!.id;
+      const config = await storage.createConfiguration(configData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'configuration_created',
+        resource: 'configuration',
+        resourceId: config.id,
+        details: { key: config.key, environment: config.environment },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: config });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create configuration error:', error);
+      res.status(500).json({ error: 'Failed to create configuration' });
+    }
+  });
+
+  app.put("/api/config/settings/:id", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateConfigurationSchema.parse(req.body);
+      updates.lastModifiedBy = req.user!.id;
+      const config = await storage.updateConfiguration(id, updates);
+      
+      if (!config) {
+        return res.status(404).json({ error: 'Configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'configuration_updated',
+        resource: 'configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: config });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update configuration error:', error);
+      res.status(500).json({ error: 'Failed to update configuration' });
+    }
+  });
+
+  // DELETE endpoint for Config Categories
+  app.delete("/api/config/categories/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteConfigCategory(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Configuration category not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'config_category_deleted',
+        resource: 'config_category',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Configuration category deleted successfully' });
+    } catch (error) {
+      console.error('Delete config category error:', error);
+      res.status(500).json({ error: 'Failed to delete configuration category' });
+    }
+  });
+
+  // DELETE endpoint for General Settings
+  app.delete("/api/config/settings/:id", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'configuration_deleted',
+        resource: 'configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete configuration' });
+    }
+  });
+
+  // UI Configuration Routes
+  app.get("/api/config/ui", async (req, res) => {
+    try {
+      const { environment = 'all' } = req.query;
+      const uiConfig = await storage.getUiConfigurationByEnvironment(environment as string);
+      
+      if (!uiConfig) {
+        // Return default UI configuration if none exists
+        const defaultConfig = {
+          theme: "default",
+          primaryColor: "#603078",
+          secondaryColor: "#4d2661",
+          accentColor: "#f59e0b",
+          backgroundColor: "#fefefe",
+          textColor: "#111827",
+          borderRadius: "14px",
+          fontFamily: "Inter",
+          sidebarWidth: "16rem",
+          headerHeight: "4rem"
+        };
+        return res.json({ success: true, data: defaultConfig });
+      }
+      
+      res.json({ success: true, data: uiConfig });
+    } catch (error) {
+      console.error('Get UI configuration error:', error);
+      res.status(500).json({ error: 'Failed to fetch UI configuration' });
+    }
+  });
+
+  app.post("/api/config/ui", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const uiConfigData = insertUiConfigurationSchema.parse(req.body);
+      const uiConfig = await storage.createUiConfiguration(uiConfigData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'ui_config_created',
+        resource: 'ui_configuration',
+        resourceId: uiConfig.id,
+        details: { environment: uiConfig.environment, theme: uiConfig.theme },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: uiConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create UI configuration error:', error);
+      res.status(500).json({ error: 'Failed to create UI configuration' });
+    }
+  });
+
+  app.put("/api/config/ui/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateUiConfigurationSchema.parse(req.body);
+      const uiConfig = await storage.updateUiConfiguration(id, updates);
+      
+      if (!uiConfig) {
+        return res.status(404).json({ error: 'UI configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'ui_config_updated',
+        resource: 'ui_configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: uiConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update UI configuration error:', error);
+      res.status(500).json({ error: 'Failed to update UI configuration' });
+    }
+  });
+
+  // DELETE endpoint for UI Configuration
+  app.delete("/api/config/ui/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteUiConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'UI configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'ui_config_deleted',
+        resource: 'ui_configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'UI configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete UI configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete UI configuration' });
+    }
+  });
+
+  // Form Configuration Routes (Admin/Manager only)
+  app.get("/api/config/forms", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { environment, formType } = req.query;
+      let formConfigs;
+      
+      if (formType) {
+        formConfigs = [await storage.getFormConfigurationByType(formType as string, environment as string)].filter(Boolean);
+      } else {
+        formConfigs = await storage.getAllFormConfigurations(environment as string);
+      }
+      
+      res.json({ success: true, data: formConfigs });
+    } catch (error) {
+      console.error('Get form configurations error:', error);
+      res.status(500).json({ error: 'Failed to fetch form configurations' });
+    }
+  });
+
+  app.post("/api/config/forms", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const formConfigData = insertFormConfigurationSchema.parse(req.body);
+      const formConfig = await storage.createFormConfiguration(formConfigData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'form_config_created',
+        resource: 'form_configuration',
+        resourceId: formConfig.id,
+        details: { formType: formConfig.formType, formName: formConfig.formName },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: formConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create form configuration error:', error);
+      res.status(500).json({ error: 'Failed to create form configuration' });
+    }
+  });
+
+  // PUT endpoint for Form Configuration
+  app.put("/api/config/forms/:id", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateFormConfigurationSchema.parse(req.body);
+      const formConfig = await storage.updateFormConfiguration(id, updates);
+      
+      if (!formConfig) {
+        return res.status(404).json({ error: 'Form configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'form_config_updated',
+        resource: 'form_configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: formConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update form configuration error:', error);
+      res.status(500).json({ error: 'Failed to update form configuration' });
+    }
+  });
+
+  // DELETE endpoint for Form Configuration
+  app.delete("/api/config/forms/:id", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteFormConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Form configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'form_config_deleted',
+        resource: 'form_configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Form configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete form configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete form configuration' });
+    }
+  });
+
+  // Validation Configuration Routes (Admin/Manager only)
+  app.get("/api/config/validation", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { environment, entityType } = req.query;
+      let validationConfigs;
+      
+      if (entityType) {
+        validationConfigs = await storage.getValidationConfigurationsByEntity(entityType as string, environment as string);
+      } else {
+        validationConfigs = await storage.getAllValidationConfigurations(environment as string);
+      }
+      
+      res.json({ success: true, data: validationConfigs });
+    } catch (error) {
+      console.error('Get validation configurations error:', error);
+      res.status(500).json({ error: 'Failed to fetch validation configurations' });
+    }
+  });
+
+  app.post("/api/config/validation", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const validationConfigData = insertValidationConfigurationSchema.parse(req.body);
+      const validationConfig = await storage.createValidationConfiguration(validationConfigData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'validation_config_created',
+        resource: 'validation_configuration',
+        resourceId: validationConfig.id,
+        details: { entityType: validationConfig.entityType, fieldName: validationConfig.fieldName },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: validationConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create validation configuration error:', error);
+      res.status(500).json({ error: 'Failed to create validation configuration' });
+    }
+  });
+
+  // PUT endpoint for Validation Configuration
+  app.put("/api/config/validation/:id", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateValidationConfigurationSchema.parse(req.body);
+      const validationConfig = await storage.updateValidationConfiguration(id, updates);
+      
+      if (!validationConfig) {
+        return res.status(404).json({ error: 'Validation configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'validation_config_updated',
+        resource: 'validation_configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: validationConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update validation configuration error:', error);
+      res.status(500).json({ error: 'Failed to update validation configuration' });
+    }
+  });
+
+  // DELETE endpoint for Validation Configuration
+  app.delete("/api/config/validation/:id", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteValidationConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Validation configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'validation_config_deleted',
+        resource: 'validation_configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Validation configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete validation configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete validation configuration' });
+    }
+  });
+
+  // System Configuration Routes
+  app.get("/api/config/system", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      const { environment, module } = req.query;
+      let systemConfigs;
+      
+      if (module) {
+        systemConfigs = await storage.getSystemConfigurationsByModule(module as string, environment as string);
+      } else {
+        systemConfigs = await storage.getAllSystemConfigurations(environment as string);
+      }
+      
+      res.json({ success: true, data: systemConfigs });
+    } catch (error) {
+      console.error('Get system configurations error:', error);
+      res.status(500).json({ error: 'Failed to fetch system configurations' });
+    }
+  });
+
+  app.post("/api/config/system", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const systemConfigData = insertSystemConfigurationSchema.parse(req.body);
+      systemConfigData.lastModifiedBy = req.user!.id;
+      const systemConfig = await storage.createSystemConfiguration(systemConfigData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'system_config_created',
+        resource: 'system_configuration',
+        resourceId: systemConfig.id,
+        details: { module: systemConfig.module, setting: systemConfig.setting },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: systemConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create system configuration error:', error);
+      res.status(500).json({ error: 'Failed to create system configuration' });
+    }
+  });
+
+  app.put("/api/config/system/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateSystemConfigurationSchema.parse(req.body);
+      updates.lastModifiedBy = req.user!.id;
+      const systemConfig = await storage.updateSystemConfiguration(id, updates);
+      
+      if (!systemConfig) {
+        return res.status(404).json({ error: 'System configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'system_config_updated',
+        resource: 'system_configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: systemConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update system configuration error:', error);
+      res.status(500).json({ error: 'Failed to update system configuration' });
+    }
+  });
+
+  // DELETE endpoint for System Configuration
+  app.delete("/api/config/system/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteSystemConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'System configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'system_config_deleted',
+        resource: 'system_configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'System configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete system configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete system configuration' });
+    }
+  });
+
+  // Environment Configuration Routes
+  app.get("/api/config/environment", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { environment } = req.query;
+      const envConfigs = await storage.getAllEnvironmentConfigurations(environment as string);
+      res.json({ success: true, data: envConfigs });
+    } catch (error) {
+      console.error('Get environment configurations error:', error);
+      res.status(500).json({ error: 'Failed to fetch environment configurations' });
+    }
+  });
+
+  app.post("/api/config/environment", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const envConfigData = insertEnvironmentConfigurationSchema.parse(req.body);
+      const envConfig = await storage.createEnvironmentConfiguration(envConfigData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'env_config_created',
+        resource: 'environment_configuration',
+        resourceId: envConfig.id,
+        details: { environment: envConfig.environment, configKey: envConfig.configKey },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: envConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create environment configuration error:', error);
+      res.status(500).json({ error: 'Failed to create environment configuration' });
+    }
+  });
+
+  // PUT endpoint for Environment Configuration
+  app.put("/api/config/environment/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateEnvironmentConfigurationSchema.parse(req.body);
+      const envConfig = await storage.updateEnvironmentConfiguration(id, updates);
+      
+      if (!envConfig) {
+        return res.status(404).json({ error: 'Environment configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'env_config_updated',
+        resource: 'environment_configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: envConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update environment configuration error:', error);
+      res.status(500).json({ error: 'Failed to update environment configuration' });
+    }
+  });
+
+  // DELETE endpoint for Environment Configuration
+  app.delete("/api/config/environment/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteEnvironmentConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Environment configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'env_config_deleted',
+        resource: 'environment_configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Environment configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete environment configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete environment configuration' });
+    }
+  });
+
+  // Bulk Configuration Export/Import (Admin only)
+  app.get("/api/config/export", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { environment = 'all' } = req.query;
+      
+      const [
+        categories,
+        configurations,
+        uiConfigs,
+        formConfigs,
+        validationConfigs,
+        systemConfigs,
+        envConfigs
+      ] = await Promise.all([
+        storage.getAllConfigCategories(),
+        storage.getAllConfigurations(environment as string),
+        storage.getAllUiConfigurations(environment as string),
+        storage.getAllFormConfigurations(environment as string),
+        storage.getAllValidationConfigurations(environment as string),
+        storage.getAllSystemConfigurations(environment as string),
+        storage.getAllEnvironmentConfigurations(environment as string)
+      ]);
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        environment: environment as string,
+        categories,
+        configurations,
+        uiConfigurations: uiConfigs,
+        formConfigurations: formConfigs,
+        validationConfigurations: validationConfigs,
+        systemConfigurations: systemConfigs,
+        environmentConfigurations: envConfigs
+      };
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'config_exported',
+        resource: 'configurations',
+        details: { environment, totalItems: Object.values(exportData).flat().length },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: exportData });
+    } catch (error) {
+      console.error('Export configurations error:', error);
+      res.status(500).json({ error: 'Failed to export configurations' });
     }
   });
 
