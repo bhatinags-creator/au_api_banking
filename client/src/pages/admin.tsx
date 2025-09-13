@@ -2036,13 +2036,24 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const addResponse = () => {
     alert('Add Response button clicked!'); // Immediate feedback
     const currentResponses = formData.responses || [];
-    const newResponse = { statusCode: 200, description: "New Response", schema: {}, example: "" };
+    console.log('🔧 DEBUG: Current responses before add:', currentResponses);
+    
+    const newResponse = { 
+      id: Date.now().toString(), // Add unique ID for React key
+      statusCode: 200, 
+      description: "New Response", 
+      schema: {}, 
+      example: "" 
+    };
     const newResponses = [...currentResponses, newResponse];
     
-    setFormData(prev => ({
-      ...prev,
-      responses: newResponses
-    }));
+    console.log('🔧 DEBUG: New responses after add:', newResponses);
+    
+    setFormData(prev => {
+      const updated = { ...prev, responses: newResponses };
+      console.log('🔧 DEBUG: setFormData called with:', updated);
+      return updated;
+    });
     
     console.log('✅ Response added successfully. New count:', newResponses.length);
   };
@@ -2051,17 +2062,22 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     alert(`Remove Response button clicked! Removing index: ${index}`); // Immediate feedback
     const currentResponses = formData.responses || [];
     
+    console.log('🔧 DEBUG: Current responses before remove:', currentResponses);
+    console.log('🔧 DEBUG: Removing index:', index);
+    
     if (currentResponses.length === 0 || index < 0 || index >= currentResponses.length) {
       alert('Cannot remove - invalid index or no responses');
       return;
     }
     
     const newResponses = currentResponses.filter((_: any, i: number) => i !== index);
+    console.log('🔧 DEBUG: New responses after remove:', newResponses);
     
-    setFormData(prev => ({
-      ...prev,
-      responses: newResponses
-    }));
+    setFormData(prev => {
+      const updated = { ...prev, responses: newResponses };
+      console.log('🔧 DEBUG: setFormData called with:', updated);
+      return updated;
+    });
     
     console.log('✅ Response removed successfully. New count:', newResponses.length);
   };
@@ -2389,7 +2405,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
               </Button>
             </div>
             {(formData.responses || []).map((response: any, index: number) => (
-              <Card key={index} className="p-4">
+              <Card key={response.id || `response-${index}-${response.statusCode}`} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <Label>Status Code *</Label>
