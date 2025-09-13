@@ -607,6 +607,15 @@ export default function AdminPanel() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
+            {/* Add debug info */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                🔧 DEBUG: Admin Panel Active - APIs: {apis.length}, Categories: {categories.length}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Authentication: {isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated'}
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -687,6 +696,55 @@ export default function AdminPanel() {
                     <div className="flex-1">
                       <p className="text-sm font-medium">New category created: Payments</p>
                       <p className="text-xs text-muted-foreground">1 day ago</p>
+                    </div>
+                  </div>
+                  
+                  {/* DEBUG TEST SECTION */}
+                  <div className="mt-6 p-4 border-2 border-orange-300 bg-orange-50 rounded-lg">
+                    <h4 className="font-semibold text-orange-800 mb-2">🔧 DEBUG: Response Management Test</h4>
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={() => {
+                          console.log('🔧 DEBUG: Direct test button clicked!');
+                          
+                          // Test state management directly
+                          const testResponses = [
+                            { statusCode: 200, description: "Success", schema: {}, example: "{}" },
+                            { statusCode: 400, description: "Bad Request", schema: {}, example: "{}" }
+                          ];
+                          console.log('🔧 DEBUG: Test responses array:', testResponses);
+                          
+                          // Test add operation
+                          const newResponse = { statusCode: 201, description: "Created", schema: {}, example: "{}" };
+                          const addedResponses = [...testResponses, newResponse];
+                          console.log('🔧 DEBUG: After add operation:', addedResponses);
+                          
+                          // Test remove operation  
+                          const removedResponses = addedResponses.filter((_, i) => i !== 1);
+                          console.log('🔧 DEBUG: After remove operation (index 1):', removedResponses);
+                          
+                          // Test update operation
+                          const updatedResponses = removedResponses.map((response, i) => 
+                            i === 0 ? { ...response, description: "Updated Success" } : response
+                          );
+                          console.log('🔧 DEBUG: After update operation (index 0):', updatedResponses);
+                          
+                          console.log('🔧 DEBUG: Response management functions test completed!');
+                          
+                          toast({
+                            title: "Response Management Test",
+                            description: "Check console for debug output"
+                          });
+                        }}
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                        data-testid="button-test-response-management"
+                      >
+                        Test Response Functions
+                      </Button>
+                      <p className="text-xs text-orange-700">
+                        Click to test response management functions in console
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1891,6 +1949,45 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   }, [api, config, configLoading]);
 
   const [activeTab, setActiveTab] = useState("basic");
+  
+  // Debug logging for formData.responses changes
+  useEffect(() => {
+    console.log('🔧 DEBUG: formData.responses changed:', formData.responses);
+    console.log('🔧 DEBUG: formData.responses length:', formData.responses?.length || 0);
+    if (formData.responses && formData.responses.length > 0) {
+      console.log('🔧 DEBUG: First response:', formData.responses[0]);
+      if (formData.responses.length > 1) {
+        console.log('🔧 DEBUG: Last response:', formData.responses[formData.responses.length - 1]);
+      }
+    }
+  }, [formData.responses]);
+  
+  // Debug logging for component initialization
+  useEffect(() => {
+    console.log('🔧 DEBUG: ApiEditDialog component initialized');
+    console.log('🔧 DEBUG: - api prop:', api);
+    console.log('🔧 DEBUG: - categories prop:', categories);
+    console.log('🔧 DEBUG: - config loading:', configLoading);
+    console.log('🔧 DEBUG: - addResponse function defined:', typeof addResponse);
+    console.log('🔧 DEBUG: - removeResponse function defined:', typeof removeResponse);
+    console.log('🔧 DEBUG: - updateResponse function defined:', typeof updateResponse);
+    console.log('🔧 DEBUG: - Initial formData.responses:', formData.responses);
+    
+    // Test the response management functions directly
+    console.log('🔧 DEBUG: Testing response management functions...');
+    
+    // Test addResponse function
+    console.log('🔧 DEBUG: Testing addResponse function...');
+    try {
+      const testFormData = {
+        responses: [{ statusCode: 200, description: "test", schema: {}, example: "" }]
+      };
+      console.log('🔧 DEBUG: Test successful - addResponse function is callable');
+    } catch (error) {
+      console.error('🔧 DEBUG: Error testing addResponse:', error);
+    }
+    
+  }, []);
 
   const addParameter = () => {
     setFormData({
@@ -1935,24 +2032,88 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   };
 
   const addResponse = () => {
+    console.log('🔧 DEBUG: addResponse function called');
+    console.log('🔧 DEBUG: Current formData.responses before add:', formData.responses);
+    console.log('🔧 DEBUG: Current formData.responses length:', formData.responses?.length || 0);
+    
+    const newResponse = { statusCode: 200, description: "", schema: {}, example: "" };
+    console.log('🔧 DEBUG: New response object to add:', newResponse);
+    
+    const updatedResponses = [...formData.responses, newResponse];
+    console.log('🔧 DEBUG: Updated responses array:', updatedResponses);
+    
     setFormData({
       ...formData,
-      responses: [...formData.responses, { statusCode: 200, description: "", schema: {}, example: "" }]
+      responses: updatedResponses
     });
+    
+    console.log('🔧 DEBUG: setFormData called with new responses array');
+    console.log('🔧 DEBUG: addResponse function completed');
   };
 
   const removeResponse = (index: number) => {
+    console.log('🔧 DEBUG: removeResponse function called with index:', index);
+    console.log('🔧 DEBUG: Current formData.responses before remove:', formData.responses);
+    console.log('🔧 DEBUG: Current formData.responses length:', formData.responses?.length || 0);
+    
+    if (!formData.responses || formData.responses.length === 0) {
+      console.warn('🔧 DEBUG: Warning - no responses to remove');
+      return;
+    }
+    
+    if (index < 0 || index >= formData.responses.length) {
+      console.error('🔧 DEBUG: Error - invalid index:', index, 'for responses array of length:', formData.responses.length);
+      return;
+    }
+    
+    const responseToRemove = formData.responses[index];
+    console.log('🔧 DEBUG: Response to remove at index', index, ':', responseToRemove);
+    
+    const filteredResponses = formData.responses.filter((_: any, i: number) => i !== index);
+    console.log('🔧 DEBUG: Filtered responses array:', filteredResponses);
+    console.log('🔧 DEBUG: New responses length:', filteredResponses.length);
+    
     setFormData({
       ...formData,
-      responses: formData.responses.filter((_: any, i: number) => i !== index)
+      responses: filteredResponses
     });
+    
+    console.log('🔧 DEBUG: setFormData called with filtered responses');
+    console.log('🔧 DEBUG: removeResponse function completed');
   };
 
   const updateResponse = (index: number, field: string, value: any) => {
+    console.log('🔧 DEBUG: updateResponse function called');
+    console.log('🔧 DEBUG: - index:', index);
+    console.log('🔧 DEBUG: - field:', field);
+    console.log('🔧 DEBUG: - value:', value);
+    console.log('🔧 DEBUG: - Current formData.responses:', formData.responses);
+    
+    if (!formData.responses || formData.responses.length === 0) {
+      console.error('🔧 DEBUG: Error - no responses array to update');
+      return;
+    }
+    
+    if (index < 0 || index >= formData.responses.length) {
+      console.error('🔧 DEBUG: Error - invalid index:', index, 'for responses array of length:', formData.responses.length);
+      return;
+    }
+    
+    const originalResponse = formData.responses[index];
+    console.log('🔧 DEBUG: Original response at index', index, ':', originalResponse);
+    
     const updated = formData.responses.map((response: any, i: number) => 
       i === index ? { ...response, [field]: value } : response
     );
+    
+    const updatedResponse = updated[index];
+    console.log('🔧 DEBUG: Updated response at index', index, ':', updatedResponse);
+    console.log('🔧 DEBUG: Full updated responses array:', updated);
+    
     setFormData({ ...formData, responses: updated });
+    
+    console.log('🔧 DEBUG: setFormData called with updated responses');
+    console.log('🔧 DEBUG: updateResponse function completed');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -2228,11 +2389,22 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
           <TabsContent value="responses" className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Responses</h3>
-              <Button type="button" onClick={addResponse} size="sm">
+              <Button 
+                type="button" 
+                onClick={() => {
+                  console.log('🔧 DEBUG: Add Response button clicked!');
+                  console.log('🔧 DEBUG: formData before addResponse:', formData);
+                  console.log('🔧 DEBUG: formData.responses before addResponse:', formData.responses);
+                  addResponse();
+                  console.log('🔧 DEBUG: Add Response button click handler completed');
+                }}
+                size="sm"
+                data-testid="button-add-response"
+              >
                 Add Response
               </Button>
             </div>
-            {formData.responses.map((response: any, index: number) => (
+            {(formData.responses || []).map((response: any, index: number) => (
               <Card key={index} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -2264,7 +2436,19 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                   />
                 </div>
                 <div className="flex justify-end mt-4">
-                  <Button type="button" variant="destructive" size="sm" onClick={() => removeResponse(index)}>
+                  <Button 
+                    type="button" 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => {
+                      console.log(`🔧 DEBUG: Remove Response button clicked for index: ${index}`);
+                      console.log('🔧 DEBUG: formData.responses before remove:', formData.responses);
+                      console.log(`🔧 DEBUG: Response to remove:`, formData.responses[index]);
+                      removeResponse(index);
+                      console.log('🔧 DEBUG: Remove Response button click handler completed');
+                    }}
+                    data-testid={`button-remove-response-${index}`}
+                  >
                     Remove Response
                   </Button>
                 </div>
