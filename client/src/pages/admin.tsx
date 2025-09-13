@@ -102,9 +102,9 @@ export default function AdminPanel() {
   const { toast } = useToast();
 
   // Backend admin authentication
-  const handleAdminLogin = async () => {
+  const handleAdminLogin = async (email: string, password: string) => {
     try {
-      console.log('Admin login attempt:', { email: adminCredentials.username, password: '***' });
+      console.log('Admin login attempt:', { email, password: '***' });
       
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -112,8 +112,8 @@ export default function AdminPanel() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: adminCredentials.username,
-          password: adminCredentials.password
+          email,
+          password
         }),
       });
 
@@ -755,26 +755,26 @@ export default function AdminPanel() {
   );
 }
 
-// Login Form Component
-const LoginForm = ({ onLogin }: { onLogin: (username: string, password: string) => void }) => {
-  const [username, setUsername] = useState("");
+// Login Form Component  
+const LoginForm = ({ onLogin }: { onLogin: (email: string, password: string) => void }) => {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submit:', { username, password: '***' });
-    onLogin(username, password);
+    console.log('Form submit:', { email, password: '***' });
+    onLogin(email, password);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="username">Email</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
-          id="username"
+          id="email"
           type="email"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter email address"
           required
         />
