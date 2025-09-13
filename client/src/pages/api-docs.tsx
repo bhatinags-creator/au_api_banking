@@ -176,43 +176,55 @@ const iconMap: Record<string, any> = {
   Banknote
 };
 
-// Transform database documentation to legacy format for UI compatibility
-function transformDocumentationToLegacyFormat(
-  categories: DocumentationCategory[],
-  endpoints: DocumentationEndpoint[]
+// Transform main API system data to legacy format for UI compatibility
+function transformMainApiToLegacyFormat(
+  categories: any[],
+  endpoints: any[]
 ): APICategory[] {
-  const parentCategories = categories.filter(cat => !cat.parentId && cat.isActive);
-  const subcategories = categories.filter(cat => cat.parentId && cat.isActive);
-  
-  return parentCategories
+  return categories
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map(category => {
-      // Get direct endpoints for this category
+      // Filter endpoints for this category using the category name
       const categoryEndpoints = endpoints
-        .filter(ep => ep.categoryId === category.id && !ep.subcategoryId && ep.isActive)
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map(transformEndpoint);
-
-      // Get subcategories for this category
-      const categorySubcategories = subcategories
-        .filter(sub => sub.parentId === category.id)
-        .sort((a, b) => a.displayOrder - b.displayOrder)
-        .map(sub => ({
-          id: sub.name,
-          title: sub.title,
-          endpoints: endpoints
-            .filter(ep => ep.subcategoryId === sub.id && ep.isActive)
-            .sort((a, b) => a.displayOrder - b.displayOrder)
-            .map(transformEndpoint)
+        .filter(ep => ep.category === category.name && ep.isActive !== false)
+        .map(endpoint => ({
+          id: endpoint.name || endpoint.id,
+          method: endpoint.method,
+          path: endpoint.path,
+          title: endpoint.name || endpoint.title,
+          description: endpoint.description,
+          parameters: endpoint.parameters?.map((p: any) => ({
+            name: p.name,
+            type: p.type,
+            required: p.required,
+            description: p.description,
+            example: p.example
+          })) || [],
+          responses: endpoint.responses?.map((r: any) => ({
+            status: r.status,
+            description: r.description,
+            example: r.example
+          })) || [],
+          examples: endpoint.requestExample && endpoint.responseExample ? [{
+            title: "API Example",
+            request: endpoint.requestExample,
+            response: endpoint.responseExample,
+            curl: `curl -X ${endpoint.method} "https://api.aubank.in${endpoint.path}" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json"`
+          }] : [],
+          security: endpoint.requiresAuth ? [{
+            type: endpoint.authType || "Bearer Token",
+            description: "API authentication required"
+          }] : []
         }));
 
       return {
         id: category.name,
-        title: category.title,
+        title: category.name,
         icon: iconMap[category.icon] || BookOpen,
         description: category.description,
-        endpoints: categoryEndpoints,
-        subcategories: categorySubcategories.length > 0 ? categorySubcategories : undefined
+        endpoints: categoryEndpoints
       };
     });
 }
@@ -249,15 +261,28 @@ function transformEndpoint(endpoint: DocumentationEndpoint): APIEndpoint {
   };
 }
 
-// Hook to fetch documentation structure
-function useDocumentationStructure() {
-  return useQuery({
-    queryKey: ['/api/documentation/structure'],
-    select: (data: any) => {
-      const { categories, endpoints } = data.data;
-      return transformDocumentationToLegacyFormat(categories, endpoints);
-    },
+// Hook to fetch API structure using the main API system (same as api-explorer.tsx)
+function useApiStructure() {
+  const { data: categories = [] } = useQuery<any[]>({
+    queryKey: ['/api/categories'],
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const { data: endpoints = [] } = useQuery<any[]>({
+    queryKey: ['/api/endpoints'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  return useQuery({
+    queryKey: ['api-structure', categories, endpoints],
+    queryFn: () => {
+      // Ensure proper type safety by casting to expected types
+      const typedCategories = categories as any[];
+      const typedEndpoints = endpoints as any[];
+      return transformMainApiToLegacyFormat(typedCategories, typedEndpoints);
+    },
+    enabled: Array.isArray(categories) && Array.isArray(endpoints) && categories.length > 0 && endpoints.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -1660,8 +1685,8 @@ export default function APIDocs() {
   const { toast } = useToast();
   const shouldReduceMotion = useReducedMotion();
 
-  // Fetch documentation structure dynamically
-  const { data: apiCategories = fallbackApiCategories, isLoading, error } = useDocumentationStructure();
+  // Fetch API structure dynamically using the main API system
+  const { data: apiCategories = fallbackApiCategories, isLoading, error } = useApiStructure();
 
   // Animation variants
   const sidebarItemVariants = {

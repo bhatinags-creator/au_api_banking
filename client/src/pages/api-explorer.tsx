@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import * as LucideIcons from "lucide-react";
+import { ArrowLeft, Copy, Play } from "lucide-react";
 import { Link } from "wouter";
 import { ApiEndpoint } from "@shared/schema";
 import { useApiExplorerConfig } from "@/hooks/useConfigurations";
