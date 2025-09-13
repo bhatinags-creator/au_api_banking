@@ -2054,103 +2054,49 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   };
 
   const addResponse = () => {
-    console.log('🔧 DEBUG: addResponse called');
-    console.log('🔧 DEBUG: Current formData.responses:', formData.responses);
-    
     const currentResponses = formData.responses || [];
     const newResponse = { 
-      id: `response_${Date.now()}`,
       statusCode: 200, 
-      description: "Success", 
+      description: "", 
       schema: "{}", 
       example: "" 
     };
     const newResponses = [...currentResponses, newResponse];
     
-    console.log('🔧 DEBUG: New response created:', newResponse);
-    console.log('🔧 DEBUG: Updated responses array:', newResponses);
-    
-    setFormData(prev => {
-      const updated = {
-        ...prev,
-        responses: newResponses
-      };
-      console.log('🔧 DEBUG: Setting formData with updated responses:', updated);
-      return updated;
-    });
-    
-    // Force UI update by triggering a re-render
-    setTimeout(() => {
-      console.log('🔧 DEBUG: Post-update formData.responses:', formData.responses);
-    }, 0);
+    setFormData(prev => ({
+      ...prev,
+      responses: newResponses
+    }));
   };
 
   const removeResponse = (index: number) => {
-    console.log('🔧 DEBUG: removeResponse called with index:', index);
-    
     const currentResponses = formData.responses || [];
-    console.log('🔧 DEBUG: Current responses before removal:', currentResponses);
-    
-    if (currentResponses.length === 0) {
-      console.warn('🔧 DEBUG: No responses to remove');
-      return;
-    }
     
     if (index < 0 || index >= currentResponses.length) {
-      console.warn('🔧 DEBUG: Invalid index:', index, 'for array length:', currentResponses.length);
       return;
     }
     
     const newResponses = currentResponses.filter((_: any, i: number) => i !== index);
-    console.log('🔧 DEBUG: Responses after removal:', newResponses);
     
-    setFormData(prev => {
-      const updated = {
-        ...prev,
-        responses: newResponses
-      };
-      console.log('🔧 DEBUG: Setting formData with removed response:', updated);
-      return updated;
-    });
-    
-    // Force UI update by triggering a re-render
-    setTimeout(() => {
-      console.log('🔧 DEBUG: Post-removal formData.responses:', formData.responses);
-    }, 0);
+    setFormData(prev => ({
+      ...prev,
+      responses: newResponses
+    }));
   };
 
   const updateResponse = (index: number, field: string, value: any) => {
-    console.log('🔧 DEBUG: updateResponse function called');
-    console.log('🔧 DEBUG: - index:', index);
-    console.log('🔧 DEBUG: - field:', field);
-    console.log('🔧 DEBUG: - value:', value);
-    console.log('🔧 DEBUG: - Current formData.responses:', formData.responses);
-    
-    if (!formData.responses || formData.responses.length === 0) {
-      console.error('🔧 DEBUG: Error - no responses array to update');
+    if (!formData.responses || index < 0 || index >= formData.responses.length) {
       return;
     }
-    
-    if (index < 0 || index >= formData.responses.length) {
-      console.error('🔧 DEBUG: Error - invalid index:', index, 'for responses array of length:', formData.responses.length);
-      return;
-    }
-    
-    const originalResponse = formData.responses[index];
-    console.log('🔧 DEBUG: Original response at index', index, ':', originalResponse);
     
     const updated = formData.responses.map((response: any, i: number) => 
       i === index ? { ...response, [field]: value } : response
     );
     
-    const updatedResponse = updated[index];
-    console.log('🔧 DEBUG: Updated response at index', index, ':', updatedResponse);
-    console.log('🔧 DEBUG: Full updated responses array:', updated);
-    
-    setFormData({ ...formData, responses: updated });
-    
-    console.log('🔧 DEBUG: setFormData called with updated responses');
-    console.log('🔧 DEBUG: updateResponse function completed');
+    setFormData(prev => ({
+      ...prev, 
+      responses: updated
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -2428,31 +2374,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
               <h3 className="text-lg font-semibold">Responses</h3>
               <Button 
                 type="button"
-                onMouseDownCapture={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  (e as any).nativeEvent?.stopImmediatePropagation?.();
-                }}
-                onClickCapture={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  (e as any).nativeEvent?.stopImmediatePropagation?.();
-                }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  try {
-                    console.log('🔧 DEBUG: Add Response button clicked!');
-                    console.log('🔧 DEBUG: formData before addResponse:', formData);
-                    console.log('🔧 DEBUG: formData.responses before addResponse:', formData.responses);
-                    addResponse();
-                    console.log('🔧 DEBUG: Add Response button click handler completed');
-                    setTimeout(() => console.log('🔧 DEBUG: Deferred log - component still mounted'), 0);
-                  } catch (err) {
-                    console.error('❌ ERROR in Add Response:', err);
-                    alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
-                  }
-                }}
+                onClick={addResponse}
                 size="sm"
                 data-testid="button-add-response"
               >
@@ -2461,7 +2383,6 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
             </div>
             {(formData.responses || []).map((response: any, index: number) => {
               const responseKey = response.id || `response-${index}-${response.statusCode}-${Date.now()}`;
-              console.log('🔧 DEBUG: Rendering response', index, 'with key:', responseKey, 'response:', response);
               return (
               <Card key={responseKey} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -2498,31 +2419,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                     type="button"
                     variant="destructive" 
                     size="sm" 
-                    onMouseDownCapture={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      (e as any).nativeEvent?.stopImmediatePropagation?.();
-                    }}
-                    onClickCapture={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      (e as any).nativeEvent?.stopImmediatePropagation?.();
-                    }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      try {
-                        console.log(`🔧 DEBUG: Remove Response button clicked for index: ${index}`);
-                        console.log('🔧 DEBUG: formData.responses before remove:', formData.responses);
-                        console.log(`🔧 DEBUG: Response to remove:`, formData.responses[index]);
-                        removeResponse(index);
-                        console.log('🔧 DEBUG: Remove Response button click handler completed');
-                        setTimeout(() => console.log('🔧 DEBUG: Deferred remove log - component still mounted'), 0);
-                      } catch (err) {
-                        console.error('❌ ERROR in Remove Response:', err);
-                        alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
-                      }
-                    }}
+                    onClick={() => removeResponse(index)}
                     data-testid={`button-remove-response-${index}`}
                   >
                     Remove Response
