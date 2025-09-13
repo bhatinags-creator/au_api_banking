@@ -1819,27 +1819,76 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     }
   });
 
-  // Update form data when config loads or changes
+  // Update form data when api prop changes or config loads
   useEffect(() => {
-    if (!api && !configLoading) {
-      setFormData(prev => ({
-        ...prev,
-        method: prev.method === "GET" ? config.form.apiDefaults.method : prev.method,
-        authType: prev.authType === "bearer" ? config.form.apiDefaults.authType : prev.authType,
-        status: prev.status === "active" ? config.form.apiDefaults.status : prev.status,
-        timeout: prev.timeout === 30000 ? config.form.apiDefaults.timeout : prev.timeout,
-        requiresAuth: config.form.apiDefaults.requiresAuth,
+    if (configLoading) return; // Wait for config to load
+    
+    if (api) {
+      // Edit mode - populate form with existing API data
+      setFormData({
+        id: api.id || "",
+        name: api.name || "",
+        method: api.method || config.form.apiDefaults.method,
+        path: api.path || "",
+        category: api.category || "",
+        description: api.description || "",
+        summary: api.summary || "",
+        requiresAuth: api.requiresAuth ?? config.form.apiDefaults.requiresAuth,
+        authType: api.authType || config.form.apiDefaults.authType,
+        status: api.status || config.form.apiDefaults.status,
+        timeout: api.timeout || config.form.apiDefaults.timeout,
+        documentation: api.documentation || "",
+        requestExample: api.requestExample || "",
+        responseExample: api.responseExample || "",
+        responseSchema: JSON.stringify(api.responseSchema || {}, null, 2),
+        tags: (api.tags || []).join(", "),
+        parameters: api.parameters || [{ name: "", type: "string", required: false, description: "", example: "" }],
+        headers: api.headers || [{ name: "", required: false, description: "", example: "" }],
+        responses: api.responses || [{ statusCode: 200, description: "", schema: {}, example: "" }],
         rateLimits: {
-          sandbox: prev.rateLimits.sandbox === 100 ? config.form.apiDefaults.rateLimits.sandbox : prev.rateLimits.sandbox,
-          production: prev.rateLimits.production === 1000 ? config.form.apiDefaults.rateLimits.production : prev.rateLimits.production
+          sandbox: api.rateLimits?.sandbox || config.form.apiDefaults.rateLimits.sandbox,
+          production: api.rateLimits?.production || config.form.apiDefaults.rateLimits.production
         },
         sandbox: {
-          ...prev.sandbox,
-          enabled: config.form.apiDefaults.sandbox.enabled
+          enabled: api.sandbox?.enabled ?? config.form.apiDefaults.sandbox.enabled,
+          testData: JSON.stringify(api.sandbox?.testData || config.form.apiDefaults.sandbox.testData, null, 2),
+          mockResponse: JSON.stringify(api.sandbox?.mockResponse || config.form.apiDefaults.sandbox.mockResponse, null, 2)
         }
-      }));
+      });
+    } else {
+      // Create mode - reset to defaults
+      setFormData({
+        id: "",
+        name: "",
+        method: config.form.apiDefaults.method,
+        path: "",
+        category: "",
+        description: "",
+        summary: "",
+        requiresAuth: config.form.apiDefaults.requiresAuth,
+        authType: config.form.apiDefaults.authType,
+        status: config.form.apiDefaults.status,
+        timeout: config.form.apiDefaults.timeout,
+        documentation: "",
+        requestExample: "",
+        responseExample: "",
+        responseSchema: JSON.stringify({}, null, 2),
+        tags: "",
+        parameters: [{ name: "", type: "string", required: false, description: "", example: "" }],
+        headers: [{ name: "", required: false, description: "", example: "" }],
+        responses: [{ statusCode: 200, description: "", schema: {}, example: "" }],
+        rateLimits: {
+          sandbox: config.form.apiDefaults.rateLimits.sandbox,
+          production: config.form.apiDefaults.rateLimits.production
+        },
+        sandbox: {
+          enabled: config.form.apiDefaults.sandbox.enabled,
+          testData: JSON.stringify(config.form.apiDefaults.sandbox.testData, null, 2),
+          mockResponse: JSON.stringify(config.form.apiDefaults.sandbox.mockResponse, null, 2)
+        }
+      });
     }
-  }, [config, configLoading, api]);
+  }, [api, config, configLoading]);
 
   const [activeTab, setActiveTab] = useState("basic");
 
