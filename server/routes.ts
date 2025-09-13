@@ -14,7 +14,11 @@ import {
   insertFormConfigurationSchema, updateFormConfigurationSchema,
   insertValidationConfigurationSchema, updateValidationConfigurationSchema,
   insertSystemConfigurationSchema, updateSystemConfigurationSchema,
-  insertEnvironmentConfigurationSchema, updateEnvironmentConfigurationSchema
+  insertEnvironmentConfigurationSchema, updateEnvironmentConfigurationSchema,
+  insertDocumentationCategorySchema, updateDocumentationCategorySchema,
+  insertDocumentationEndpointSchema, updateDocumentationEndpointSchema,
+  insertDocumentationParameterSchema, insertDocumentationResponseSchema,
+  insertDocumentationExampleSchema, insertDocumentationSecuritySchema
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
@@ -2311,6 +2315,300 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Get recent activity analytics error:', error);
       res.status(500).json({ error: 'Failed to get recent activity analytics' });
+    }
+  });
+
+  // Documentation management endpoints
+  // Documentation Categories endpoints
+  app.get("/api/documentation/categories", async (req, res) => {
+    try {
+      const categories = await storage.getAllDocumentationCategories();
+      res.json({ success: true, data: categories });
+    } catch (error) {
+      console.error('Get documentation categories error:', error);
+      res.status(500).json({ error: 'Failed to get documentation categories' });
+    }
+  });
+
+  app.get("/api/documentation/categories/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const category = await storage.getDocumentationCategory(id);
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Documentation category not found' });
+      }
+
+      res.json({ success: true, data: category });
+    } catch (error) {
+      console.error('Get documentation category error:', error);
+      res.status(500).json({ error: 'Failed to get documentation category' });
+    }
+  });
+
+  app.post("/api/documentation/categories", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const categoryData = insertDocumentationCategorySchema.parse(req.body);
+      const category = await storage.createDocumentationCategory(categoryData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'documentation_category_created',
+        resource: 'documentation_category',
+        resourceId: category.id,
+        details: { name: category.name },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: category });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create documentation category error:', error);
+      res.status(500).json({ error: 'Failed to create documentation category' });
+    }
+  });
+
+  app.put("/api/documentation/categories/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateDocumentationCategorySchema.parse(req.body);
+      const category = await storage.updateDocumentationCategory(id, updates);
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Documentation category not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'documentation_category_updated',
+        resource: 'documentation_category',
+        resourceId: category.id,
+        details: { name: category.name },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: category });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update documentation category error:', error);
+      res.status(500).json({ error: 'Failed to update documentation category' });
+    }
+  });
+
+  app.delete("/api/documentation/categories/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteDocumentationCategory(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Documentation category not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'documentation_category_deleted',
+        resource: 'documentation_category',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Documentation category deleted successfully' });
+    } catch (error) {
+      console.error('Delete documentation category error:', error);
+      res.status(500).json({ error: 'Failed to delete documentation category' });
+    }
+  });
+
+  // Documentation Endpoints endpoints
+  app.get("/api/documentation/endpoints", async (req, res) => {
+    try {
+      const { categoryId, subcategoryId } = req.query;
+      let endpoints;
+      
+      if (categoryId) {
+        endpoints = await storage.getDocumentationEndpointsByCategory(categoryId as string);
+      } else if (subcategoryId) {
+        endpoints = await storage.getDocumentationEndpointsBySubcategory(subcategoryId as string);
+      } else {
+        endpoints = await storage.getAllDocumentationEndpoints();
+      }
+
+      res.json({ success: true, data: endpoints });
+    } catch (error) {
+      console.error('Get documentation endpoints error:', error);
+      res.status(500).json({ error: 'Failed to get documentation endpoints' });
+    }
+  });
+
+  app.get("/api/documentation/endpoints/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const endpoint = await storage.getDocumentationEndpoint(id);
+      
+      if (!endpoint) {
+        return res.status(404).json({ error: 'Documentation endpoint not found' });
+      }
+
+      // Get related data for complete endpoint documentation
+      const [parameters, responses, examples, security] = await Promise.all([
+        storage.getDocumentationParametersByEndpoint(id),
+        storage.getDocumentationResponsesByEndpoint(id),
+        storage.getDocumentationExamplesByEndpoint(id),
+        storage.getDocumentationSecurityByEndpoint(id)
+      ]);
+
+      res.json({ 
+        success: true, 
+        data: {
+          ...endpoint,
+          parameters,
+          responses,
+          examples,
+          security
+        }
+      });
+    } catch (error) {
+      console.error('Get documentation endpoint error:', error);
+      res.status(500).json({ error: 'Failed to get documentation endpoint' });
+    }
+  });
+
+  app.post("/api/documentation/endpoints", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const endpointData = insertDocumentationEndpointSchema.parse(req.body);
+      const endpoint = await storage.createDocumentationEndpoint(endpointData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'documentation_endpoint_created',
+        resource: 'documentation_endpoint',
+        resourceId: endpoint.id,
+        details: { name: endpoint.name, path: endpoint.path },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: endpoint });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create documentation endpoint error:', error);
+      res.status(500).json({ error: 'Failed to create documentation endpoint' });
+    }
+  });
+
+  app.put("/api/documentation/endpoints/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateDocumentationEndpointSchema.parse(req.body);
+      const endpoint = await storage.updateDocumentationEndpoint(id, updates);
+      
+      if (!endpoint) {
+        return res.status(404).json({ error: 'Documentation endpoint not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'documentation_endpoint_updated',
+        resource: 'documentation_endpoint',
+        resourceId: endpoint.id,
+        details: { name: endpoint.name, path: endpoint.path },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: endpoint });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update documentation endpoint error:', error);
+      res.status(500).json({ error: 'Failed to update documentation endpoint' });
+    }
+  });
+
+  app.delete("/api/documentation/endpoints/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteDocumentationEndpoint(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Documentation endpoint not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'documentation_endpoint_deleted',
+        resource: 'documentation_endpoint',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Documentation endpoint deleted successfully' });
+    } catch (error) {
+      console.error('Delete documentation endpoint error:', error);
+      res.status(500).json({ error: 'Failed to delete documentation endpoint' });
+    }
+  });
+
+  // Documentation Parameters endpoints
+  app.get("/api/documentation/parameters", async (req, res) => {
+    try {
+      const { endpointId } = req.query;
+      if (!endpointId) {
+        return res.status(400).json({ error: 'endpointId query parameter is required' });
+      }
+
+      const parameters = await storage.getDocumentationParametersByEndpoint(endpointId as string);
+      res.json({ success: true, data: parameters });
+    } catch (error) {
+      console.error('Get documentation parameters error:', error);
+      res.status(500).json({ error: 'Failed to get documentation parameters' });
+    }
+  });
+
+  app.post("/api/documentation/parameters", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const parameterData = insertDocumentationParameterSchema.parse(req.body);
+      const parameter = await storage.createDocumentationParameter(parameterData);
+      
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'documentation_parameter_created',
+        resource: 'documentation_parameter',
+        resourceId: parameter.id,
+        details: { name: parameter.name, endpointId: parameter.endpointId },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.status(201).json({ success: true, data: parameter });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create documentation parameter error:', error);
+      res.status(500).json({ error: 'Failed to create documentation parameter' });
+    }
+  });
+
+  // Complete documentation structure endpoint
+  app.get("/api/documentation/structure", async (req, res) => {
+    try {
+      const structure = await storage.getCompleteDocumentationStructure();
+      res.json({ success: true, data: structure });
+    } catch (error) {
+      console.error('Get complete documentation structure error:', error);
+      res.status(500).json({ error: 'Failed to get complete documentation structure' });
     }
   });
 

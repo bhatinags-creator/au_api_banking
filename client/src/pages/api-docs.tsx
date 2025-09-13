@@ -27,11 +27,84 @@ import {
   BookOpen,
   Settings,
   Key,
-  Banknote
+  Banknote,
+  Loader2
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
+// Database types for documentation
+interface DocumentationCategory {
+  id: string;
+  name: string;
+  title: string;
+  description: string;
+  icon: string;
+  parentId?: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface DocumentationEndpoint {
+  id: string;
+  categoryId: string;
+  subcategoryId?: string;
+  name: string;
+  title: string;
+  method: string;
+  path: string;
+  description: string;
+  displayOrder: number;
+  isActive: boolean;
+  parameters?: DocumentationParameter[];
+  responses?: DocumentationResponse[];
+  examples?: DocumentationExample[];
+  security?: DocumentationSecurity[];
+}
+
+interface DocumentationParameter {
+  id: string;
+  endpointId: string;
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+  example?: string;
+  displayOrder: number;
+}
+
+interface DocumentationResponse {
+  id: string;
+  endpointId: string;
+  status: number;
+  description: string;
+  example?: any;
+  displayOrder: number;
+}
+
+interface DocumentationExample {
+  id: string;
+  endpointId: string;
+  title: string;
+  request?: any;
+  response?: any;
+  curlCommand?: string;
+  displayOrder: number;
+}
+
+interface DocumentationSecurity {
+  id: string;
+  endpointId: string;
+  type: string;
+  description: string;
+  displayOrder: number;
+}
+
+// Legacy interfaces for backward compatibility with existing UI
 interface APICategory {
   id: string;
   title: string;
@@ -87,7 +160,109 @@ interface SecurityRequirement {
   description: string;
 }
 
-const apiCategories: APICategory[] = [
+// Icon mapping for different documentation categories
+const iconMap: Record<string, any> = {
+  BookOpen,
+  Shield,
+  Users,
+  Building2,
+  CreditCard,
+  Database,
+  FileCheck,
+  Lock,
+  Layers,
+  Settings,
+  Key,
+  Banknote
+};
+
+// Transform database documentation to legacy format for UI compatibility
+function transformDocumentationToLegacyFormat(
+  categories: DocumentationCategory[],
+  endpoints: DocumentationEndpoint[]
+): APICategory[] {
+  const parentCategories = categories.filter(cat => !cat.parentId && cat.isActive);
+  const subcategories = categories.filter(cat => cat.parentId && cat.isActive);
+  
+  return parentCategories
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map(category => {
+      // Get direct endpoints for this category
+      const categoryEndpoints = endpoints
+        .filter(ep => ep.categoryId === category.id && !ep.subcategoryId && ep.isActive)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map(transformEndpoint);
+
+      // Get subcategories for this category
+      const categorySubcategories = subcategories
+        .filter(sub => sub.parentId === category.id)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map(sub => ({
+          id: sub.name,
+          title: sub.title,
+          endpoints: endpoints
+            .filter(ep => ep.subcategoryId === sub.id && ep.isActive)
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map(transformEndpoint)
+        }));
+
+      return {
+        id: category.name,
+        title: category.title,
+        icon: iconMap[category.icon] || BookOpen,
+        description: category.description,
+        endpoints: categoryEndpoints,
+        subcategories: categorySubcategories.length > 0 ? categorySubcategories : undefined
+      };
+    });
+}
+
+function transformEndpoint(endpoint: DocumentationEndpoint): APIEndpoint {
+  return {
+    id: endpoint.name,
+    method: endpoint.method,
+    path: endpoint.path,
+    title: endpoint.title,
+    description: endpoint.description,
+    parameters: endpoint.parameters?.sort((a, b) => a.displayOrder - b.displayOrder).map(p => ({
+      name: p.name,
+      type: p.type,
+      required: p.required,
+      description: p.description,
+      example: p.example
+    })) || [],
+    responses: endpoint.responses?.sort((a, b) => a.displayOrder - b.displayOrder).map(r => ({
+      status: r.status,
+      description: r.description,
+      example: r.example
+    })) || [],
+    examples: endpoint.examples?.sort((a, b) => a.displayOrder - b.displayOrder).map(e => ({
+      title: e.title,
+      request: e.request,
+      response: e.response,
+      curl: e.curlCommand
+    })) || [],
+    security: endpoint.security?.sort((a, b) => a.displayOrder - b.displayOrder).map(s => ({
+      type: s.type,
+      description: s.description
+    })) || []
+  };
+}
+
+// Hook to fetch documentation structure
+function useDocumentationStructure() {
+  return useQuery({
+    queryKey: ['/api/documentation/structure'],
+    select: (data: any) => {
+      const { categories, endpoints } = data.data;
+      return transformDocumentationToLegacyFormat(categories, endpoints);
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+// Fallback categories for loading state or errors
+const fallbackApiCategories: APICategory[] = [
   {
     id: "introduction",
     title: "Introduction",
@@ -1485,6 +1660,9 @@ export default function APIDocs() {
   const { toast } = useToast();
   const shouldReduceMotion = useReducedMotion();
 
+  // Fetch documentation structure dynamically
+  const { data: apiCategories = fallbackApiCategories, isLoading, error } = useDocumentationStructure();
+
   // Animation variants
   const sidebarItemVariants = {
     initial: { scale: 1, opacity: 0.8 },
@@ -1671,6 +1849,42 @@ export default function APIDocs() {
   };
 
   const currentEndpoint = getCurrentEndpoint();
+
+  // Show loading state while fetching documentation
+  if (isLoading) {
+    return (
+      <TooltipProvider>
+        <div className="min-h-screen bg-gradient-to-br from-[var(--au-bg-soft-1)] via-white to-[var(--au-bg-soft-2)] flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[var(--au-primary)]" />
+            <h3 className="text-lg font-semibold text-neutrals-700 mb-2">Loading Documentation</h3>
+            <p className="text-neutrals-500">Fetching the latest API documentation...</p>
+          </div>
+        </div>
+      </TooltipProvider>
+    );
+  }
+
+  // Show error state if documentation fetch fails
+  if (error) {
+    return (
+      <TooltipProvider>
+        <div className="min-h-screen bg-gradient-to-br from-[var(--au-bg-soft-1)] via-white to-[var(--au-bg-soft-2)] flex items-center justify-center">
+          <div className="text-center">
+            <Settings className="w-16 h-16 mx-auto mb-4 text-red-400" />
+            <h3 className="text-xl font-semibold text-red-600 mb-2">Failed to Load Documentation</h3>
+            <p className="text-neutrals-600 mb-4">There was an error loading the API documentation. Please try refreshing the page.</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="bg-[var(--au-primary)] hover:bg-[var(--au-primary-700)] text-white"
+            >
+              Refresh Page
+            </Button>
+          </div>
+        </div>
+      </TooltipProvider>
+    );
+  }
 
   return (
     <TooltipProvider>

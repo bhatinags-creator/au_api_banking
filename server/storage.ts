@@ -17,8 +17,15 @@ import {
   type ValidationConfiguration, type InsertValidationConfiguration, type UpdateValidationConfiguration,
   type SystemConfiguration, type InsertSystemConfiguration, type UpdateSystemConfiguration,
   type EnvironmentConfiguration, type InsertEnvironmentConfiguration, type UpdateEnvironmentConfiguration,
+  type DocumentationCategory, type InsertDocumentationCategory, type UpdateDocumentationCategory,
+  type DocumentationEndpoint, type InsertDocumentationEndpoint, type UpdateDocumentationEndpoint,
+  type DocumentationParameter, type InsertDocumentationParameter,
+  type DocumentationResponse, type InsertDocumentationResponse,
+  type DocumentationExample, type InsertDocumentationExample,
+  type DocumentationSecurity, type InsertDocumentationSecurity,
   users, developers, applications, apiEndpoints, apiCategories, apiUsage, dailyAnalytics, apiActivity, corporateRegistrations, auditLogs, apiTokens,
-  configCategories, configurations, uiConfigurations, formConfigurations, validationConfigurations, systemConfigurations, environmentConfigurations
+  configCategories, configurations, uiConfigurations, formConfigurations, validationConfigurations, systemConfigurations, environmentConfigurations,
+  documentationCategories, documentationEndpoints, documentationParameters, documentationResponses, documentationExamples, documentationSecurity
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
@@ -186,6 +193,60 @@ export interface IStorage {
     requests: number;
     growth: string;
   }>>;
+
+  // Documentation operations
+  // Documentation Categories
+  getAllDocumentationCategories(): Promise<DocumentationCategory[]>;
+  getDocumentationCategory(id: string): Promise<DocumentationCategory | undefined>;
+  getDocumentationCategoryByName(name: string): Promise<DocumentationCategory | undefined>;
+  getDocumentationCategoriesByParent(parentId?: string): Promise<DocumentationCategory[]>;
+  createDocumentationCategory(category: InsertDocumentationCategory): Promise<DocumentationCategory>;
+  updateDocumentationCategory(id: string, updates: UpdateDocumentationCategory): Promise<DocumentationCategory | undefined>;
+  deleteDocumentationCategory(id: string): Promise<boolean>;
+  
+  // Documentation Endpoints
+  getAllDocumentationEndpoints(): Promise<DocumentationEndpoint[]>;
+  getDocumentationEndpoint(id: string): Promise<DocumentationEndpoint | undefined>;
+  getDocumentationEndpointsByCategory(categoryId: string): Promise<DocumentationEndpoint[]>;
+  getDocumentationEndpointsBySubcategory(subcategoryId: string): Promise<DocumentationEndpoint[]>;
+  getDocumentationEndpointByName(name: string): Promise<DocumentationEndpoint | undefined>;
+  createDocumentationEndpoint(endpoint: InsertDocumentationEndpoint): Promise<DocumentationEndpoint>;
+  updateDocumentationEndpoint(id: string, updates: UpdateDocumentationEndpoint): Promise<DocumentationEndpoint | undefined>;
+  deleteDocumentationEndpoint(id: string): Promise<boolean>;
+  
+  // Documentation Parameters
+  getDocumentationParametersByEndpoint(endpointId: string): Promise<DocumentationParameter[]>;
+  createDocumentationParameter(parameter: InsertDocumentationParameter): Promise<DocumentationParameter>;
+  updateDocumentationParameter(id: string, updates: Partial<InsertDocumentationParameter>): Promise<DocumentationParameter | undefined>;
+  deleteDocumentationParameter(id: string): Promise<boolean>;
+  
+  // Documentation Responses
+  getDocumentationResponsesByEndpoint(endpointId: string): Promise<DocumentationResponse[]>;
+  createDocumentationResponse(response: InsertDocumentationResponse): Promise<DocumentationResponse>;
+  updateDocumentationResponse(id: string, updates: Partial<InsertDocumentationResponse>): Promise<DocumentationResponse | undefined>;
+  deleteDocumentationResponse(id: string): Promise<boolean>;
+  
+  // Documentation Examples
+  getDocumentationExamplesByEndpoint(endpointId: string): Promise<DocumentationExample[]>;
+  createDocumentationExample(example: InsertDocumentationExample): Promise<DocumentationExample>;
+  updateDocumentationExample(id: string, updates: Partial<InsertDocumentationExample>): Promise<DocumentationExample | undefined>;
+  deleteDocumentationExample(id: string): Promise<boolean>;
+  
+  // Documentation Security
+  getDocumentationSecurityByEndpoint(endpointId: string): Promise<DocumentationSecurity[]>;
+  createDocumentationSecurity(security: InsertDocumentationSecurity): Promise<DocumentationSecurity>;
+  updateDocumentationSecurity(id: string, updates: Partial<InsertDocumentationSecurity>): Promise<DocumentationSecurity | undefined>;
+  deleteDocumentationSecurity(id: string): Promise<boolean>;
+  
+  // Comprehensive documentation retrieval method
+  getCompleteDocumentationStructure(): Promise<{
+    categories: DocumentationCategory[];
+    endpoints: DocumentationEndpoint[];
+    parameters: DocumentationParameter[];
+    responses: DocumentationResponse[];
+    examples: DocumentationExample[];
+    security: DocumentationSecurity[];
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -212,6 +273,14 @@ export class MemStorage implements IStorage {
   private systemConfigurations: Map<string, SystemConfiguration>;
   private environmentConfigurations: Map<string, EnvironmentConfiguration>;
 
+  // Documentation storage
+  private documentationCategories: Map<string, DocumentationCategory>;
+  private documentationEndpoints: Map<string, DocumentationEndpoint>;
+  private documentationParameters: Map<string, DocumentationParameter>;
+  private documentationResponses: Map<string, DocumentationResponse>;
+  private documentationExamples: Map<string, DocumentationExample>;
+  private documentationSecurity: Map<string, DocumentationSecurity>;
+
   constructor() {
     this.users = new Map();
     this.developers = new Map();
@@ -235,6 +304,14 @@ export class MemStorage implements IStorage {
     this.validationConfigurations = new Map();
     this.systemConfigurations = new Map();
     this.environmentConfigurations = new Map();
+
+    // Initialize documentation storage
+    this.documentationCategories = new Map();
+    this.documentationEndpoints = new Map();
+    this.documentationParameters = new Map();
+    this.documentationResponses = new Map();
+    this.documentationExamples = new Map();
+    this.documentationSecurity = new Map();
     
     // Seed with sample data
     this.seedApiCategories();
@@ -2754,6 +2831,376 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Database error in getTopDevelopers:', error);
       throw new Error('Failed to get top developers');
+    }
+  }
+
+  // Documentation operations implementation
+  async getAllDocumentationCategories(): Promise<DocumentationCategory[]> {
+    try {
+      return await db.select().from(documentationCategories).orderBy(asc(documentationCategories.displayOrder));
+    } catch (error) {
+      console.error('Database error in getAllDocumentationCategories:', error);
+      throw new Error('Failed to get documentation categories');
+    }
+  }
+
+  async getDocumentationCategory(id: string): Promise<DocumentationCategory | undefined> {
+    try {
+      const result = await db.select().from(documentationCategories).where(eq(documentationCategories.id, id));
+      return result[0];
+    } catch (error) {
+      console.error('Database error in getDocumentationCategory:', error);
+      throw new Error('Failed to get documentation category');
+    }
+  }
+
+  async getDocumentationCategoryByName(name: string): Promise<DocumentationCategory | undefined> {
+    try {
+      const result = await db.select().from(documentationCategories).where(eq(documentationCategories.name, name));
+      return result[0];
+    } catch (error) {
+      console.error('Database error in getDocumentationCategoryByName:', error);
+      throw new Error('Failed to get documentation category by name');
+    }
+  }
+
+  async getDocumentationCategoriesByParent(parentId?: string): Promise<DocumentationCategory[]> {
+    try {
+      let query = db.select().from(documentationCategories);
+      if (parentId) {
+        query = query.where(eq(documentationCategories.parentId, parentId));
+      } else {
+        query = query.where(sql`${documentationCategories.parentId} IS NULL`);
+      }
+      return await query.orderBy(asc(documentationCategories.displayOrder));
+    } catch (error) {
+      console.error('Database error in getDocumentationCategoriesByParent:', error);
+      throw new Error('Failed to get documentation categories by parent');
+    }
+  }
+
+  async createDocumentationCategory(category: InsertDocumentationCategory): Promise<DocumentationCategory> {
+    try {
+      const result = await db.insert(documentationCategories).values(category).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in createDocumentationCategory:', error);
+      throw new Error('Failed to create documentation category');
+    }
+  }
+
+  async updateDocumentationCategory(id: string, updates: UpdateDocumentationCategory): Promise<DocumentationCategory | undefined> {
+    try {
+      const result = await db.update(documentationCategories)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(documentationCategories.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in updateDocumentationCategory:', error);
+      throw new Error('Failed to update documentation category');
+    }
+  }
+
+  async deleteDocumentationCategory(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(documentationCategories).where(eq(documentationCategories.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Database error in deleteDocumentationCategory:', error);
+      throw new Error('Failed to delete documentation category');
+    }
+  }
+
+  async getAllDocumentationEndpoints(): Promise<DocumentationEndpoint[]> {
+    try {
+      return await db.select().from(documentationEndpoints).orderBy(asc(documentationEndpoints.displayOrder));
+    } catch (error) {
+      console.error('Database error in getAllDocumentationEndpoints:', error);
+      throw new Error('Failed to get documentation endpoints');
+    }
+  }
+
+  async getDocumentationEndpoint(id: string): Promise<DocumentationEndpoint | undefined> {
+    try {
+      const result = await db.select().from(documentationEndpoints).where(eq(documentationEndpoints.id, id));
+      return result[0];
+    } catch (error) {
+      console.error('Database error in getDocumentationEndpoint:', error);
+      throw new Error('Failed to get documentation endpoint');
+    }
+  }
+
+  async getDocumentationEndpointsByCategory(categoryId: string): Promise<DocumentationEndpoint[]> {
+    try {
+      return await db.select().from(documentationEndpoints)
+        .where(eq(documentationEndpoints.categoryId, categoryId))
+        .orderBy(asc(documentationEndpoints.displayOrder));
+    } catch (error) {
+      console.error('Database error in getDocumentationEndpointsByCategory:', error);
+      throw new Error('Failed to get documentation endpoints by category');
+    }
+  }
+
+  async getDocumentationEndpointsBySubcategory(subcategoryId: string): Promise<DocumentationEndpoint[]> {
+    try {
+      return await db.select().from(documentationEndpoints)
+        .where(eq(documentationEndpoints.subcategoryId, subcategoryId))
+        .orderBy(asc(documentationEndpoints.displayOrder));
+    } catch (error) {
+      console.error('Database error in getDocumentationEndpointsBySubcategory:', error);
+      throw new Error('Failed to get documentation endpoints by subcategory');
+    }
+  }
+
+  async getDocumentationEndpointByName(name: string): Promise<DocumentationEndpoint | undefined> {
+    try {
+      const result = await db.select().from(documentationEndpoints).where(eq(documentationEndpoints.name, name));
+      return result[0];
+    } catch (error) {
+      console.error('Database error in getDocumentationEndpointByName:', error);
+      throw new Error('Failed to get documentation endpoint by name');
+    }
+  }
+
+  async createDocumentationEndpoint(endpoint: InsertDocumentationEndpoint): Promise<DocumentationEndpoint> {
+    try {
+      const result = await db.insert(documentationEndpoints).values(endpoint).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in createDocumentationEndpoint:', error);
+      throw new Error('Failed to create documentation endpoint');
+    }
+  }
+
+  async updateDocumentationEndpoint(id: string, updates: UpdateDocumentationEndpoint): Promise<DocumentationEndpoint | undefined> {
+    try {
+      const result = await db.update(documentationEndpoints)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(documentationEndpoints.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in updateDocumentationEndpoint:', error);
+      throw new Error('Failed to update documentation endpoint');
+    }
+  }
+
+  async deleteDocumentationEndpoint(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(documentationEndpoints).where(eq(documentationEndpoints.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Database error in deleteDocumentationEndpoint:', error);
+      throw new Error('Failed to delete documentation endpoint');
+    }
+  }
+
+  async getDocumentationParametersByEndpoint(endpointId: string): Promise<DocumentationParameter[]> {
+    try {
+      return await db.select().from(documentationParameters)
+        .where(eq(documentationParameters.endpointId, endpointId))
+        .orderBy(asc(documentationParameters.displayOrder));
+    } catch (error) {
+      console.error('Database error in getDocumentationParametersByEndpoint:', error);
+      throw new Error('Failed to get documentation parameters');
+    }
+  }
+
+  async createDocumentationParameter(parameter: InsertDocumentationParameter): Promise<DocumentationParameter> {
+    try {
+      const result = await db.insert(documentationParameters).values(parameter).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in createDocumentationParameter:', error);
+      throw new Error('Failed to create documentation parameter');
+    }
+  }
+
+  async updateDocumentationParameter(id: string, updates: Partial<InsertDocumentationParameter>): Promise<DocumentationParameter | undefined> {
+    try {
+      const result = await db.update(documentationParameters)
+        .set(updates)
+        .where(eq(documentationParameters.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in updateDocumentationParameter:', error);
+      throw new Error('Failed to update documentation parameter');
+    }
+  }
+
+  async deleteDocumentationParameter(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(documentationParameters).where(eq(documentationParameters.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Database error in deleteDocumentationParameter:', error);
+      throw new Error('Failed to delete documentation parameter');
+    }
+  }
+
+  async getDocumentationResponsesByEndpoint(endpointId: string): Promise<DocumentationResponse[]> {
+    try {
+      return await db.select().from(documentationResponses)
+        .where(eq(documentationResponses.endpointId, endpointId))
+        .orderBy(asc(documentationResponses.displayOrder));
+    } catch (error) {
+      console.error('Database error in getDocumentationResponsesByEndpoint:', error);
+      throw new Error('Failed to get documentation responses');
+    }
+  }
+
+  async createDocumentationResponse(response: InsertDocumentationResponse): Promise<DocumentationResponse> {
+    try {
+      const result = await db.insert(documentationResponses).values(response).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in createDocumentationResponse:', error);
+      throw new Error('Failed to create documentation response');
+    }
+  }
+
+  async updateDocumentationResponse(id: string, updates: Partial<InsertDocumentationResponse>): Promise<DocumentationResponse | undefined> {
+    try {
+      const result = await db.update(documentationResponses)
+        .set(updates)
+        .where(eq(documentationResponses.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in updateDocumentationResponse:', error);
+      throw new Error('Failed to update documentation response');
+    }
+  }
+
+  async deleteDocumentationResponse(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(documentationResponses).where(eq(documentationResponses.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Database error in deleteDocumentationResponse:', error);
+      throw new Error('Failed to delete documentation response');
+    }
+  }
+
+  async getDocumentationExamplesByEndpoint(endpointId: string): Promise<DocumentationExample[]> {
+    try {
+      return await db.select().from(documentationExamples)
+        .where(eq(documentationExamples.endpointId, endpointId))
+        .orderBy(asc(documentationExamples.displayOrder));
+    } catch (error) {
+      console.error('Database error in getDocumentationExamplesByEndpoint:', error);
+      throw new Error('Failed to get documentation examples');
+    }
+  }
+
+  async createDocumentationExample(example: InsertDocumentationExample): Promise<DocumentationExample> {
+    try {
+      const result = await db.insert(documentationExamples).values(example).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in createDocumentationExample:', error);
+      throw new Error('Failed to create documentation example');
+    }
+  }
+
+  async updateDocumentationExample(id: string, updates: Partial<InsertDocumentationExample>): Promise<DocumentationExample | undefined> {
+    try {
+      const result = await db.update(documentationExamples)
+        .set(updates)
+        .where(eq(documentationExamples.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in updateDocumentationExample:', error);
+      throw new Error('Failed to update documentation example');
+    }
+  }
+
+  async deleteDocumentationExample(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(documentationExamples).where(eq(documentationExamples.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Database error in deleteDocumentationExample:', error);
+      throw new Error('Failed to delete documentation example');
+    }
+  }
+
+  async getDocumentationSecurityByEndpoint(endpointId: string): Promise<DocumentationSecurity[]> {
+    try {
+      return await db.select().from(documentationSecurity)
+        .where(eq(documentationSecurity.endpointId, endpointId))
+        .orderBy(asc(documentationSecurity.displayOrder));
+    } catch (error) {
+      console.error('Database error in getDocumentationSecurityByEndpoint:', error);
+      throw new Error('Failed to get documentation security');
+    }
+  }
+
+  async createDocumentationSecurity(security: InsertDocumentationSecurity): Promise<DocumentationSecurity> {
+    try {
+      const result = await db.insert(documentationSecurity).values(security).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in createDocumentationSecurity:', error);
+      throw new Error('Failed to create documentation security');
+    }
+  }
+
+  async updateDocumentationSecurity(id: string, updates: Partial<InsertDocumentationSecurity>): Promise<DocumentationSecurity | undefined> {
+    try {
+      const result = await db.update(documentationSecurity)
+        .set(updates)
+        .where(eq(documentationSecurity.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Database error in updateDocumentationSecurity:', error);
+      throw new Error('Failed to update documentation security');
+    }
+  }
+
+  async deleteDocumentationSecurity(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(documentationSecurity).where(eq(documentationSecurity.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Database error in deleteDocumentationSecurity:', error);
+      throw new Error('Failed to delete documentation security');
+    }
+  }
+
+  async getCompleteDocumentationStructure(): Promise<{
+    categories: DocumentationCategory[];
+    endpoints: DocumentationEndpoint[];
+    parameters: DocumentationParameter[];
+    responses: DocumentationResponse[];
+    examples: DocumentationExample[];
+    security: DocumentationSecurity[];
+  }> {
+    try {
+      const [categories, endpoints, parameters, responses, examples, security] = await Promise.all([
+        this.getAllDocumentationCategories(),
+        this.getAllDocumentationEndpoints(),
+        db.select().from(documentationParameters).orderBy(asc(documentationParameters.displayOrder)),
+        db.select().from(documentationResponses).orderBy(asc(documentationResponses.displayOrder)),
+        db.select().from(documentationExamples).orderBy(asc(documentationExamples.displayOrder)),
+        db.select().from(documentationSecurity).orderBy(asc(documentationSecurity.displayOrder))
+      ]);
+
+      return {
+        categories,
+        endpoints,
+        parameters,
+        responses,
+        examples,
+        security
+      };
+    } catch (error) {
+      console.error('Database error in getCompleteDocumentationStructure:', error);
+      throw new Error('Failed to get complete documentation structure');
     }
   }
 }

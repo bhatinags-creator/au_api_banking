@@ -524,6 +524,117 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type ApiToken = typeof apiTokens.$inferSelect;
 export type InsertApiToken = z.infer<typeof insertApiTokenSchema>;
 
+// Documentation System Tables
+export const documentationCategories = pgTable("documentation_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // Used as identifier (e.g., "security", "customer") 
+  title: text("title").notNull(), // Display name (e.g., "Security", "Customer")
+  description: text("description").notNull(),
+  icon: text("icon").notNull().default("BookOpen"), // Lucide icon name
+  color: text("color").notNull().default("#603078"),
+  parentId: varchar("parent_id").references(() => documentationCategories.id), // For subcategories
+  displayOrder: integer("display_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const documentationEndpoints = pgTable("documentation_endpoints", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar("category_id").references(() => documentationCategories.id).notNull(),
+  subcategoryId: varchar("subcategory_id").references(() => documentationCategories.id), // Optional subcategory
+  name: text("name").notNull(), // Used as identifier (e.g., "encryption", "otp-generation")
+  title: text("title").notNull(), // Display name (e.g., "Encryption", "OTP Generation")
+  method: text("method").notNull(), // GET, POST, PUT, DELETE, etc.
+  path: text("path").notNull(), // API path (e.g., "/security/encrypt")
+  description: text("description").notNull(),
+  summary: text("summary"), // Short summary
+  requestBody: jsonb("request_body"), // Request body schema
+  displayOrder: integer("display_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const documentationParameters = pgTable("documentation_parameters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  endpointId: varchar("endpoint_id").references(() => documentationEndpoints.id).notNull(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // string, number, boolean, file, etc.
+  required: boolean("required").notNull().default(false),
+  description: text("description").notNull(),
+  example: text("example"),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const documentationResponses = pgTable("documentation_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  endpointId: varchar("endpoint_id").references(() => documentationEndpoints.id).notNull(),
+  status: integer("status").notNull(), // HTTP status code
+  description: text("description").notNull(),
+  example: jsonb("example"), // Response example as JSON
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const documentationExamples = pgTable("documentation_examples", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  endpointId: varchar("endpoint_id").references(() => documentationEndpoints.id).notNull(),
+  title: text("title").notNull(),
+  request: jsonb("request"), // Request example as JSON
+  response: jsonb("response"), // Response example as JSON  
+  curlCommand: text("curl_command"), // cURL command example
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const documentationSecurity = pgTable("documentation_security", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  endpointId: varchar("endpoint_id").references(() => documentationEndpoints.id).notNull(),
+  type: text("type").notNull(), // API Key, Bearer Token, Basic Auth, etc.
+  description: text("description").notNull(),
+  displayOrder: integer("display_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Documentation Zod Schemas
+export const insertDocumentationCategorySchema = createInsertSchema(documentationCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateDocumentationCategorySchema = insertDocumentationCategorySchema.partial();
+
+export const insertDocumentationEndpointSchema = createInsertSchema(documentationEndpoints).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateDocumentationEndpointSchema = insertDocumentationEndpointSchema.partial();
+
+export const insertDocumentationParameterSchema = createInsertSchema(documentationParameters).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDocumentationResponseSchema = createInsertSchema(documentationResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDocumentationExampleSchema = createInsertSchema(documentationExamples).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDocumentationSecuritySchema = createInsertSchema(documentationSecurity).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Configuration type exports
 export type ConfigCategory = typeof configCategories.$inferSelect;
 export type InsertConfigCategory = z.infer<typeof insertConfigCategorySchema>;
@@ -546,3 +657,19 @@ export type UpdateSystemConfiguration = z.infer<typeof updateSystemConfiguration
 export type EnvironmentConfiguration = typeof environmentConfigurations.$inferSelect;
 export type InsertEnvironmentConfiguration = z.infer<typeof insertEnvironmentConfigurationSchema>;
 export type UpdateEnvironmentConfiguration = z.infer<typeof updateEnvironmentConfigurationSchema>;
+
+// Documentation type exports
+export type DocumentationCategory = typeof documentationCategories.$inferSelect;
+export type InsertDocumentationCategory = z.infer<typeof insertDocumentationCategorySchema>;
+export type UpdateDocumentationCategory = z.infer<typeof updateDocumentationCategorySchema>;
+export type DocumentationEndpoint = typeof documentationEndpoints.$inferSelect;
+export type InsertDocumentationEndpoint = z.infer<typeof insertDocumentationEndpointSchema>;
+export type UpdateDocumentationEndpoint = z.infer<typeof updateDocumentationEndpointSchema>;
+export type DocumentationParameter = typeof documentationParameters.$inferSelect;
+export type InsertDocumentationParameter = z.infer<typeof insertDocumentationParameterSchema>;
+export type DocumentationResponse = typeof documentationResponses.$inferSelect;
+export type InsertDocumentationResponse = z.infer<typeof insertDocumentationResponseSchema>;
+export type DocumentationExample = typeof documentationExamples.$inferSelect;
+export type InsertDocumentationExample = z.infer<typeof insertDocumentationExampleSchema>;
+export type DocumentationSecurity = typeof documentationSecurity.$inferSelect;
+export type InsertDocumentationSecurity = z.infer<typeof insertDocumentationSecuritySchema>;
