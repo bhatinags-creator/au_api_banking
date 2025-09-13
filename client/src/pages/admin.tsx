@@ -457,9 +457,21 @@ export default function AdminPanel() {
     console.log('🔧 DEBUG: editingApi:', editingApi);
     console.log('🔧 DEBUG: isAuthenticated:', isAuthenticated);
     
-    if (editingApi) {
-      // Update existing API
+    if (editingApi && editingApi.id) {
+      // Update existing API - verify ID exists
       console.log('🔧 DEBUG: Updating existing API with ID:', editingApi.id);
+      console.log('🔧 DEBUG: API data to update:', apiData);
+      
+      if (!editingApi.id || editingApi.id.trim() === '') {
+        console.error('🔧 DEBUG: ERROR - editingApi.id is empty or undefined!');
+        toast({
+          title: "Update Failed",
+          description: "API ID is missing. Cannot update API.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       updateApiMutation.mutate({ 
         id: editingApi.id, 
         data: apiData 
@@ -2042,43 +2054,69 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   };
 
   const addResponse = () => {
-    // Direct state update without complex logging that might fail
+    console.log('🔧 DEBUG: addResponse called');
+    console.log('🔧 DEBUG: Current formData.responses:', formData.responses);
+    
     const currentResponses = formData.responses || [];
     const newResponse = { 
-      id: Date.now().toString(),
+      id: `response_${Date.now()}`,
       statusCode: 200, 
-      description: "New Response", 
-      schema: {}, 
+      description: "Success", 
+      schema: "{}", 
       example: "" 
     };
     const newResponses = [...currentResponses, newResponse];
     
-    setFormData(prev => ({
-      ...prev,
-      responses: newResponses
-    }));
+    console.log('🔧 DEBUG: New response created:', newResponse);
+    console.log('🔧 DEBUG: Updated responses array:', newResponses);
     
-    // Simple success indicator
-    alert(`✅ Added response! Total: ${newResponses.length}`);
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        responses: newResponses
+      };
+      console.log('🔧 DEBUG: Setting formData with updated responses:', updated);
+      return updated;
+    });
+    
+    // Force UI update by triggering a re-render
+    setTimeout(() => {
+      console.log('🔧 DEBUG: Post-update formData.responses:', formData.responses);
+    }, 0);
   };
 
   const removeResponse = (index: number) => {
-    const currentResponses = formData.responses || [];
+    console.log('🔧 DEBUG: removeResponse called with index:', index);
     
-    if (currentResponses.length === 0 || index < 0 || index >= currentResponses.length) {
-      alert('Cannot remove - invalid index or no responses');
+    const currentResponses = formData.responses || [];
+    console.log('🔧 DEBUG: Current responses before removal:', currentResponses);
+    
+    if (currentResponses.length === 0) {
+      console.warn('🔧 DEBUG: No responses to remove');
+      return;
+    }
+    
+    if (index < 0 || index >= currentResponses.length) {
+      console.warn('🔧 DEBUG: Invalid index:', index, 'for array length:', currentResponses.length);
       return;
     }
     
     const newResponses = currentResponses.filter((_: any, i: number) => i !== index);
+    console.log('🔧 DEBUG: Responses after removal:', newResponses);
     
-    setFormData(prev => ({
-      ...prev,
-      responses: newResponses
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        responses: newResponses
+      };
+      console.log('🔧 DEBUG: Setting formData with removed response:', updated);
+      return updated;
+    });
     
-    // Simple success indicator
-    alert(`✅ Removed response! Total: ${newResponses.length}`);
+    // Force UI update by triggering a re-render
+    setTimeout(() => {
+      console.log('🔧 DEBUG: Post-removal formData.responses:', formData.responses);
+    }, 0);
   };
 
   const updateResponse = (index: number, field: string, value: any) => {
@@ -2421,8 +2459,11 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                 Add Response
               </Button>
             </div>
-            {(formData.responses || []).map((response: any, index: number) => (
-              <Card key={response.id || `response-${index}-${response.statusCode}`} className="p-4">
+            {(formData.responses || []).map((response: any, index: number) => {
+              const responseKey = response.id || `response-${index}-${response.statusCode}-${Date.now()}`;
+              console.log('🔧 DEBUG: Rendering response', index, 'with key:', responseKey, 'response:', response);
+              return (
+              <Card key={responseKey} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <Label>Status Code *</Label>
@@ -2488,7 +2529,8 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                   </Button>
                 </div>
               </Card>
-            ))}
+              );
+            })}
 
             <div className="space-y-4">
               <div>
