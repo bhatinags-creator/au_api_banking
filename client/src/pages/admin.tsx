@@ -88,6 +88,8 @@ interface AdminUser {
 }
 
 export default function AdminPanel() {
+  console.log('🔧 AdminPanel component mounted - this should appear in console!'); // Mount verification
+  
   const [activeTab, setActiveTab] = useState("dashboard");
   const [apis, setApis] = useState<APIEndpoint[]>([]);
   const [categories, setCategories] = useState<APICategory[]>([]);
@@ -2372,7 +2374,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Responses</h3>
               <Button 
-                type="button" 
+                type="button"
                 onClick={() => {
                   console.log('🔧 DEBUG: Add Response button clicked!');
                   console.log('🔧 DEBUG: formData before addResponse:', formData);
@@ -2419,7 +2421,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                 </div>
                 <div className="flex justify-end mt-4">
                   <Button 
-                    type="button" 
+                    type="button"
                     variant="destructive" 
                     size="sm" 
                     onClick={() => {
