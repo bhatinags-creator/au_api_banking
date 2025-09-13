@@ -186,9 +186,49 @@ export default function AdminPanel() {
   // React Query mutations for API management
   const createApiMutation = useMutation({
     mutationFn: async (apiData: Partial<APIEndpoint>) => {
-      return apiRequest('POST', '/api/admin/apis', apiData);
+      console.log('🔧 DEBUG: createApiMutation.mutationFn called with:', apiData);
+      console.log('🔧 DEBUG: Current user authentication state:', isAuthenticated);
+      console.log('🔧 DEBUG: About to call apiRequest with POST /api/admin/apis');
+      
+      // Check authentication before making request
+      if (!isAuthenticated) {
+        console.error('🔧 DEBUG: User not authenticated, throwing error');
+        throw new Error('User not authenticated');
+      }
+      
+      try {
+        const result = await apiRequest('POST', '/api/admin/apis', apiData);
+        console.log('🔧 DEBUG: apiRequest successful, result:', result);
+        
+        // Parse JSON response to ensure it's valid
+        const jsonResult = await result.json();
+        console.log('🔧 DEBUG: API creation result JSON:', jsonResult);
+        return jsonResult;
+      } catch (error) {
+        console.error('🔧 DEBUG: apiRequest failed with error:', error);
+        
+        // Handle specific authentication errors
+        if (error instanceof Error && error.message.includes('401')) {
+          console.error('🔧 DEBUG: Authentication error - user needs to login as admin');
+          toast({
+            title: "Authentication Required",
+            description: "Please log in as admin to create APIs",
+            variant: "destructive"
+          });
+        } else if (error instanceof Error && error.message.includes('403')) {
+          console.error('🔧 DEBUG: Authorization error - user lacks admin privileges');
+          toast({
+            title: "Access Denied",
+            description: "Admin privileges required to create APIs",
+            variant: "destructive"
+          });
+        }
+        
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log('🔧 DEBUG: createApiMutation onSuccess called with:', data);
       toast({ 
         title: "API Created", 
         description: "New API endpoint has been created and saved to database" 
@@ -200,10 +240,24 @@ export default function AdminPanel() {
       setShowApiDialog(false);
     },
     onError: (error: any) => {
+      console.error('🔧 DEBUG: createApiMutation onError called with:', error);
       console.error('API creation error:', error);
+      
+      // More specific error handling
+      let errorMessage = "Failed to create API endpoint";
+      if (error.message.includes('401')) {
+        errorMessage = "Authentication required - please log in as admin";
+      } else if (error.message.includes('403')) {
+        errorMessage = "Access denied - admin privileges required";
+      } else if (error.message.includes('400')) {
+        errorMessage = "Invalid API data - please check your form input";
+      } else if (error.message.includes('500')) {
+        errorMessage = "Server error - please try again later";
+      }
+      
       toast({ 
         title: "API Creation Failed", 
-        description: error.message || "Failed to create API endpoint",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -386,14 +440,20 @@ export default function AdminPanel() {
 
   // API Management Functions
   const handleSaveApi = (apiData: Partial<APIEndpoint>) => {
+    console.log('🔧 DEBUG: handleSaveApi called with:', apiData);
+    console.log('🔧 DEBUG: editingApi:', editingApi);
+    console.log('🔧 DEBUG: isAuthenticated:', isAuthenticated);
+    
     if (editingApi) {
       // Update existing API
+      console.log('🔧 DEBUG: Updating existing API with ID:', editingApi.id);
       updateApiMutation.mutate({ 
         id: editingApi.id, 
         data: apiData 
       });
     } else {
       // Create new API
+      console.log('🔧 DEBUG: Creating new API');
       const newApiData = {
         name: apiData.name,
         method: apiData.method,
@@ -415,7 +475,10 @@ export default function AdminPanel() {
         rateLimits: { sandbox: apiData.rateLimit || 100 },
         timeout: apiData.timeout || 30000
       };
+      console.log('🔧 DEBUG: Final newApiData for mutation:', newApiData);
+      console.log('🔧 DEBUG: Calling createApiMutation.mutate...');
       createApiMutation.mutate(newApiData);
+      console.log('🔧 DEBUG: createApiMutation.mutate called');
     }
   };
 
@@ -476,6 +539,16 @@ export default function AdminPanel() {
       </div>
     );
   }
+
+  // Add debugging info to console on component render
+  useEffect(() => {
+    console.log('🔧 DEBUG: AdminPanel component rendered');
+    console.log('🔧 DEBUG: isAuthenticated:', isAuthenticated);
+    console.log('🔧 DEBUG: apis length:', apis.length);
+    console.log('🔧 DEBUG: categories length:', categories.length);
+    console.log('🔧 DEBUG: showApiDialog:', showApiDialog);
+    console.log('🔧 DEBUG: editingApi:', editingApi);
+  }, [isAuthenticated, apis.length, categories.length, showApiDialog, editingApi]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
@@ -732,10 +805,15 @@ export default function AdminPanel() {
                   </div>
                   <Button 
                     onClick={() => {
+                      console.log('🔧 DEBUG: Add API button clicked');
+                      console.log('🔧 DEBUG: Current authentication state:', isAuthenticated);
+                      console.log('🔧 DEBUG: Setting editingApi to null and showing API dialog');
                       setEditingApi(null);
                       setShowApiDialog(true);
+                      console.log('🔧 DEBUG: showApiDialog set to true');
                     }}
                     className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                    data-testid="button-add-api"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add API
@@ -911,12 +989,21 @@ export default function AdminPanel() {
                 onClose={() => setShowCategoryDialog(false)}
               />
             </Dialog>
-            <Dialog open={showApiDialog} onOpenChange={setShowApiDialog}>
+            <Dialog open={showApiDialog} onOpenChange={(open) => {
+              console.log('🔧 DEBUG: API Dialog open state changed to:', open);
+              setShowApiDialog(open);
+            }}>
               <ApiEditDialog 
                 api={editingApi}
                 categories={categories}
-                onSave={handleSaveApi}
-                onClose={() => setShowApiDialog(false)}
+                onSave={(data: Partial<APIEndpoint>) => {
+                  console.log('🔧 DEBUG: ApiEditDialog onSave called with data:', data);
+                  handleSaveApi(data);
+                }}
+                onClose={() => {
+                  console.log('🔧 DEBUG: ApiEditDialog onClose called');
+                  setShowApiDialog(false);
+                }}
               />
             </Dialog>
           </TabsContent>
@@ -1818,6 +1905,8 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔧 DEBUG: ApiEditDialog handleSubmit called');
+    console.log('🔧 DEBUG: Form data:', formData);
     
     try {
       const processedData = {
@@ -1832,8 +1921,12 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
         }
       };
       
+      console.log('🔧 DEBUG: Processed data:', processedData);
+      console.log('🔧 DEBUG: Calling onSave with processed data');
       onSave(processedData);
+      console.log('🔧 DEBUG: onSave called successfully');
     } catch (error) {
+      console.error('🔧 DEBUG: JSON parsing error:', error);
       alert("Please check JSON formatting in schema and sandbox fields");
     }
   };

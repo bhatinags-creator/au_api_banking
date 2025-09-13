@@ -12,15 +12,28 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  return res;
+  console.log('🔧 DEBUG: apiRequest called with:', { method, url, dataKeys: data ? Object.keys(data as any) : 'no data' });
+  
+  try {
+    console.log('🔧 DEBUG: About to make fetch request to:', url);
+    console.log('🔧 DEBUG: Request data:', data);
+    
+    const res = await fetch(url, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
+    
+    console.log('🔧 DEBUG: Fetch response received:', { status: res.status, ok: res.ok, url: res.url });
+    
+    await throwIfResNotOk(res);
+    console.log('🔧 DEBUG: Response validation passed, returning response');
+    return res;
+  } catch (error) {
+    console.error('🔧 DEBUG: apiRequest failed with error:', error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
