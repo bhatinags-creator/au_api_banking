@@ -854,6 +854,8 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const category: ApiCategory = {
       ...insertCategory,
+      icon: insertCategory.icon || "Code",
+      color: insertCategory.color || "#603078",
       displayOrder: insertCategory.displayOrder || 0,
       isActive: insertCategory.isActive ?? true,
       id,
@@ -1018,6 +1020,8 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newCategory: ConfigCategory = {
       ...category,
+      displayOrder: category.displayOrder || 0,
+      isActive: category.isActive ?? true,
       id,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1067,6 +1071,13 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newConfig: Configuration = {
       ...config,
+      environment: config.environment || "all",
+      dataType: config.dataType || "string",
+      displayOrder: config.displayOrder || 0,
+      isEditable: config.isEditable ?? true,
+      isRequired: config.isRequired ?? false,
+      validationRules: config.validationRules || {},
+      lastModifiedBy: config.lastModifiedBy || null,
       id,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1108,6 +1119,21 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newConfig: UiConfiguration = {
       ...config,
+      fontFamily: config.fontFamily || "Inter",
+      environment: config.environment || "all",
+      isActive: config.isActive ?? true,
+      theme: config.theme || "default",
+      primaryColor: config.primaryColor || "#603078",
+      secondaryColor: config.secondaryColor || "#4d2661",
+      accentColor: config.accentColor || "#f59e0b",
+      backgroundColor: config.backgroundColor || "#fefefe",
+      textColor: config.textColor || "#111827",
+      borderRadius: config.borderRadius || "14px",
+      logoUrl: config.logoUrl ?? null,
+      faviconUrl: config.faviconUrl ?? null,
+      customCss: config.customCss ?? null,
+      sidebarWidth: config.sidebarWidth || "16rem",
+      headerHeight: config.headerHeight || "4rem",
       id,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1150,6 +1176,13 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newConfig: FormConfiguration = {
       ...config,
+      environment: config.environment || "all",
+      autoSave: config.autoSave ?? false,
+      isActive: config.isActive ?? true,
+      fieldDefaults: config.fieldDefaults || {},
+      fieldVisibility: config.fieldVisibility || {},
+      fieldValidation: config.fieldValidation || {},
+      submitBehavior: config.submitBehavior || {},
       id,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1192,6 +1225,9 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newConfig: ValidationConfiguration = {
       ...config,
+      environment: config.environment || "all",
+      isActive: config.isActive ?? true,
+      priority: config.priority || 0,
       id,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1241,6 +1277,11 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newConfig: SystemConfiguration = {
       ...config,
+      environment: config.environment || "all",
+      dataType: config.dataType || "string",
+      isEditable: config.isEditable ?? true,
+      requiresRestart: config.requiresRestart ?? false,
+      lastModifiedBy: config.lastModifiedBy || null,
       id,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1282,6 +1323,8 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const newConfig: EnvironmentConfiguration = {
       ...config,
+      description: config.description ?? null,
+      isOverride: config.isOverride ?? false,
       id,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -1480,8 +1523,7 @@ export class DatabaseStorage implements IStorage {
   async getAllApiEndpoints(): Promise<ApiEndpoint[]> {
     return await db.select().from(apiEndpoints)
       .where(eq(apiEndpoints.isActive, true))
-      .orderBy(apiEndpoints.category)
-      .orderBy(apiEndpoints.name);
+      .orderBy(apiEndpoints.category, apiEndpoints.name);
   }
 
   async getApiEndpointsByCategory(category: string): Promise<ApiEndpoint[]> {
@@ -1834,12 +1876,11 @@ export class DatabaseStorage implements IStorage {
   // General Configurations
   async getAllConfigurations(environment?: string): Promise<Configuration[]> {
     try {
-      let query = db.select().from(configurations);
-      if (environment && environment !== 'all') {
-        query = query.where(eq(configurations.environment, environment));
-      }
-      return await query.orderBy(configurations.categoryId)
-        .orderBy(configurations.key);
+      const baseQuery = db.select().from(configurations);
+      const query = environment && environment !== 'all'
+        ? baseQuery.where(eq(configurations.environment, environment))
+        : baseQuery;
+      return await query.orderBy(configurations.categoryId, configurations.key);
     } catch (error) {
       console.error('Database error in getAllConfigurations:', error);
       throw new Error('Failed to fetch configurations');
@@ -1848,14 +1889,12 @@ export class DatabaseStorage implements IStorage {
 
   async getConfigurationsByCategory(categoryId: string, environment?: string): Promise<Configuration[]> {
     try {
-      let query = db.select().from(configurations).where(eq(configurations.categoryId, categoryId));
-      if (environment && environment !== 'all') {
-        query = query.where(and(
-          eq(configurations.categoryId, categoryId),
-          eq(configurations.environment, environment)
-        ));
-      }
-      return await query.orderBy(configurations.key);
+      const whereClause = environment && environment !== 'all'
+        ? and(eq(configurations.categoryId, categoryId), eq(configurations.environment, environment))
+        : eq(configurations.categoryId, categoryId);
+      return await db.select().from(configurations)
+        .where(whereClause)
+        .orderBy(configurations.key);
     } catch (error) {
       console.error('Database error in getConfigurationsByCategory:', error);
       throw new Error('Failed to fetch configurations by category');
@@ -1877,14 +1916,10 @@ export class DatabaseStorage implements IStorage {
 
   async getConfigurationByKey(key: string, environment?: string): Promise<Configuration | undefined> {
     try {
-      let query = db.select().from(configurations).where(eq(configurations.key, key));
-      if (environment && environment !== 'all') {
-        query = query.where(and(
-          eq(configurations.key, key),
-          eq(configurations.environment, environment)
-        ));
-      }
-      const [config] = await query;
+      const whereClause = environment && environment !== 'all'
+        ? and(eq(configurations.key, key), eq(configurations.environment, environment))
+        : eq(configurations.key, key);
+      const [config] = await db.select().from(configurations).where(whereClause);
       return config;
     } catch (error) {
       console.error('Database error in getConfigurationByKey:', error);
@@ -1932,14 +1967,16 @@ export class DatabaseStorage implements IStorage {
   // UI Configurations
   async getAllUiConfigurations(environment?: string): Promise<UiConfiguration[]> {
     try {
-      let query = db.select().from(uiConfigurations).where(eq(uiConfigurations.isActive, true));
-      if (environment && environment !== 'all') {
-        query = query.where(and(
-          eq(uiConfigurations.isActive, true),
-          eq(uiConfigurations.environment, environment)
-        ));
-      }
-      return await query.orderBy(uiConfigurations.environment);
+      const whereClause = environment && environment !== 'all'
+        ? and(
+            eq(uiConfigurations.isActive, true),
+            eq(uiConfigurations.environment, environment)
+          )
+        : eq(uiConfigurations.isActive, true);
+      
+      return await db.select().from(uiConfigurations)
+        .where(whereClause)
+        .orderBy(uiConfigurations.environment);
     } catch (error) {
       console.error('Database error in getAllUiConfigurations:', error);
       throw new Error('Failed to fetch UI configurations');
@@ -2034,11 +2071,13 @@ export class DatabaseStorage implements IStorage {
   // Form Configurations
   async getAllFormConfigurations(environment?: string): Promise<FormConfiguration[]> {
     try {
-      let query = db.select().from(formConfigurations);
-      if (environment && environment !== 'all') {
-        query = query.where(eq(formConfigurations.environment, environment));
-      }
-      return await query.orderBy(formConfigurations.formType);
+      const whereClause = environment && environment !== 'all'
+        ? eq(formConfigurations.environment, environment)
+        : undefined;
+      
+      const query = db.select().from(formConfigurations);
+      const finalQuery = whereClause ? query.where(whereClause) : query;
+      return await finalQuery.orderBy(formConfigurations.formType);
     } catch (error) {
       console.error('Database error in getAllFormConfigurations:', error);
       throw new Error('Failed to fetch form configurations');
@@ -2060,14 +2099,14 @@ export class DatabaseStorage implements IStorage {
 
   async getFormConfigurationByType(formType: string, environment?: string): Promise<FormConfiguration | undefined> {
     try {
-      let query = db.select().from(formConfigurations).where(eq(formConfigurations.formType, formType));
-      if (environment && environment !== 'all') {
-        query = query.where(and(
-          eq(formConfigurations.formType, formType),
-          eq(formConfigurations.environment, environment)
-        ));
-      }
-      const [config] = await query;
+      const whereClause = environment && environment !== 'all'
+        ? and(
+            eq(formConfigurations.formType, formType),
+            eq(formConfigurations.environment, environment)
+          )
+        : eq(formConfigurations.formType, formType);
+      
+      const [config] = await db.select().from(formConfigurations).where(whereClause);
       return config;
     } catch (error) {
       console.error('Database error in getFormConfigurationByType:', error);
@@ -2115,12 +2154,13 @@ export class DatabaseStorage implements IStorage {
   // Validation Configurations
   async getAllValidationConfigurations(environment?: string): Promise<ValidationConfiguration[]> {
     try {
-      let query = db.select().from(validationConfigurations);
-      if (environment && environment !== 'all') {
-        query = query.where(eq(validationConfigurations.environment, environment));
-      }
-      return await query.orderBy(validationConfigurations.entityType)
-        .orderBy(validationConfigurations.fieldName);
+      const whereClause = environment && environment !== 'all'
+        ? eq(validationConfigurations.environment, environment)
+        : undefined;
+      
+      const query = db.select().from(validationConfigurations);
+      const finalQuery = whereClause ? query.where(whereClause) : query;
+      return await finalQuery.orderBy(validationConfigurations.entityType, validationConfigurations.fieldName);
     } catch (error) {
       console.error('Database error in getAllValidationConfigurations:', error);
       throw new Error('Failed to fetch validation configurations');
@@ -2142,14 +2182,16 @@ export class DatabaseStorage implements IStorage {
 
   async getValidationConfigurationsByEntity(entityType: string, environment?: string): Promise<ValidationConfiguration[]> {
     try {
-      let query = db.select().from(validationConfigurations).where(eq(validationConfigurations.entityType, entityType));
-      if (environment && environment !== 'all') {
-        query = query.where(and(
-          eq(validationConfigurations.entityType, entityType),
-          eq(validationConfigurations.environment, environment)
-        ));
-      }
-      return await query.orderBy(validationConfigurations.fieldName);
+      const whereClause = environment && environment !== 'all'
+        ? and(
+            eq(validationConfigurations.entityType, entityType),
+            eq(validationConfigurations.environment, environment)
+          )
+        : eq(validationConfigurations.entityType, entityType);
+      
+      return await db.select().from(validationConfigurations)
+        .where(whereClause)
+        .orderBy(validationConfigurations.fieldName);
     } catch (error) {
       console.error('Database error in getValidationConfigurationsByEntity:', error);
       throw new Error('Failed to get validation configurations by entity');
@@ -2196,12 +2238,13 @@ export class DatabaseStorage implements IStorage {
   // System Configurations
   async getAllSystemConfigurations(environment?: string): Promise<SystemConfiguration[]> {
     try {
-      let query = db.select().from(systemConfigurations);
-      if (environment && environment !== 'all') {
-        query = query.where(eq(systemConfigurations.environment, environment));
-      }
-      return await query.orderBy(systemConfigurations.module)
-        .orderBy(systemConfigurations.setting);
+      const whereClause = environment && environment !== 'all'
+        ? eq(systemConfigurations.environment, environment)
+        : undefined;
+      
+      const query = db.select().from(systemConfigurations);
+      const finalQuery = whereClause ? query.where(whereClause) : query;
+      return await finalQuery.orderBy(systemConfigurations.module, systemConfigurations.setting);
     } catch (error) {
       console.error('Database error in getAllSystemConfigurations:', error);
       throw new Error('Failed to fetch system configurations');
@@ -2223,14 +2266,16 @@ export class DatabaseStorage implements IStorage {
 
   async getSystemConfigurationsByModule(module: string, environment?: string): Promise<SystemConfiguration[]> {
     try {
-      let query = db.select().from(systemConfigurations).where(eq(systemConfigurations.module, module));
-      if (environment && environment !== 'all') {
-        query = query.where(and(
-          eq(systemConfigurations.module, module),
-          eq(systemConfigurations.environment, environment)
-        ));
-      }
-      return await query.orderBy(systemConfigurations.setting);
+      const whereClause = environment && environment !== 'all'
+        ? and(
+            eq(systemConfigurations.module, module),
+            eq(systemConfigurations.environment, environment)
+          )
+        : eq(systemConfigurations.module, module);
+      
+      return await db.select().from(systemConfigurations)
+        .where(whereClause)
+        .orderBy(systemConfigurations.setting);
     } catch (error) {
       console.error('Database error in getSystemConfigurationsByModule:', error);
       throw new Error('Failed to get system configurations by module');
@@ -2239,18 +2284,18 @@ export class DatabaseStorage implements IStorage {
 
   async getSystemConfigurationBySetting(module: string, setting: string, environment?: string): Promise<SystemConfiguration | undefined> {
     try {
-      let query = db.select().from(systemConfigurations).where(and(
-        eq(systemConfigurations.module, module),
-        eq(systemConfigurations.setting, setting)
-      ));
-      if (environment && environment !== 'all') {
-        query = query.where(and(
-          eq(systemConfigurations.module, module),
-          eq(systemConfigurations.setting, setting),
-          eq(systemConfigurations.environment, environment)
-        ));
-      }
-      const [config] = await query;
+      const whereClause = environment && environment !== 'all'
+        ? and(
+            eq(systemConfigurations.module, module),
+            eq(systemConfigurations.setting, setting),
+            eq(systemConfigurations.environment, environment)
+          )
+        : and(
+            eq(systemConfigurations.module, module),
+            eq(systemConfigurations.setting, setting)
+          );
+      
+      const [config] = await db.select().from(systemConfigurations).where(whereClause);
       return config;
     } catch (error) {
       console.error('Database error in getSystemConfigurationBySetting:', error);
@@ -2302,11 +2347,13 @@ export class DatabaseStorage implements IStorage {
   // Environment Configurations
   async getAllEnvironmentConfigurations(environment?: string): Promise<EnvironmentConfiguration[]> {
     try {
-      let query = db.select().from(environmentConfigurations);
-      if (environment && environment !== 'all') {
-        query = query.where(eq(environmentConfigurations.environment, environment));
-      }
-      return await query.orderBy(environmentConfigurations.configKey);
+      const whereClause = environment && environment !== 'all'
+        ? eq(environmentConfigurations.environment, environment)
+        : undefined;
+      
+      const query = db.select().from(environmentConfigurations);
+      const finalQuery = whereClause ? query.where(whereClause) : query;
+      return await finalQuery.orderBy(environmentConfigurations.configKey);
     } catch (error) {
       console.error('Database error in getAllEnvironmentConfigurations:', error);
       throw new Error('Failed to fetch environment configurations');

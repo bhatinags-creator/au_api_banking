@@ -176,11 +176,11 @@ const validateField = async (value: string, field: FieldValidation, endpointId: 
   return null;
 };
 
-const validateRequestBody = (requestBody: string, endpointId: string): ValidationError[] => {
+const validateRequestBody = async (requestBody: string, endpointId: string, schemas: EndpointValidation): Promise<ValidationError[]> => {
   const errors: ValidationError[] = [];
   
   // Get validation schema for endpoint
-  const schema = validationSchemas[endpointId];
+  const schema = schemas[endpointId];
   if (!schema) {
     return errors; // No validation schema defined
   }
@@ -188,18 +188,18 @@ const validateRequestBody = (requestBody: string, endpointId: string): Validatio
   try {
     const data = JSON.parse(requestBody);
     
-    // Validate each field in the schema
-    schema.forEach(field => {
+    // Validate each field in the schema (now using async validation)
+    for (const field of schema) {
       const value = data[field.name];
-      const error = validateField(value || "", field);
+      const error = await validateField(value || "", field, endpointId);
       if (error) {
         errors.push(error);
       }
-    });
+    }
     
     // Check for unknown fields
     Object.keys(data).forEach(key => {
-      const isKnownField = schema.some(field => field.name === key);
+      const isKnownField = schema.some((field: FieldValidation) => field.name === key);
       if (!isKnownField) {
         errors.push({ field: key, message: `${key} is not a recognized field for this endpoint` });
       }
@@ -777,7 +777,7 @@ export default function Sandbox() {
       transformedSchemas[entity] = [];
       Object.entries(fields).forEach(([fieldName, fieldConfig]) => {
         if (fieldConfig.validations && fieldConfig.validations.length > 0) {
-          const constraints = fieldConfig.validations.reduce((acc, validation) => {
+          const constraints = fieldConfig.validations.reduce((acc: any, validation: any) => {
             if (validation.type === 'required' && validation.rules.required) {
               acc.required = true;
             }
@@ -838,16 +838,20 @@ export default function Sandbox() {
     handleEndpointChange(selectedEndpoint.id);
   }, [selectedEndpoint]);
   
-  // Real-time validation effect
+  // Real-time validation effect (now async)
   useEffect(() => {
-    if (requestBody.trim() && selectedEndpoint.method !== 'GET') {
-      const errors = validateRequestBody(requestBody, selectedEndpoint.id);
-      setValidationErrors(errors);
-      setShowValidation(errors.length > 0);
-    } else {
-      setValidationErrors([]);
-      setShowValidation(false);
-    }
+    const validateAsync = async () => {
+      if (requestBody.trim() && selectedEndpoint.method !== 'GET') {
+        const errors = await validateRequestBody(requestBody, selectedEndpoint.id, validationSchemas);
+        setValidationErrors(errors);
+        setShowValidation(errors.length > 0);
+      } else {
+        setValidationErrors([]);
+        setShowValidation(false);
+      }
+    };
+    
+    validateAsync();
   }, [requestBody, selectedEndpoint]);
 
   // Navigation helpers
@@ -979,9 +983,9 @@ export default function Sandbox() {
   const handleTestRequest = async () => {
     if (!selectedEndpoint) return;
     
-    // Validate request body before sending
+    // Validate request body before sending (now async)
     if (selectedEndpoint.method !== 'GET' && requestBody.trim()) {
-      const errors = validateRequestBody(requestBody, selectedEndpoint.id);
+      const errors = await validateRequestBody(requestBody, selectedEndpoint.id, validationSchemas);
       if (errors.length > 0) {
         setValidationErrors(errors);
         setShowValidation(true);

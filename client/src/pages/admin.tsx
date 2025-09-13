@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { 
   ArrowLeft, Settings, Plus, Edit, Trash2, Save, Eye, Users, 
   Database, Shield, CreditCard, BookOpen, Code, FileText,
-  BarChart3, Activity, Globe, Lock, Check, X, ChevronDown, ChevronRight, PlayCircle
+  BarChart3, Activity, Globe, Lock, Check, X, CheckCircle, XCircle, ChevronDown, ChevronRight, PlayCircle
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -746,7 +746,7 @@ export default function AdminPanel() {
           {/* Validation Rules Management Tab */}
           <TabsContent value="validation" className="space-y-6">
             <ValidationRulesManagement 
-              validationConfigs={validationConfigs}
+              validationConfigs={validationConfigs || []}
               isLoading={validationLoading}
             />
           </TabsContent>
@@ -796,7 +796,7 @@ const ValidationRulesManagement = ({ validationConfigs, isLoading }: ValidationR
   }) || [];
 
   // Get unique entity types for filter dropdown
-  const entityTypes = [...new Set(validationConfigs?.map(config => config.entityType) || [])];
+  const entityTypes = Array.from(new Set(validationConfigs?.map((config: any) => config.entityType) || []));
 
   // Create validation rule mutation
   const createRuleMutation = useMutation({
@@ -1489,12 +1489,12 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const removeParameter = (index: number) => {
     setFormData({
       ...formData,
-      parameters: formData.parameters.filter((_, i) => i !== index)
+      parameters: formData.parameters.filter((_: any, i: number) => i !== index)
     });
   };
 
   const updateParameter = (index: number, field: string, value: any) => {
-    const updated = formData.parameters.map((param, i) => 
+    const updated = formData.parameters.map((param: any, i: number) => 
       i === index ? { ...param, [field]: value } : param
     );
     setFormData({ ...formData, parameters: updated });
@@ -1510,12 +1510,12 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const removeHeader = (index: number) => {
     setFormData({
       ...formData,
-      headers: formData.headers.filter((_, i) => i !== index)
+      headers: formData.headers.filter((_: any, i: number) => i !== index)
     });
   };
 
   const updateHeader = (index: number, field: string, value: any) => {
-    const updated = formData.headers.map((header, i) => 
+    const updated = formData.headers.map((header: any, i: number) => 
       i === index ? { ...header, [field]: value } : header
     );
     setFormData({ ...formData, headers: updated });
@@ -1531,12 +1531,12 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const removeResponse = (index: number) => {
     setFormData({
       ...formData,
-      responses: formData.responses.filter((_, i) => i !== index)
+      responses: formData.responses.filter((_: any, i: number) => i !== index)
     });
   };
 
   const updateResponse = (index: number, field: string, value: any) => {
-    const updated = formData.responses.map((response, i) => 
+    const updated = formData.responses.map((response: any, i: number) => 
       i === index ? { ...response, [field]: value } : response
     );
     setFormData({ ...formData, responses: updated });
@@ -1548,7 +1548,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     try {
       const processedData = {
         ...formData,
-        tags: formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
+        tags: formData.tags.split(",").map((tag: string) => tag.trim()).filter((tag: string) => tag),
         responseSchema: JSON.parse(formData.responseSchema),
         sandbox: {
           ...formData.sandbox,
@@ -1690,7 +1690,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                 Add Parameter
               </Button>
             </div>
-            {formData.parameters.map((param, index) => (
+            {formData.parameters.map((param: any, index: number) => (
               <Card key={index} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -1760,7 +1760,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                 Add Header
               </Button>
             </div>
-            {formData.headers.map((header, index) => (
+            {formData.headers.map((header: any, index: number) => (
               <Card key={index} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -1813,7 +1813,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                 Add Response
               </Button>
             </div>
-            {formData.responses.map((response, index) => (
+            {formData.responses.map((response: any, index: number) => (
               <Card key={index} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
