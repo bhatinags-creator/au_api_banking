@@ -183,6 +183,80 @@ export default function AdminPanel() {
     }
   });
 
+  // React Query mutations for API management
+  const createApiMutation = useMutation({
+    mutationFn: async (apiData: Partial<APIEndpoint>) => {
+      return apiRequest('POST', '/api/admin/apis', apiData);
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "API Created", 
+        description: "New API endpoint has been created and saved to database" 
+      });
+      // Invalidate and refetch APIs and categories
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
+      setEditingApi(null);
+      setShowApiDialog(false);
+    },
+    onError: (error: any) => {
+      console.error('API creation error:', error);
+      toast({ 
+        title: "API Creation Failed", 
+        description: error.message || "Failed to create API endpoint",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateApiMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: Partial<APIEndpoint> }) => {
+      return apiRequest('PUT', `/api/admin/apis/${id}`, data);
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "API Updated", 
+        description: "API endpoint has been successfully updated" 
+      });
+      // Invalidate and refetch APIs and categories
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
+      setEditingApi(null);
+      setShowApiDialog(false);
+    },
+    onError: (error: any) => {
+      console.error('API update error:', error);
+      toast({ 
+        title: "API Update Failed", 
+        description: error.message || "Failed to update API endpoint",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteApiMutation = useMutation({
+    mutationFn: async (apiId: string) => {
+      return apiRequest('DELETE', `/api/admin/apis/${apiId}`);
+    },
+    onSuccess: () => {
+      toast({ 
+        title: "API Deleted", 
+        description: "API endpoint has been permanently removed" 
+      });
+      // Invalidate and refetch APIs and categories
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
+    },
+    onError: (error: any) => {
+      console.error('API deletion error:', error);
+      toast({ 
+        title: "API Deletion Failed", 
+        description: error.message || "Failed to delete API endpoint",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Backend admin authentication
   const handleAdminLogin = async (email: string, password: string) => {
     try {
@@ -313,24 +387,42 @@ export default function AdminPanel() {
   // API Management Functions
   const handleSaveApi = (apiData: Partial<APIEndpoint>) => {
     if (editingApi) {
-      setApis(apis.map(api => api.id === editingApi.id ? { ...api, ...apiData } : api));
-      toast({ title: "API Updated", description: "API endpoint has been successfully updated" });
+      // Update existing API
+      updateApiMutation.mutate({ 
+        id: editingApi.id, 
+        data: apiData 
+      });
     } else {
-      const newApi: APIEndpoint = {
-        ...apiData as APIEndpoint,
-        id: Date.now().toString(),
-        status: 'active'
+      // Create new API
+      const newApiData = {
+        name: apiData.name,
+        method: apiData.method,
+        path: apiData.path,
+        category: apiData.category,
+        description: apiData.description,
+        summary: apiData.summary || apiData.description,
+        requiresAuth: apiData.requiresAuth || false,
+        authType: apiData.authType || 'bearer',
+        parameters: apiData.bodyParameters || [],
+        headers: apiData.headers || [],
+        responses: apiData.responses || [],
+        requestExample: apiData.requestExample || '',
+        responseExample: apiData.responseExample || '',
+        documentation: apiData.documentation || '',
+        responseSchema: apiData.validationSchema,
+        tags: apiData.tags || [],
+        status: apiData.status || 'active',
+        rateLimits: { sandbox: apiData.rateLimit || 100 },
+        timeout: apiData.timeout || 30000
       };
-      setApis([...apis, newApi]);
-      toast({ title: "API Created", description: "New API endpoint has been created" });
+      createApiMutation.mutate(newApiData);
     }
-    setEditingApi(null);
-    setShowApiDialog(false);
   };
 
   const handleDeleteApi = (apiId: string) => {
-    setApis(apis.filter(api => api.id !== apiId));
-    toast({ title: "API Deleted", description: "API endpoint has been removed" });
+    if (confirm('Are you sure you want to delete this API? This action cannot be undone.')) {
+      deleteApiMutation.mutate(apiId);
+    }
   };
 
   // Category Management Functions
