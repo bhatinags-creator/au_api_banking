@@ -213,7 +213,11 @@ const validateRequestBody = async (requestBody: string, endpointId: string, sche
   return errors;
 };
 
-const apiEndpoints: APIEndpoint[] = [
+// NOTE: Hardcoded apiEndpoints array replaced with database query
+// The apiEndpoints are now fetched dynamically from the database in the component
+// This allows newly created APIs from the admin panel to appear automatically
+
+const fallbackApiEndpoints: APIEndpoint[] = [
   {
     id: "oauth-token",
     name: "Generate OAuth Token", 
@@ -770,6 +774,32 @@ export default function Sandbox() {
     queryKey: ['/api/categories'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Fetch endpoints from database (replacing hardcoded array)
+  const { data: dbEndpoints = [], isLoading: endpointsLoading } = useQuery<any[]>({
+    queryKey: ['/api/endpoints'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Transform database endpoints to APIEndpoint format
+  const apiEndpoints = useMemo(() => {
+    if (!dbEndpoints || dbEndpoints.length === 0) {
+      return []; // Return empty array if no database endpoints
+    }
+
+    return dbEndpoints
+      .filter(endpoint => endpoint.isActive !== false) // Only show active endpoints
+      .map(endpoint => ({
+        id: endpoint.name || endpoint.id,
+        name: endpoint.name || endpoint.title,
+        method: endpoint.method,
+        path: endpoint.path,
+        category: endpoint.category,
+        description: endpoint.description,
+        requiresAuth: endpoint.requiresAuth || false,
+        sampleRequest: endpoint.requestExample || {}
+      }));
+  }, [dbEndpoints]);
   
   // Transform dynamic rules to legacy format for backwards compatibility
   const validationSchemas = useMemo(() => {
@@ -815,7 +845,7 @@ export default function Sandbox() {
     return Object.keys(transformedSchemas).length > 0 ? transformedSchemas : fallbackValidationSchemas;
   }, [validationRulesData]);
 
-  const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint>(apiEndpoints[0]);
+  const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint | null>(null);
   const [requestBody, setRequestBody] = useState("");
   const [requestHeaders, setRequestHeaders] = useState("{\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer your_token_here\"\n}");
   const [pathParams, setPathParams] = useState("{}");
@@ -841,14 +871,23 @@ export default function Sandbox() {
   
   const { toast } = useToast();
 
+  // Effect to set initial endpoint when APIs load
   useEffect(() => {
-    handleEndpointChange(selectedEndpoint.id);
+    if (apiEndpoints.length > 0 && !selectedEndpoint) {
+      setSelectedEndpoint(apiEndpoints[0]);
+    }
+  }, [apiEndpoints, selectedEndpoint]);
+
+  useEffect(() => {
+    if (selectedEndpoint?.id) {
+      handleEndpointChange(selectedEndpoint.id);
+    }
   }, [selectedEndpoint]);
   
   // Real-time validation effect (now async)
   useEffect(() => {
     const validateAsync = async () => {
-      if (requestBody.trim() && selectedEndpoint.method !== 'GET') {
+      if (requestBody.trim() && selectedEndpoint && selectedEndpoint.method !== 'GET') {
         const errors = await validateRequestBody(requestBody, selectedEndpoint.id, validationSchemas);
         setValidationErrors(errors);
         setShowValidation(errors.length > 0);
@@ -1001,7 +1040,14 @@ export default function Sandbox() {
   };
 
   const handleTestRequest = async () => {
-    if (!selectedEndpoint) return;
+    if (!selectedEndpoint) {
+      toast({
+        title: "No API Selected",
+        description: "Please select an API endpoint to test.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Validate request body before sending (now async)
     if (selectedEndpoint.method !== 'GET' && requestBody.trim()) {
@@ -1023,7 +1069,7 @@ export default function Sandbox() {
     
     try {
       // Parse path parameters and replace in URL
-      let finalUrl = selectedEndpoint.path;
+      let finalUrl = selectedEndpoint.path || '';
       try {
         const pathParamsObj = JSON.parse(pathParams);
         Object.entries(pathParamsObj).forEach(([key, value]) => {
@@ -1061,7 +1107,7 @@ export default function Sandbox() {
       }
       
       const options: RequestInit = {
-        method: selectedEndpoint.method,
+        method: selectedEndpoint.method || 'GET',
         headers,
       };
       
@@ -1103,7 +1149,7 @@ export default function Sandbox() {
       
       toast({
         title: "API Request Completed",
-        description: `${selectedEndpoint.method} ${selectedEndpoint.name} - ${apiResponse.status} (${responseTime}ms)`,
+        description: `${selectedEndpoint.method || 'GET'} ${selectedEndpoint.name || 'API Request'} - ${apiResponse.status} (${responseTime}ms)`,
       });
       
     } catch (error) {
@@ -1750,13 +1796,29 @@ export default function Sandbox() {
                 Choose API Category
               </h2>
               <p className="text-lg text-neutrals-600 dark:text-neutrals-400">
-                Select a category to explore {apiEndpoints.length} available API endpoints
+                {endpointsLoading || categoriesLoading ? 
+                  "Loading API endpoints..." : 
+                  `Select a category to explore ${apiEndpoints.length} available API endpoints`
+                }
               </p>
             </div>
 
+            {/* Loading State */}
+            {(endpointsLoading || categoriesLoading) && (
+              <div className="flex justify-center items-center py-12">
+                <div className="flex flex-col items-center gap-4">
+                  <Clock className="w-8 h-8 animate-spin text-[var(--au-primary)]" />
+                  <p className="text-lg text-neutrals-600 dark:text-neutrals-400">
+                    Loading API categories and endpoints...
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* API Groups Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {getApiGroups().map(group => {
+            {!endpointsLoading && !categoriesLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {getApiGroups().map(group => {
                 const IconComponent = group.icon;
                 const groupImage = categoryImages[group.name as keyof typeof categoryImages];
                 return (
@@ -1808,7 +1870,8 @@ export default function Sandbox() {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1920,7 +1983,7 @@ export default function Sandbox() {
           </div>
         )}
 
-        {currentView === "test" && (
+        {currentView === "test" && selectedEndpoint && (
           <div className="space-y-6">
             {/* Top Navigation Bar */}
             <div className="flex items-center justify-between">
@@ -1948,7 +2011,7 @@ export default function Sandbox() {
                   <CardHeader className="bg-gradient-to-r from-purple-100 to-blue-100 border-b border-purple-200">
                     <CardTitle className="flex items-center gap-2 text-purple-800">
                       <div className="p-1 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 text-white">
-                        {getCategoryIcon(selectedEndpoint.category)}
+                        {selectedEndpoint?.category ? getCategoryIcon(selectedEndpoint.category) : <Settings className="w-4 h-4" />}
                       </div>
                       Selected API
                     </CardTitle>
@@ -1956,31 +2019,31 @@ export default function Sandbox() {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <h3 className="font-medium text-purple-900">{selectedEndpoint.name}</h3>
+                      <h3 className="font-medium text-purple-900">{selectedEndpoint?.name || 'No API Selected'}</h3>
                       <p className="text-sm text-purple-600">
-                        {selectedEndpoint.description}
+                        {selectedEndpoint?.description || 'No description available'}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className={`${
-                        selectedEndpoint.method === 'GET' ? 'bg-blue-600 text-white' :
-                        selectedEndpoint.method === 'POST' ? 'bg-green-600 text-white' :
-                        selectedEndpoint.method === 'PUT' ? 'bg-orange-600 text-white' :
+                        selectedEndpoint?.method === 'GET' ? 'bg-blue-600 text-white' :
+                        selectedEndpoint?.method === 'POST' ? 'bg-green-600 text-white' :
+                        selectedEndpoint?.method === 'PUT' ? 'bg-orange-600 text-white' :
                         'bg-red-600 text-white'
                       }`}>
-                        {selectedEndpoint.method}
+                        {selectedEndpoint?.method || 'GET'}
                       </Badge>
-                      <Badge variant="outline" className="border-purple-300 text-purple-700">{selectedEndpoint.category}</Badge>
+                      <Badge variant="outline" className="border-purple-300 text-purple-700">{selectedEndpoint?.category || 'Unknown'}</Badge>
                     </div>
                     <div className="text-xs font-mono bg-purple-100 text-purple-800 p-2 rounded border border-purple-200">
-                      {selectedEndpoint.path}
+                      {selectedEndpoint?.path || 'No path specified'}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* API Configuration */}
-              {selectedEndpoint.requiresAuth && (
+              {selectedEndpoint?.requiresAuth && (
                 <Card className="bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200 shadow-lg" data-testid="card-auth-token">
                   <CardHeader className="bg-gradient-to-r from-amber-100 to-yellow-100 border-b border-amber-200">
                     <CardTitle className="flex items-center gap-2 text-amber-800">
@@ -2086,7 +2149,7 @@ export default function Sandbox() {
                         )}
                         
                         {/* Field Documentation Helper */}
-                        {validationSchemas[selectedEndpoint.id] && (
+                        {selectedEndpoint?.id && validationSchemas[selectedEndpoint.id] && (
                           <div className="mt-4 p-3 bg-[var(--au-bg-soft-1)] border border-[var(--au-primary-200)] rounded-md">
                             <div className="flex items-center mb-2">
                               <AlertCircle className="w-4 h-4 text-[var(--au-primary)] mr-2" />
@@ -2095,7 +2158,7 @@ export default function Sandbox() {
                               </span>
                             </div>
                             <div className="grid grid-cols-1 gap-2 text-xs">
-                              {validationSchemas[selectedEndpoint.id].map((field, index) => (
+                              {validationSchemas[selectedEndpoint.id]?.map((field, index) => (
                                 <div key={index} className="flex items-center justify-between p-2 bg-white rounded border border-[var(--au-primary-100)]">
                                   <div className="flex items-center">
                                     <span className={`font-mono mr-2 ${field.required ? 'text-[var(--au-primary)]' : 'text-[var(--au-primary-500)]'}`}>
