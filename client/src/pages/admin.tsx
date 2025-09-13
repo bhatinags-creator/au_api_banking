@@ -104,6 +104,8 @@ export default function AdminPanel() {
   // Backend admin authentication
   const handleAdminLogin = async () => {
     try {
+      console.log('Admin login attempt:', { email: adminCredentials.username, password: '***' });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -116,6 +118,7 @@ export default function AdminPanel() {
       });
 
       const data = await response.json();
+      console.log('Login response:', response.status, data);
 
       if (response.ok && data.user && data.user.role === 'admin') {
         setIsAuthenticated(true);
@@ -759,6 +762,7 @@ const LoginForm = ({ onLogin }: { onLogin: (username: string, password: string) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submit:', { username, password: '***' });
     onLogin(username, password);
   };
 
