@@ -90,6 +90,14 @@ interface AdminUser {
 export default function AdminPanel() {
   console.log('🔧 AdminPanel component mounted - this should appear in console!'); // Mount verification
   
+  // Add unmount detection
+  useEffect(() => {
+    console.log('🔧 AdminPanel mounted via useEffect');
+    return () => {
+      console.log('🔧 AdminPanel UNMOUNTED - this shows if component tears down');
+    };
+  }, []);
+  
   const [activeTab, setActiveTab] = useState("dashboard");
   const [apis, setApis] = useState<APIEndpoint[]>([]);
   const [categories, setCategories] = useState<APICategory[]>([]);
@@ -2034,12 +2042,10 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   };
 
   const addResponse = () => {
-    alert('Add Response button clicked!'); // Immediate feedback
+    // Direct state update without complex logging that might fail
     const currentResponses = formData.responses || [];
-    console.log('🔧 DEBUG: Current responses before add:', currentResponses);
-    
     const newResponse = { 
-      id: Date.now().toString(), // Add unique ID for React key
+      id: Date.now().toString(),
       statusCode: 200, 
       description: "New Response", 
       schema: {}, 
@@ -2047,23 +2053,17 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     };
     const newResponses = [...currentResponses, newResponse];
     
-    console.log('🔧 DEBUG: New responses after add:', newResponses);
+    setFormData(prev => ({
+      ...prev,
+      responses: newResponses
+    }));
     
-    setFormData(prev => {
-      const updated = { ...prev, responses: newResponses };
-      console.log('🔧 DEBUG: setFormData called with:', updated);
-      return updated;
-    });
-    
-    console.log('✅ Response added successfully. New count:', newResponses.length);
+    // Simple success indicator
+    alert(`✅ Added response! Total: ${newResponses.length}`);
   };
 
   const removeResponse = (index: number) => {
-    alert(`Remove Response button clicked! Removing index: ${index}`); // Immediate feedback
     const currentResponses = formData.responses || [];
-    
-    console.log('🔧 DEBUG: Current responses before remove:', currentResponses);
-    console.log('🔧 DEBUG: Removing index:', index);
     
     if (currentResponses.length === 0 || index < 0 || index >= currentResponses.length) {
       alert('Cannot remove - invalid index or no responses');
@@ -2071,15 +2071,14 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     }
     
     const newResponses = currentResponses.filter((_: any, i: number) => i !== index);
-    console.log('🔧 DEBUG: New responses after remove:', newResponses);
     
-    setFormData(prev => {
-      const updated = { ...prev, responses: newResponses };
-      console.log('🔧 DEBUG: setFormData called with:', updated);
-      return updated;
-    });
+    setFormData(prev => ({
+      ...prev,
+      responses: newResponses
+    }));
     
-    console.log('✅ Response removed successfully. New count:', newResponses.length);
+    // Simple success indicator
+    alert(`✅ Removed response! Total: ${newResponses.length}`);
   };
 
   const updateResponse = (index: number, field: string, value: any) => {
@@ -2391,6 +2390,16 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
               <h3 className="text-lg font-semibold">Responses</h3>
               <Button 
                 type="button"
+                onMouseDownCapture={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  (e as any).nativeEvent?.stopImmediatePropagation?.();
+                }}
+                onClickCapture={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  (e as any).nativeEvent?.stopImmediatePropagation?.();
+                }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -2400,6 +2409,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                     console.log('🔧 DEBUG: formData.responses before addResponse:', formData.responses);
                     addResponse();
                     console.log('🔧 DEBUG: Add Response button click handler completed');
+                    setTimeout(() => console.log('🔧 DEBUG: Deferred log - component still mounted'), 0);
                   } catch (err) {
                     console.error('❌ ERROR in Add Response:', err);
                     alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
@@ -2447,6 +2457,16 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                     type="button"
                     variant="destructive" 
                     size="sm" 
+                    onMouseDownCapture={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      (e as any).nativeEvent?.stopImmediatePropagation?.();
+                    }}
+                    onClickCapture={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      (e as any).nativeEvent?.stopImmediatePropagation?.();
+                    }}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -2456,6 +2476,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
                         console.log(`🔧 DEBUG: Response to remove:`, formData.responses[index]);
                         removeResponse(index);
                         console.log('🔧 DEBUG: Remove Response button click handler completed');
+                        setTimeout(() => console.log('🔧 DEBUG: Deferred remove log - component still mounted'), 0);
                       } catch (err) {
                         console.error('❌ ERROR in Remove Response:', err);
                         alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
