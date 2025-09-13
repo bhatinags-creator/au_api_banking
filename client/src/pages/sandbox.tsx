@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Play, Copy, Settings, Database, CreditCard, Shield, Clock, CheckCircle, XCircle, AlertCircle, Eye, EyeOff, Search, Filter, Star, History } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { fetchValidationRules, validateFieldDynamic, validateObjectDynamic, getFieldConstraints } from "@/lib/dynamicValidation";
 import { useValidationRules } from "@/hooks/useConfigurations";
 
@@ -764,6 +765,12 @@ export default function Sandbox() {
   // Use dynamic validation rules hook inside the component
   const { data: validationRulesData, isLoading: validationLoading } = useValidationRules(undefined, 'sandbox');
   
+  // Fetch categories from database
+  const { data: dbCategories = [], isLoading: categoriesLoading } = useQuery<any[]>({
+    queryKey: ['/api/categories'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
   // Transform dynamic rules to legacy format for backwards compatibility
   const validationSchemas = useMemo(() => {
     const transformedSchemas: EndpointValidation = {};
@@ -856,6 +863,19 @@ export default function Sandbox() {
 
   // Navigation helpers
   const getApiGroups = () => {
+    // Use database categories if available, fallback to hardcoded endpoints
+    if (dbCategories && dbCategories.length > 0) {
+      return dbCategories
+        .filter(category => category.isActive) // Only show active categories
+        .sort((a, b) => a.displayOrder - b.displayOrder) // Sort by display order
+        .map(category => ({
+          name: category.name,
+          endpoints: apiEndpoints.filter(endpoint => endpoint.category === category.name),
+          icon: categoryIcons[category.name as keyof typeof categoryIcons] || Settings
+        }));
+    }
+    
+    // Fallback to original logic if no database categories
     const groups = Array.from(new Set(apiEndpoints.map(endpoint => endpoint.category)));
     return groups.sort().map(category => ({
       name: category,
