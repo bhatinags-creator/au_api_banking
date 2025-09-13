@@ -1790,6 +1790,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public Validation Configuration endpoint for frontend forms
+  app.get("/api/validation-rules", async (req, res) => {
+    try {
+      const { environment = 'all', entityType } = req.query;
+      let validationConfigs;
+      
+      if (entityType) {
+        validationConfigs = await storage.getValidationConfigurationsByEntity(entityType as string, environment as string);
+      } else {
+        validationConfigs = await storage.getAllValidationConfigurations(environment as string);
+      }
+      
+      // Transform validation configurations into a more usable format for frontend
+      const formattedRules: Record<string, Record<string, any>> = {};
+      
+      validationConfigs.forEach(config => {
+        if (!formattedRules[config.entityType]) {
+          formattedRules[config.entityType] = {};
+        }
+        if (!formattedRules[config.entityType][config.fieldName]) {
+          formattedRules[config.entityType][config.fieldName] = {
+            validations: [],
+            errorMessages: {}
+          };
+        }
+        
+        formattedRules[config.entityType][config.fieldName].validations.push({
+          type: config.validationType,
+          rules: config.rules,
+          priority: config.priority,
+          isActive: config.isActive
+        });
+        
+        formattedRules[config.entityType][config.fieldName].errorMessages[config.validationType] = config.errorMessage;
+      });
+      
+      res.json({ 
+        success: true, 
+        data: formattedRules,
+        environment: environment,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Get public validation rules error:', error);
+      res.status(500).json({ error: 'Failed to fetch validation rules' });
+    }
+  });
+
   // Validation Configuration Routes (Admin/Manager only)
   app.get("/api/config/validation", authenticate, requireRole(['admin', 'manager']), async (req, res) => {
     try {

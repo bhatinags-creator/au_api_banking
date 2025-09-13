@@ -321,6 +321,282 @@ export class MemStorage implements IStorage {
       { id: "sys-2", module: "auth", setting: "session_timeout", value: 3600, description: "Session timeout in seconds", dataType: "number", environment: "all", isEditable: true, requiresRestart: false, lastModifiedBy: null, createdAt: new Date(), updatedAt: new Date() }
     ];
     systemConfigs.forEach(config => this.systemConfigurations.set(config.id, config));
+
+    // Seed comprehensive validation configurations
+    this.seedValidationConfigurations();
+  }
+
+  private seedValidationConfigurations() {
+    const validationConfigs: ValidationConfiguration[] = [
+      // Authentication validation rules
+      {
+        id: "val-1", entityType: "user", fieldName: "email", validationType: "pattern",
+        rules: { pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$" },
+        errorMessage: "Please enter a valid email address",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-2", entityType: "user", fieldName: "password", validationType: "length",
+        rules: { minLength: 6, maxLength: 128 },
+        errorMessage: "Password must be at least 6 characters long",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // Corporate registration validation rules
+      {
+        id: "val-3", entityType: "corporate_registration", fieldName: "otpCode", validationType: "length",
+        rules: { exactLength: 6 },
+        errorMessage: "OTP code must be exactly 6 digits",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-4", entityType: "corporate_registration", fieldName: "companyName", validationType: "length",
+        rules: { minLength: 2, maxLength: 200 },
+        errorMessage: "Company name must be between 2 and 200 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-5", entityType: "corporate_registration", fieldName: "contactPerson", validationType: "length",
+        rules: { minLength: 2, maxLength: 100 },
+        errorMessage: "Contact person name must be between 2 and 100 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // API sandbox validation rules - Currency validation
+      {
+        id: "val-6", entityType: "api_request", fieldName: "amount", validationType: "pattern",
+        rules: { pattern: "^\\d+\\.\\d{2}$", minValue: 0.01, maxValue: 999999999.99 },
+        errorMessage: "Amount must be in format 1000.00 and greater than 0",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // Phone number validation
+      {
+        id: "val-7", entityType: "api_request", fieldName: "mobile_number", validationType: "pattern",
+        rules: { pattern: "^[6-9]\\d{9}$" },
+        errorMessage: "Mobile number must be a valid 10-digit Indian mobile number",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-8", entityType: "api_request", fieldName: "customer_mobile", validationType: "pattern",
+        rules: { pattern: "^[6-9]\\d{9}$" },
+        errorMessage: "Customer mobile must be a valid 10-digit Indian mobile number",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-9", entityType: "api_request", fieldName: "phoneNo", validationType: "pattern",
+        rules: { pattern: "^[6-9]\\d{9}$" },
+        errorMessage: "Phone number must be a valid 10-digit Indian mobile number",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // IFSC code validation
+      {
+        id: "val-10", entityType: "api_request", fieldName: "ifscCode", validationType: "pattern",
+        rules: { pattern: "^[A-Z]{4}0[A-Z0-9]{6}$" },
+        errorMessage: "IFSC code must be in valid format (e.g., AUBL0002086)",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // Account number validation
+      {
+        id: "val-11", entityType: "api_request", fieldName: "remitterAccountNo", validationType: "pattern",
+        rules: { pattern: "^\\d{9,18}$" },
+        errorMessage: "Remitter account number must be 9-18 digits",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-12", entityType: "api_request", fieldName: "beneAccNo", validationType: "pattern",
+        rules: { pattern: "^\\d{9,18}$" },
+        errorMessage: "Beneficiary account number must be 9-18 digits",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // Date validation patterns
+      {
+        id: "val-13", entityType: "api_request", fieldName: "date_of_birth", validationType: "pattern",
+        rules: { pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+        errorMessage: "Date of birth must be in YYYY-MM-DD format",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-14", entityType: "api_request", fieldName: "valueDate", validationType: "pattern",
+        rules: { pattern: "^\\d{8}$" },
+        errorMessage: "Value date must be in YYYYMMDD format",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // Length constraints for API fields
+      {
+        id: "val-15", entityType: "api_request", fieldName: "uniqueRequestId", validationType: "length",
+        rules: { maxLength: 20 },
+        errorMessage: "Unique Request ID must not exceed 20 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-16", entityType: "api_request", fieldName: "corporateCode", validationType: "length",
+        rules: { maxLength: 20 },
+        errorMessage: "Corporate code must not exceed 20 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-17", entityType: "api_request", fieldName: "corporateProductCode", validationType: "length",
+        rules: { maxLength: 50 },
+        errorMessage: "Corporate product code must not exceed 50 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-18", entityType: "api_request", fieldName: "paymentMethodName", validationType: "length",
+        rules: { maxLength: 50 },
+        errorMessage: "Payment method name must not exceed 50 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-19", entityType: "api_request", fieldName: "beneName", validationType: "length",
+        rules: { maxLength: 200 },
+        errorMessage: "Beneficiary name must not exceed 200 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-20", entityType: "api_request", fieldName: "transactionRefNo", validationType: "length",
+        rules: { maxLength: 25 },
+        errorMessage: "Transaction reference number must not exceed 25 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-21", entityType: "api_request", fieldName: "paymentInstruction", validationType: "length",
+        rules: { maxLength: 314 },
+        errorMessage: "Payment instruction must not exceed 314 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-22", entityType: "api_request", fieldName: "remarks", validationType: "length",
+        rules: { maxLength: 40 },
+        errorMessage: "Remarks must not exceed 40 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-23", entityType: "api_request", fieldName: "customer_name", validationType: "length",
+        rules: { maxLength: 100 },
+        errorMessage: "Customer name must not exceed 100 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-24", entityType: "api_request", fieldName: "document_number", validationType: "length",
+        rules: { maxLength: 20 },
+        errorMessage: "Document number must not exceed 20 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-25", entityType: "api_request", fieldName: "biller_id", validationType: "length",
+        rules: { maxLength: 20 },
+        errorMessage: "Biller ID must not exceed 20 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-26", entityType: "api_request", fieldName: "reference_id", validationType: "length",
+        rules: { maxLength: 25 },
+        errorMessage: "Reference ID must not exceed 25 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // Required field validations
+      {
+        id: "val-27", entityType: "api_request", fieldName: "amount", validationType: "required",
+        rules: { required: true },
+        errorMessage: "Amount is mandatory and cannot be empty",
+        environment: "all", isActive: true, priority: 0,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-28", entityType: "api_request", fieldName: "transaction_ref", validationType: "required",
+        rules: { required: true },
+        errorMessage: "Transaction reference is mandatory and cannot be empty",
+        environment: "all", isActive: true, priority: 0,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-29", entityType: "api_request", fieldName: "mobile_number", validationType: "required",
+        rules: { required: true },
+        errorMessage: "Mobile number is mandatory and cannot be empty",
+        environment: "all", isActive: true, priority: 0,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-30", entityType: "user", fieldName: "email", validationType: "required",
+        rules: { required: true },
+        errorMessage: "Email is required",
+        environment: "all", isActive: true, priority: 0,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-31", entityType: "user", fieldName: "password", validationType: "required",
+        rules: { required: true },
+        errorMessage: "Password is required",
+        environment: "all", isActive: true, priority: 0,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+
+      // Admin panel validation rules
+      {
+        id: "val-32", entityType: "api_endpoint", fieldName: "name", validationType: "length",
+        rules: { minLength: 1, maxLength: 100 },
+        errorMessage: "API name must be between 1 and 100 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-33", entityType: "api_endpoint", fieldName: "path", validationType: "length",
+        rules: { minLength: 1, maxLength: 500 },
+        errorMessage: "API path must be between 1 and 500 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-34", entityType: "api_endpoint", fieldName: "description", validationType: "length",
+        rules: { minLength: 10, maxLength: 1000 },
+        errorMessage: "API description must be between 10 and 1000 characters",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      },
+      {
+        id: "val-35", entityType: "api_endpoint", fieldName: "timeout", validationType: "range",
+        rules: { minValue: 5000, maxValue: 300000 },
+        errorMessage: "API timeout must be between 5 seconds and 5 minutes",
+        environment: "all", isActive: true, priority: 1,
+        createdAt: new Date(), updatedAt: new Date()
+      }
+    ];
+
+    validationConfigs.forEach(config => {
+      this.validationConfigurations.set(config.id, config);
+    });
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -1204,7 +1480,8 @@ export class DatabaseStorage implements IStorage {
   async getAllApiEndpoints(): Promise<ApiEndpoint[]> {
     return await db.select().from(apiEndpoints)
       .where(eq(apiEndpoints.isActive, true))
-      .orderBy(apiEndpoints.category, apiEndpoints.name);
+      .orderBy(apiEndpoints.category)
+      .orderBy(apiEndpoints.name);
   }
 
   async getApiEndpointsByCategory(category: string): Promise<ApiEndpoint[]> {
@@ -1561,7 +1838,8 @@ export class DatabaseStorage implements IStorage {
       if (environment && environment !== 'all') {
         query = query.where(eq(configurations.environment, environment));
       }
-      return await query.orderBy(configurations.categoryId, configurations.key);
+      return await query.orderBy(configurations.categoryId)
+        .orderBy(configurations.key);
     } catch (error) {
       console.error('Database error in getAllConfigurations:', error);
       throw new Error('Failed to fetch configurations');
@@ -1841,7 +2119,8 @@ export class DatabaseStorage implements IStorage {
       if (environment && environment !== 'all') {
         query = query.where(eq(validationConfigurations.environment, environment));
       }
-      return await query.orderBy(validationConfigurations.entityType, validationConfigurations.field);
+      return await query.orderBy(validationConfigurations.entityType)
+        .orderBy(validationConfigurations.fieldName);
     } catch (error) {
       console.error('Database error in getAllValidationConfigurations:', error);
       throw new Error('Failed to fetch validation configurations');
@@ -1870,7 +2149,7 @@ export class DatabaseStorage implements IStorage {
           eq(validationConfigurations.environment, environment)
         ));
       }
-      return await query.orderBy(validationConfigurations.field);
+      return await query.orderBy(validationConfigurations.fieldName);
     } catch (error) {
       console.error('Database error in getValidationConfigurationsByEntity:', error);
       throw new Error('Failed to get validation configurations by entity');
@@ -1921,7 +2200,8 @@ export class DatabaseStorage implements IStorage {
       if (environment && environment !== 'all') {
         query = query.where(eq(systemConfigurations.environment, environment));
       }
-      return await query.orderBy(systemConfigurations.module, systemConfigurations.setting);
+      return await query.orderBy(systemConfigurations.module)
+        .orderBy(systemConfigurations.setting);
     } catch (error) {
       console.error('Database error in getAllSystemConfigurations:', error);
       throw new Error('Failed to fetch system configurations');

@@ -198,7 +198,7 @@ export const useSystemConfiguration = (module?: string, environment: string = 'a
   });
 };
 
-// Hook to fetch validation configuration
+// Hook to fetch validation configuration (admin only)
 export const useValidationConfiguration = (entityType?: string, environment: string = 'all') => {
   return useQuery({
     queryKey: ['/api/config/validation', { entityType, environment }],
@@ -221,6 +221,30 @@ export const useValidationConfiguration = (entityType?: string, environment: str
     staleTime: 5 * 60 * 1000,
     retry: 1,
     select: (data) => data || []
+  });
+};
+
+// Hook to fetch public validation rules for frontend forms
+export const useValidationRules = (entityType?: string, environment: string = 'all') => {
+  return useQuery({
+    queryKey: ['/api/validation-rules', { entityType, environment }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (entityType) params.append('entityType', entityType);
+      if (environment) params.append('environment', environment);
+      
+      const response = await fetch(`/api/validation-rules?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch validation rules');
+      }
+      
+      const data = await response.json();
+      return data.data as Record<string, Record<string, any>>;
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    select: (data) => data || {}
   });
 };
 

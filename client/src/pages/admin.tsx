@@ -15,7 +15,10 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { useAdminFormConfigurations } from "@/hooks/useConfigurations";
+import { useAdminFormConfigurations, useValidationConfiguration } from "@/hooks/useConfigurations";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { insertValidationConfigurationSchema, updateValidationConfigurationSchema } from "@shared/schema";
 
 interface APIParameter {
   name: string;
@@ -101,6 +104,9 @@ export default function AdminPanel() {
   const [selectedApi, setSelectedApi] = useState<APIEndpoint | null>(null);
   
   const { toast } = useToast();
+  
+  // Get validation configuration for admin panel
+  const { data: validationConfigs, isLoading: validationLoading } = useValidationConfiguration();
 
   // Backend admin authentication
   const handleAdminLogin = async (email: string, password: string) => {
@@ -324,7 +330,7 @@ export default function AdminPanel() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Dashboard
@@ -332,6 +338,10 @@ export default function AdminPanel() {
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Categories
+            </TabsTrigger>
+            <TabsTrigger value="validation" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Validation
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -733,6 +743,14 @@ export default function AdminPanel() {
 
 
 
+          {/* Validation Rules Management Tab */}
+          <TabsContent value="validation" className="space-y-6">
+            <ValidationRulesManagement 
+              validationConfigs={validationConfigs}
+              isLoading={validationLoading}
+            />
+          </TabsContent>
+
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -752,6 +770,531 @@ export default function AdminPanel() {
     </div>
   );
 }
+
+// Validation Rules Management Component
+interface ValidationRulesManagementProps {
+  validationConfigs: any[];
+  isLoading: boolean;
+}
+
+const ValidationRulesManagement = ({ validationConfigs, isLoading }: ValidationRulesManagementProps) => {
+  const [editingRule, setEditingRule] = useState<any>(null);
+  const [showRuleDialog, setShowRuleDialog] = useState(false);
+  const [selectedEntityType, setSelectedEntityType] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Filter validation configs based on entity type and search term
+  const filteredConfigs = validationConfigs?.filter(config => {
+    const matchesEntity = selectedEntityType === 'all' || config.entityType === selectedEntityType;
+    const matchesSearch = !searchTerm || 
+      config.fieldName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      config.entityType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      config.validationType.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesEntity && matchesSearch;
+  }) || [];
+
+  // Get unique entity types for filter dropdown
+  const entityTypes = [...new Set(validationConfigs?.map(config => config.entityType) || [])];
+
+  // Create validation rule mutation
+  const createRuleMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/config/validation", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/config/validation'] });
+      setShowRuleDialog(false);
+      setEditingRule(null);
+      toast({
+        title: "Success",
+        description: "Validation rule created successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to create validation rule"
+      });
+    }
+  });
+
+  // Update validation rule mutation
+  const updateRuleMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PUT", `/api/config/validation/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/config/validation'] });
+      setShowRuleDialog(false);
+      setEditingRule(null);
+      toast({
+        title: "Success",
+        description: "Validation rule updated successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update validation rule"
+      });
+    }
+  });
+
+  // Delete validation rule mutation
+  const deleteRuleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/config/validation/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/config/validation'] });
+      toast({
+        title: "Success",
+        description: "Validation rule deleted successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete validation rule"
+      });
+    }
+  });
+
+  // Toggle active status mutation
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const response = await apiRequest("PUT", `/api/config/validation/${id}`, { isActive });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/config/validation'] });
+      toast({
+        title: "Success",
+        description: "Validation rule status updated"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update validation rule status"
+      });
+    }
+  });
+
+  const handleDeleteRule = (id: string) => {
+    if (confirm("Are you sure you want to delete this validation rule? This action cannot be undone.")) {
+      deleteRuleMutation.mutate(id);
+    }
+  };
+
+  const handleToggleActive = (id: string, currentStatus: boolean) => {
+    toggleActiveMutation.mutate({ id, isActive: !currentStatus });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-[var(--au-primary)]">Validation Rules</h2>
+          <p className="text-muted-foreground">Manage dynamic validation rules for forms and API endpoints</p>
+        </div>
+        <Button 
+          onClick={() => {
+            setEditingRule(null);
+            setShowRuleDialog(true);
+          }}
+          className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+          data-testid="button-add-validation-rule"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Validation Rule
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center space-x-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search rules by field name, entity type, or validation type..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-md"
+            data-testid="input-search-validation-rules"
+          />
+        </div>
+        <Select value={selectedEntityType} onValueChange={setSelectedEntityType}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filter by entity type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Entity Types</SelectItem>
+            {entityTypes.map(entityType => (
+              <SelectItem key={entityType} value={entityType}>
+                {entityType}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Rules Table */}
+      <Card>
+        <CardContent className="pt-6">
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="text-sm text-muted-foreground">Loading validation rules...</div>
+            </div>
+          ) : filteredConfigs.length === 0 ? (
+            <div className="text-center py-8">
+              <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <div className="text-sm text-muted-foreground">
+                {searchTerm || selectedEntityType !== 'all' 
+                  ? "No validation rules match your filters" 
+                  : "No validation rules configured yet"
+                }
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 font-medium">Entity Type</th>
+                    <th className="text-left py-3 px-4 font-medium">Field Name</th>
+                    <th className="text-left py-3 px-4 font-medium">Validation Type</th>
+                    <th className="text-left py-3 px-4 font-medium">Rules</th>
+                    <th className="text-left py-3 px-4 font-medium">Environment</th>
+                    <th className="text-left py-3 px-4 font-medium">Status</th>
+                    <th className="text-left py-3 px-4 font-medium">Priority</th>
+                    <th className="text-right py-3 px-4 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredConfigs.map((config) => (
+                    <tr key={config.id} className="border-b hover:bg-muted/50" data-testid={`row-validation-rule-${config.id}`}>
+                      <td className="py-3 px-4">
+                        <Badge variant="secondary" className="bg-[var(--au-primary)]/10 text-[var(--au-primary)]">
+                          {config.entityType}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4 font-mono text-sm">{config.fieldName}</td>
+                      <td className="py-3 px-4">
+                        <Badge variant="outline">{config.validationType}</Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="text-xs text-muted-foreground max-w-xs truncate">
+                          {JSON.stringify(config.rules)}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant={config.environment === 'all' ? 'default' : 'secondary'}>
+                          {config.environment}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => handleToggleActive(config.id, config.isActive)}
+                          className="flex items-center space-x-1"
+                          data-testid={`button-toggle-status-${config.id}`}
+                        >
+                          {config.isActive ? (
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-red-600" />
+                          )}
+                          <span className={`text-xs ${config.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                            {config.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </button>
+                      </td>
+                      <td className="py-3 px-4 text-sm">{config.priority}</td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingRule(config);
+                              setShowRuleDialog(true);
+                            }}
+                            data-testid={`button-edit-rule-${config.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteRule(config.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-rule-${config.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Add/Edit Rule Dialog */}
+      <ValidationRuleDialog
+        isOpen={showRuleDialog}
+        onClose={() => {
+          setShowRuleDialog(false);
+          setEditingRule(null);
+        }}
+        editingRule={editingRule}
+        onSubmit={(data) => {
+          if (editingRule) {
+            updateRuleMutation.mutate({ id: editingRule.id, data });
+          } else {
+            createRuleMutation.mutate(data);
+          }
+        }}
+        isLoading={createRuleMutation.isPending || updateRuleMutation.isPending}
+      />
+    </div>
+  );
+};
+
+// Validation Rule Dialog Component
+interface ValidationRuleDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  editingRule: any;
+  onSubmit: (data: any) => void;
+  isLoading: boolean;
+}
+
+const ValidationRuleDialog = ({ isOpen, onClose, editingRule, onSubmit, isLoading }: ValidationRuleDialogProps) => {
+  const [formData, setFormData] = useState({
+    entityType: '',
+    fieldName: '',
+    validationType: 'required',
+    rules: '{}',
+    errorMessage: '',
+    environment: 'all',
+    priority: 0,
+    isActive: true
+  });
+
+  const validationTypes = ['required', 'length', 'pattern', 'range', 'custom'];
+  const environments = ['all', 'sandbox', 'uat', 'production'];
+
+  useEffect(() => {
+    if (editingRule) {
+      setFormData({
+        entityType: editingRule.entityType,
+        fieldName: editingRule.fieldName,
+        validationType: editingRule.validationType,
+        rules: JSON.stringify(editingRule.rules, null, 2),
+        errorMessage: editingRule.errorMessage,
+        environment: editingRule.environment,
+        priority: editingRule.priority,
+        isActive: editingRule.isActive
+      });
+    } else {
+      setFormData({
+        entityType: '',
+        fieldName: '',
+        validationType: 'required',
+        rules: '{}',
+        errorMessage: '',
+        environment: 'all',
+        priority: 0,
+        isActive: true
+      });
+    }
+  }, [editingRule]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const parsedRules = JSON.parse(formData.rules);
+      const submitData = {
+        ...formData,
+        rules: parsedRules,
+        priority: Number(formData.priority)
+      };
+      onSubmit(submitData);
+    } catch (error) {
+      alert('Invalid JSON in rules field. Please check your syntax.');
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {editingRule ? 'Edit Validation Rule' : 'Add New Validation Rule'}
+          </DialogTitle>
+          <DialogDescription>
+            Configure dynamic validation rules for form fields and API parameters
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="entityType">Entity Type *</Label>
+              <Input
+                id="entityType"
+                value={formData.entityType}
+                onChange={(e) => setFormData({ ...formData, entityType: e.target.value })}
+                placeholder="e.g., corporate-registration, upi-payout"
+                required
+                data-testid="input-entity-type"
+              />
+            </div>
+            <div>
+              <Label htmlFor="fieldName">Field Name *</Label>
+              <Input
+                id="fieldName"
+                value={formData.fieldName}
+                onChange={(e) => setFormData({ ...formData, fieldName: e.target.value })}
+                placeholder="e.g., email, amount, companyName"
+                required
+                data-testid="input-field-name"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="validationType">Validation Type *</Label>
+              <Select value={formData.validationType} onValueChange={(value) => setFormData({ ...formData, validationType: value })}>
+                <SelectTrigger data-testid="select-validation-type">
+                  <SelectValue placeholder="Select validation type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {validationTypes.map(type => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="environment">Environment</Label>
+              <Select value={formData.environment} onValueChange={(value) => setFormData({ ...formData, environment: value })}>
+                <SelectTrigger data-testid="select-environment">
+                  <SelectValue placeholder="Select environment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {environments.map(env => (
+                    <SelectItem key={env} value={env}>
+                      {env}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="rules">Validation Rules (JSON) *</Label>
+            <Textarea
+              id="rules"
+              value={formData.rules}
+              onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
+              placeholder='{"required": true, "maxLength": 50}'
+              rows={4}
+              className="font-mono text-sm"
+              required
+              data-testid="textarea-rules"
+            />
+            <div className="text-xs text-muted-foreground mt-1">
+              Example for required: {"{"}"required": true{"}"}
+              <br />
+              Example for length: {"{"}"minLength": 5, "maxLength": 50{"}"}
+              <br />
+              Example for pattern: {"{"}"pattern": "^[\\w.-]+@[\\w.-]+$"{"}"}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="errorMessage">Error Message *</Label>
+            <Input
+              id="errorMessage"
+              value={formData.errorMessage}
+              onChange={(e) => setFormData({ ...formData, errorMessage: e.target.value })}
+              placeholder="This field is required"
+              required
+              data-testid="input-error-message"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="priority">Priority</Label>
+              <Input
+                id="priority"
+                type="number"
+                value={formData.priority}
+                onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                placeholder="0"
+                data-testid="input-priority"
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                Lower numbers run first
+              </div>
+            </div>
+            <div className="flex items-end">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  data-testid="checkbox-is-active"
+                />
+                <span className="text-sm">Active</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+              disabled={isLoading}
+              data-testid="button-save-validation-rule"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  {editingRule ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                editingRule ? 'Update Rule' : 'Create Rule'
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 // Login Form Component  
 const LoginForm = ({ onLogin }: { onLogin: (email: string, password: string) => void }) => {

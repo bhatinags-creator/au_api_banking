@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -12,12 +12,18 @@ import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, CheckCircle, Building2, Mail, User, CreditCard, Key } from "lucide-react";
 import { Link } from "wouter";
+import { useValidationRules } from "@/hooks/useConfigurations";
+import { validateObjectDynamic } from "@/lib/dynamicValidation";
 
 export default function CorporateRegistration() {
   const [currentStep, setCurrentStep] = useState<"registration" | "otp" | "success">("registration");
   const [registrationId, setRegistrationId] = useState<string>("");
   const [generatedApiKey, setGeneratedApiKey] = useState<string>("");
+  const [dynamicValidationErrors, setDynamicValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
+  
+  // Use dynamic validation rules for corporate registration
+  const { data: validationRules } = useValidationRules('corporate-registration', 'all');
 
   const registrationForm = useForm({
     resolver: zodResolver(insertCorporateRegistrationSchema.extend({
@@ -88,9 +94,31 @@ export default function CorporateRegistration() {
     }
   });
 
-  const onRegistrationSubmit = (data: any) => {
-    const { confirmEmail, ...registrationData } = data;
-    registrationMutation.mutate(registrationData);
+  const onRegistrationSubmit = async (data: any) => {
+    try {
+      // First validate using dynamic validation if available
+      if (validationRules && Object.keys(validationRules).length > 0) {
+        const dynamicErrors = await validateObjectDynamic('corporate-registration', data, 'all');
+        if (dynamicErrors.length > 0) {
+          setDynamicValidationErrors(dynamicErrors.map(err => err.message));
+          toast({
+            variant: "destructive",
+            title: "Validation Error",
+            description: "Please fix the validation errors and try again."
+          });
+          return;
+        }
+      }
+      
+      setDynamicValidationErrors([]);
+      const { confirmEmail, ...registrationData } = data;
+      registrationMutation.mutate(registrationData);
+    } catch (error) {
+      console.error('Dynamic validation error:', error);
+      // Fallback to form validation if dynamic validation fails
+      const { confirmEmail, ...registrationData } = data;
+      registrationMutation.mutate(registrationData);
+    }
   };
 
   const onOtpSubmit = (data: any) => {
@@ -130,6 +158,18 @@ export default function CorporateRegistration() {
             {currentStep === "registration" && (
               <Form {...registrationForm}>
                 <form onSubmit={registrationForm.handleSubmit(onRegistrationSubmit)} className="space-y-6">
+                  {/* Dynamic Validation Errors Display */}
+                  {dynamicValidationErrors.length > 0 && (
+                    <div className="md:col-span-2 p-4 bg-red-50 border border-red-200 rounded-md">
+                      <h4 className="text-sm font-medium text-red-800 mb-2">Validation Errors:</h4>
+                      <ul className="text-sm text-red-700 space-y-1">
+                        {dynamicValidationErrors.map((error, index) => (
+                          <li key={index}>• {error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={registrationForm.control}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Play, Copy, Settings, Database, CreditCard, Shield, Clock, CheckCircle, XCircle, AlertCircle, Eye, EyeOff, Search, Filter, Star, History } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { fetchValidationRules, validateFieldDynamic, validateObjectDynamic, getFieldConstraints } from "@/lib/dynamicValidation";
+import { useValidationRules } from "@/hooks/useConfigurations";
 
 // Import category images
 import accountsImage from "@assets/generated_images/Banking_accounts_interface_illustration_1018d030.png";
@@ -68,53 +70,27 @@ interface EndpointValidation {
   [key: string]: FieldValidation[];
 }
 
-// Comprehensive validation schemas based on API documentation
-const validationSchemas: EndpointValidation = {
+// Fallback validation schemas - now this is just a minimal fallback
+const fallbackValidationSchemas: EndpointValidation = {
   "upi-payout": [
-    { name: "upi_id", type: "string", required: true, maxLength: 50, description: "Valid UPI ID (e.g., user@bank)", example: "user@aubank", pattern: "^[\\w.-]+@[\\w.-]+$" },
-    { name: "amount", type: "currency", required: true, maxLength: 10, description: "Amount in INR (e.g., 1000.00)", example: "1000.00", pattern: "^\\d+\\.\\d{2}$" },
-    { name: "transaction_ref", type: "string", required: true, maxLength: 25, description: "Unique transaction reference", example: "TXN123456789" },
-    { name: "customer_mobile", type: "phone", required: true, maxLength: 10, description: "Customer mobile number", example: "9876543210", pattern: "^[6-9]\\d{9}$" },
-    { name: "remarks", type: "string", required: false, maxLength: 40, description: "Optional transaction remarks", example: "Payment for services" }
-  ],
-  "cnb-payment": [
-    { name: "uniqueRequestId", type: "string", required: true, maxLength: 20, description: "Unique Request/Reference number", example: "REQ123456789" },
-    { name: "corporateCode", type: "string", required: true, maxLength: 20, description: "Corporate code (CIF Number)", example: "CORP001" },
-    { name: "corporateProductCode", type: "string", required: true, maxLength: 50, description: "Corporate product code", example: "PROD001" },
-    { name: "paymentMethodName", type: "string", required: true, maxLength: 50, description: "Payment method: NEFT, RTGS, IMPS, Internal Fund Transfer", example: "NEFT" },
-    { name: "remitterAccountNo", type: "account", required: true, maxLength: 35, description: "Remitter Account Number", example: "1234567890123" },
-    { name: "amount", type: "currency", required: true, maxLength: 16, description: "Payable amount (format: 1000.00)", example: "1000.00", pattern: "^\\d{1,14}\\.\\d{2}$" },
-    { name: "ifscCode", type: "ifsc", required: true, maxLength: 50, description: "Beneficiary IFSC Code", example: "AUBL0002086", pattern: "^[A-Z]{4}0[A-Z0-9]{6}$" },
-    { name: "payableCurrency", type: "string", required: true, maxLength: 20, description: "Always 'INR' for Indian Rupees", example: "INR" },
-    { name: "beneAccNo", type: "account", required: true, maxLength: 35, description: "Beneficiary Account Number", example: "9876543210987" },
-    { name: "beneName", type: "string", required: true, maxLength: 200, description: "Beneficiary Name", example: "Test Beneficiary" },
-    { name: "transactionRefNo", type: "string", required: true, maxLength: 25, description: "Unique reference number for transaction", example: "TXN001" },
-    { name: "paymentInstruction", type: "string", required: true, maxLength: 314, description: "Payment narration", example: "NEFT Payment" },
-    { name: "beneCode", type: "string", required: false, maxLength: 200, description: "Beneficiary code (Optional)", example: "BENE001" },
-    { name: "valueDate", type: "date", required: false, maxLength: 8, description: "Value date (YYYYMMDD)", example: "20240115", pattern: "^\\d{8}$" },
-    { name: "remarks", type: "string", required: false, maxLength: 40, description: "Additional remarks", example: "Payment for services" },
-    { name: "email", type: "email", required: false, maxLength: 50, description: "Email for notifications", example: "test@example.com" },
-    { name: "phoneNo", type: "phone", required: false, maxLength: 200, description: "Phone number for notifications", example: "9876543210" }
-  ],
-  "bbps-bill-fetch": [
-    { name: "biller_id", type: "string", required: true, maxLength: 20, description: "BBPS Biller ID", example: "MSEDCL001" },
-    { name: "customer_params", type: "string", required: true, description: "Customer identification parameters", example: "9876543210" },
-    { name: "amount", type: "currency", required: true, description: "Bill amount", example: "500.00", pattern: "^\\d+\\.\\d{2}$" },
-    { name: "reference_id", type: "string", required: true, maxLength: 25, description: "Unique reference ID", example: "FETCH123456789" }
-  ],
-  "kyc-upload": [
-    { name: "document_type", type: "string", required: true, description: "Document type: PAN, AADHAAR, PASSPORT, VOTER_ID", example: "PAN" },
-    { name: "document_number", type: "string", required: true, maxLength: 20, description: "Document number", example: "ABCDE1234F" },
-    { name: "customer_name", type: "string", required: true, maxLength: 100, description: "Customer full name", example: "John Doe" },
-    { name: "date_of_birth", type: "date", required: true, description: "Date of birth (YYYY-MM-DD)", example: "1990-01-15", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
-    { name: "mobile_number", type: "phone", required: true, description: "Mobile number", example: "9876543210", pattern: "^[6-9]\\d{9}$" },
-    { name: "email", type: "email", required: false, description: "Email address", example: "john.doe@example.com" }
+    { name: "upi_id", type: "string", required: true, maxLength: 50, description: "Valid UPI ID", example: "user@aubank" },
+    { name: "amount", type: "currency", required: true, maxLength: 10, description: "Amount in INR", example: "1000.00" }
   ]
 };
 
-// Validation functions
-const validateField = (value: string, field: FieldValidation): ValidationError | null => {
-  // Check if required field is empty
+// Enhanced validation functions using dynamic validation
+const validateField = async (value: string, field: FieldValidation, endpointId: string): Promise<ValidationError | null> => {
+  try {
+    // Use dynamic validation if available
+    const dynamicErrors = await validateFieldDynamic(endpointId, field.name, value, 'sandbox');
+    if (dynamicErrors.length > 0) {
+      return { field: field.name, message: dynamicErrors[0].message };
+    }
+  } catch (error) {
+    console.warn('Dynamic validation failed, falling back to static validation:', error);
+  }
+  
+  // Fallback to existing static validation logic
   if (field.required && (!value || value.trim() === "")) {
     return { field: field.name, message: `${field.name} is mandatory and cannot be empty` };
   }
@@ -785,11 +761,59 @@ const categoryImages = {
 };
 
 export default function Sandbox() {
+  // Use dynamic validation rules hook inside the component
+  const { data: validationRulesData, isLoading: validationLoading } = useValidationRules(undefined, 'sandbox');
+  
+  // Transform dynamic rules to legacy format for backwards compatibility
+  const validationSchemas = useMemo(() => {
+    const transformedSchemas: EndpointValidation = {};
+    
+    if (!validationRulesData) {
+      return fallbackValidationSchemas; // Return fallback if no dynamic data
+    }
+    
+    // Transform dynamic validation rules to legacy format
+    Object.entries(validationRulesData).forEach(([entity, fields]) => {
+      transformedSchemas[entity] = [];
+      Object.entries(fields).forEach(([fieldName, fieldConfig]) => {
+        if (fieldConfig.validations && fieldConfig.validations.length > 0) {
+          const constraints = fieldConfig.validations.reduce((acc, validation) => {
+            if (validation.type === 'required' && validation.rules.required) {
+              acc.required = true;
+            }
+            if (validation.type === 'length') {
+              if (validation.rules.maxLength) acc.maxLength = validation.rules.maxLength;
+              if (validation.rules.minLength) acc.minLength = validation.rules.minLength;
+            }
+            if (validation.type === 'pattern' && validation.rules.pattern) {
+              acc.pattern = validation.rules.pattern;
+            }
+            return acc;
+          }, {} as any);
+          
+          transformedSchemas[entity].push({
+            name: fieldName,
+            type: 'string', // Default type, can be enhanced based on validation rules
+            required: constraints.required || false,
+            maxLength: constraints.maxLength,
+            minLength: constraints.minLength,
+            pattern: constraints.pattern,
+            description: fieldConfig.errorMessages?.required || `Validation for ${fieldName}`,
+            example: `Example ${fieldName}`
+          });
+        }
+      });
+    });
+    
+    return Object.keys(transformedSchemas).length > 0 ? transformedSchemas : fallbackValidationSchemas;
+  }, [validationRulesData]);
+
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint>(apiEndpoints[0]);
   const [requestBody, setRequestBody] = useState("");
   const [requestHeaders, setRequestHeaders] = useState("{\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer your_token_here\"\n}");
   const [pathParams, setPathParams] = useState("{}");
   const [queryParams, setQueryParams] = useState("");
+  
   const [apiToken, setApiToken] = useState("");
   const [response, setResponse] = useState<APIResponse | null>(null);
   const [loading, setLoading] = useState(false);

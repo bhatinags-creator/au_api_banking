@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth, useLogin } from "@/hooks/useAuth";
+import { validateObjectDynamic, getFieldConstraints } from "@/lib/dynamicValidation";
 
 interface SignInFormData {
   email: string;
@@ -52,29 +53,54 @@ export default function SignIn() {
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<SignInFormData> = {};
+  const validateForm = async (): Promise<boolean> => {
+    try {
+      // Use dynamic validation from backend configuration
+      const validationErrors = await validateObjectDynamic('user', {
+        email: formData.email,
+        password: formData.password
+      });
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      const newErrors: Partial<SignInFormData> = {};
+      
+      // Map validation errors to form errors
+      validationErrors.forEach(error => {
+        if (error.field === 'email') {
+          newErrors.email = error.message;
+        } else if (error.field === 'password') {
+          newErrors.password = error.message;
+        }
+      });
+
+      setErrors(newErrors);
+      return validationErrors.length === 0;
+    } catch (error) {
+      console.error('Dynamic validation error, falling back to hardcoded validation:', error);
+      
+      // Fallback to hardcoded validation if dynamic validation fails
+      const newErrors: Partial<SignInFormData> = {};
+
+      if (!formData.email) {
+        newErrors.email = "Email is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = "Please enter a valid email address";
+      }
+
+      if (!formData.password) {
+        newErrors.password = "Password is required";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      }
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
     }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!(await validateForm())) {
       return;
     }
 
