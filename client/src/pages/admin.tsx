@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1867,6 +1867,7 @@ const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
 // API Edit Dialog Component
 const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const { merged: config, isLoading: configLoading } = useAdminFormConfigurations();
+  const initializedRef = useRef(false); // Guard flag to prevent continuous resets
   
   const [formData, setFormData] = useState({
     id: api?.id || "",
@@ -1899,9 +1900,9 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     }
   });
 
-  // Update form data when api prop changes or config loads
+  // Initialize form data ONCE per dialog opening - prevents continuous state resets
   useEffect(() => {
-    if (configLoading) return; // Wait for config to load
+    if (configLoading || initializedRef.current) return; // Wait for config + guard against resets
     
     if (api) {
       // Edit mode - populate form with existing API data
@@ -1968,7 +1969,15 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
         }
       });
     }
-  }, [api, config, configLoading]);
+    
+    initializedRef.current = true; // Mark as initialized to prevent re-runs
+  }, [api?.id, configLoading]); // Only depend on api.id (not full api object) and config loading
+
+  // Wrap onClose to reset initialization flag for next dialog opening
+  const handleClose = () => {
+    initializedRef.current = false; // Reset for next dialog session
+    onClose();
+  };
 
   const [activeTab, setActiveTab] = useState("basic");
   
@@ -2588,7 +2597,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
           </TabsContent>
 
           <div className="flex justify-end space-x-2 mt-6">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit" className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90">
