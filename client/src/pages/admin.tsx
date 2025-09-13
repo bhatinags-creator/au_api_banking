@@ -1074,6 +1074,11 @@ export default function AdminPanel() {
             </Dialog>
             <Dialog open={showApiDialog} onOpenChange={(open) => {
               console.log('🔧 DEBUG: API Dialog open state changed to:', open);
+              if (!open) {
+                // Dialog is closing - reset edit state and guard flags
+                console.log('🔧 DEBUG: Dialog closing - resetting editingApi and guard flags');
+                setEditingApi(null);
+              }
               setShowApiDialog(open);
             }}>
               <ApiEditDialog 
@@ -1084,8 +1089,9 @@ export default function AdminPanel() {
                   handleSaveApi(data);
                 }}
                 onClose={() => {
-                  console.log('🔧 DEBUG: ApiEditDialog onClose called');
+                  console.log('🔧 DEBUG: ApiEditDialog onClose called - closing dialog');
                   setShowApiDialog(false);
+                  setEditingApi(null); // Reset editing state
                 }}
               />
             </Dialog>
@@ -1868,6 +1874,7 @@ const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
 const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const { merged: config, isLoading: configLoading } = useAdminFormConfigurations();
   const initializedRef = useRef(false); // Guard flag to prevent continuous resets
+  const lastApiIdRef = useRef<string | null>(null); // Track API ID changes for proper re-initialization
   
   const [formData, setFormData] = useState({
     id: api?.id || "",
@@ -1902,7 +1909,23 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
 
   // Initialize form data ONCE per dialog opening - prevents continuous state resets
   useEffect(() => {
-    if (configLoading || initializedRef.current) return; // Wait for config + guard against resets
+    if (configLoading) return; // Wait for config to load
+    
+    // Check if API ID has changed - reset guard to allow re-initialization for different APIs
+    const currentApiId = api?.id || null;
+    if (currentApiId !== lastApiIdRef.current) {
+      console.log('🔧 DEBUG: API ID changed from', lastApiIdRef.current, 'to', currentApiId, '- resetting guard');
+      lastApiIdRef.current = currentApiId;
+      initializedRef.current = false; // Reset guard for new API
+    }
+    
+    // Skip if already initialized for the same API (prevent continuous resets)
+    if (initializedRef.current) {
+      console.log('🔧 DEBUG: Already initialized for current API, skipping');
+      return;
+    }
+    
+    console.log('🔧 DEBUG: Initializing form data for API:', currentApiId);
     
     if (api) {
       // Edit mode - populate form with existing API data
@@ -1971,11 +1994,14 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     }
     
     initializedRef.current = true; // Mark as initialized to prevent re-runs
+    console.log('🔧 DEBUG: Form data initialization completed for API:', currentApiId);
   }, [api?.id, configLoading]); // Only depend on api.id (not full api object) and config loading
 
   // Wrap onClose to reset initialization flag for next dialog opening
   const handleClose = () => {
+    console.log('🔧 DEBUG: Closing dialog - resetting guard flags');
     initializedRef.current = false; // Reset for next dialog session
+    lastApiIdRef.current = null; // Reset API ID tracking
     onClose();
   };
 
