@@ -8,10 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { 
   ArrowLeft, Settings, Plus, Edit, Trash2, Save, Eye, Users, 
   Database, Shield, CreditCard, BookOpen, Code, FileText,
-  BarChart3, Activity, Globe, Lock, Check, X, CheckCircle, XCircle, ChevronDown, ChevronRight, PlayCircle
+  BarChart3, Activity, Globe, Lock, Check, X, CheckCircle, XCircle, ChevronDown, ChevronRight, PlayCircle, AlertCircle
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -108,6 +109,8 @@ export default function AdminPanel() {
   const [editingCategory, setEditingCategory] = useState<APICategory | null>(null);
   const [showApiDialog, setShowApiDialog] = useState(false);
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<APICategory | null>(null);
   const [apiConfigTab, setApiConfigTab] = useState("basic");
   // Navigation state for drill-down
   const [selectedCategory, setSelectedCategory] = useState<APICategory | null>(null);
@@ -129,9 +132,10 @@ export default function AdminPanel() {
         title: "Category Created", 
         description: "New category has been created and saved to database" 
       });
-      // Invalidate and refetch categories
+      // Invalidate and refetch categories, APIs, and endpoints for cross-section sync
       queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
       queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/endpoints'] });
       setEditingCategory(null);
       setShowCategoryDialog(false);
     },
@@ -154,9 +158,10 @@ export default function AdminPanel() {
         title: "Category Updated", 
         description: "Category has been successfully updated" 
       });
-      // Invalidate and refetch categories
+      // Invalidate and refetch categories, APIs, and endpoints for cross-section sync
       queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
       queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/endpoints'] });
       setEditingCategory(null);
       setShowCategoryDialog(false);
     },
@@ -179,9 +184,10 @@ export default function AdminPanel() {
         title: "Category Deleted", 
         description: "Category has been permanently removed" 
       });
-      // Invalidate and refetch categories
+      // Invalidate and refetch categories, APIs, and endpoints for cross-section sync
       queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
       queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/endpoints'] });
     },
     onError: (error: any) => {
       console.error('Category deletion error:', error);
@@ -535,9 +541,20 @@ export default function AdminPanel() {
   };
 
   const handleDeleteCategory = (categoryId: string) => {
-    if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
-      deleteCategoryMutation.mutate(categoryId);
-    }
+    const category = categories.find(cat => cat.id === categoryId);
+    if (!category) return;
+    
+    setCategoryToDelete(category);
+    setShowDeleteConfirmDialog(true);
+  };
+
+  const confirmDeleteCategory = () => {
+    if (!categoryToDelete) return;
+    
+    console.log(`🗑️ Admin: Deleting category "${categoryToDelete.name}"`);
+    deleteCategoryMutation.mutate(categoryToDelete.id);
+    setShowDeleteConfirmDialog(false);
+    setCategoryToDelete(null);
   };
 
   // User Management Functions
@@ -832,11 +849,15 @@ export default function AdminPanel() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {categories.map((category) => {
                     const categoryApis = apis.filter(api => api.category === category.name);
+                    const isDeleting = deleteCategoryMutation.isPending;
+                    const isUpdating = updateCategoryMutation.isPending;
+                    const isLoading = isDeleting || isUpdating;
+                    
                     return (
                       <Card 
                         key={category.id} 
-                        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                        onClick={() => setSelectedCategory(category)}
+                        className="overflow-hidden hover:shadow-lg transition-shadow relative group"
+                        data-testid={`card-category-${category.id}`}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex items-center space-x-3">
@@ -848,8 +869,49 @@ export default function AdminPanel() {
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg font-semibold text-[var(--au-primary)]">{category.name}</CardTitle>
-                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                <CardTitle 
+                                  className="text-lg font-semibold text-[var(--au-primary)] cursor-pointer hover:underline"
+                                  onClick={() => setSelectedCategory(category)}
+                                  data-testid={`text-category-name-${category.id}`}
+                                >
+                                  {category.name}
+                                </CardTitle>
+                                <div className="flex items-center space-x-1">
+                                  {/* Action Buttons */}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingCategory(category);
+                                      setShowCategoryDialog(true);
+                                    }}
+                                    disabled={isLoading}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                                    data-testid={`button-edit-category-${category.id}`}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteCategory(category.id);
+                                    }}
+                                    disabled={isLoading}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    data-testid={`button-delete-category-${category.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                  <div 
+                                    className="cursor-pointer p-1"
+                                    onClick={() => setSelectedCategory(category)}
+                                  >
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                  </div>
+                                </div>
                               </div>
                               <CardDescription className="text-sm text-muted-foreground mt-1">
                                 {category.description}
@@ -859,6 +921,11 @@ export default function AdminPanel() {
                                   {categoryApis.length} APIs
                                 </Badge>
                                 <Badge variant="outline">{categoryApis.filter(api => api.status === 'active').length} Active</Badge>
+                                {isLoading && (
+                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                    {isDeleting ? 'Deleting...' : 'Updating...'}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1217,6 +1284,75 @@ export default function AdminPanel() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Delete Category Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogDescription>
+              {categoryToDelete && (
+                <div className="space-y-3">
+                  <p>Are you sure you want to delete the category <strong>"{categoryToDelete.name}"</strong>?</p>
+                  
+                  {(() => {
+                    const categoryApis = apis.filter(api => api.category === categoryToDelete.name);
+                    const apiCount = categoryApis.length;
+                    const activeApiCount = categoryApis.filter(api => api.status === 'active').length;
+                    
+                    if (apiCount > 0) {
+                      return (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                          <div className="flex items-start space-x-2">
+                            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                            <div className="space-y-2 text-sm">
+                              <p className="font-semibold text-yellow-800">
+                                ⚠️ WARNING: This category contains {apiCount} API endpoint{apiCount === 1 ? '' : 's'}
+                                {activeApiCount > 0 && ` (${activeApiCount} active)`}.
+                              </p>
+                              <div className="text-yellow-700">
+                                <p className="font-medium">Deleting this category will:</p>
+                                <ul className="list-disc list-inside space-y-1 ml-2">
+                                  <li>Remove the category from all navigation menus</li>
+                                  <li>Affect API organization in the API Explorer</li>
+                                  <li>Impact developer documentation structure</li>
+                                  <li>APIs will remain but may become uncategorized</li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  
+                  <p className="text-muted-foreground">This action cannot be undone.</p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowDeleteConfirmDialog(false);
+                setCategoryToDelete(null);
+              }}
+              data-testid="button-cancel-delete-category"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteCategory}
+              disabled={deleteCategoryMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              data-testid="button-confirm-delete-category"
+            >
+              {deleteCategoryMutation.isPending ? 'Deleting...' : 'Delete Category'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

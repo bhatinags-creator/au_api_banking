@@ -613,24 +613,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const categoryId = req.params.id;
       const categoryData = req.body;
+      
+      // Get the original category to check for name changes
+      const originalCategory = await storage.getApiCategory ? 
+        await storage.getApiCategory(categoryId) : 
+        await storage.getAllApiCategories().then(cats => cats.find(c => c.id === categoryId));
+      
+      if (!originalCategory) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      
       const category = await storage.updateApiCategory(categoryId, categoryData);
       
       if (!category) {
         return res.status(404).json({ error: "Category not found" });
       }
       
-      // Log category update
+      // CRITICAL FIX: Update all endpoint categories if name changed
+      let endpointsUpdated = 0;
+      if (categoryData.name && originalCategory.name !== categoryData.name) {
+        try {
+          endpointsUpdated = await storage.updateEndpointCategories(originalCategory.name, categoryData.name);
+          console.log(`Category renamed: ${originalCategory.name} → ${categoryData.name}, updated ${endpointsUpdated} endpoints`);
+        } catch (cascadeError: any) {
+          console.error('Failed to update endpoint categories:', cascadeError);
+          // Log the cascade update failure but don't fail the entire operation
+          await storage.createAuditLog({
+            userId: req.user!.id,
+            action: 'category_cascade_update_failed',
+            resource: 'api_category',
+            resourceId: categoryId,
+            details: { 
+              oldName: originalCategory.name, 
+              newName: categoryData.name, 
+              error: cascadeError?.message || 'Unknown error' 
+            },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+          });
+        }
+      }
+      
+      // Log category update with cascade information
       await storage.createAuditLog({
         userId: req.user!.id,
         action: 'category_updated',
         resource: 'api_category',
         resourceId: categoryId,
-        details: { name: category.name, changes: categoryData },
+        details: { 
+          name: category.name, 
+          changes: categoryData,
+          endpointsUpdated: endpointsUpdated,
+          nameChanged: originalCategory.name !== categoryData.name
+        },
         ipAddress: req.ip,
         userAgent: req.get('User-Agent')
       });
 
-      res.json(category);
+      res.json({ 
+        ...category, 
+        endpointsUpdated: endpointsUpdated 
+      });
     } catch (error) {
       console.error('Update category error:', error);
       res.status(500).json({ error: "Failed to update category" });

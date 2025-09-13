@@ -80,6 +80,7 @@ export interface IStorage {
   getAllApiCategories(): Promise<ApiCategory[]>;
   createApiCategory(category: InsertApiCategory): Promise<ApiCategory>;
   updateApiCategory(id: string, category: UpdateApiCategory): Promise<ApiCategory | undefined>;
+  updateEndpointCategories(oldCategoryName: string, newCategoryName: string): Promise<number>;
   deleteApiCategory(id: string): Promise<boolean>;
   
   // API Usage operations
@@ -1024,6 +1025,25 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  async updateEndpointCategories(oldCategoryName: string, newCategoryName: string): Promise<number> {
+    let updatedCount = 0;
+    
+    // Update all endpoints that reference the old category name  
+    for (const endpoint of Array.from(this.apiEndpoints.values())) {
+      if (endpoint.category === oldCategoryName) {
+        const updated: ApiEndpoint = { 
+          ...endpoint, 
+          category: newCategoryName, 
+          updatedAt: new Date() 
+        };
+        this.apiEndpoints.set(endpoint.id, updated);
+        updatedCount++;
+      }
+    }
+    
+    return updatedCount;
+  }
+
   async deleteApiCategory(id: string): Promise<boolean> {
     return this.apiCategories.delete(id);
   }
@@ -1599,6 +1619,439 @@ export class MemStorage implements IStorage {
   async deleteCategoryStyleConfiguration(id: string): Promise<boolean> {
     return this.categoryStyleConfigurations.delete(id);
   }
+
+  // Analytics operations
+  async createDailyAnalytics(analytics: InsertDailyAnalytics): Promise<DailyAnalytics> {
+    const id = randomUUID();
+    const newAnalytics: DailyAnalytics = {
+      ...analytics,
+      totalRequests: analytics.totalRequests ?? 0,
+      totalSuccessfulRequests: analytics.totalSuccessfulRequests ?? 0,
+      totalErrorRequests: analytics.totalErrorRequests ?? 0,
+      averageResponseTime: analytics.averageResponseTime ?? 0,
+      uniqueDevelopers: analytics.uniqueDevelopers ?? 0,
+      topCategoryRequests: analytics.topCategoryRequests ?? {},
+      environment: analytics.environment || "sandbox",
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.dailyAnalytics.set(id, newAnalytics);
+    return newAnalytics;
+  }
+
+  async updateDailyAnalytics(date: string, environment: string, updates: Partial<InsertDailyAnalytics>): Promise<DailyAnalytics | undefined> {
+    const existing = Array.from(this.dailyAnalytics.values()).find(a => a.date === date && a.environment === environment);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...updates, updatedAt: new Date() };
+    this.dailyAnalytics.set(existing.id, updated);
+    return updated;
+  }
+
+  async getDailyAnalytics(dateStart: string, dateEnd: string, environment?: string): Promise<DailyAnalytics[]> {
+    return Array.from(this.dailyAnalytics.values()).filter(a => 
+      a.date >= dateStart && a.date <= dateEnd && 
+      (!environment || a.environment === environment)
+    );
+  }
+
+  async getDailyAnalyticsByDate(date: string, environment?: string): Promise<DailyAnalytics | undefined> {
+    return Array.from(this.dailyAnalytics.values()).find(a => 
+      a.date === date && (!environment || a.environment === environment)
+    );
+  }
+
+  async createApiActivity(activity: InsertApiActivity): Promise<ApiActivity> {
+    const id = randomUUID();
+    const newActivity: ApiActivity = {
+      ...activity,
+      ipAddress: activity.ipAddress ?? null,
+      userAgent: activity.userAgent ?? null,
+      environment: activity.environment || "sandbox",
+      timestamp: new Date(),
+      id
+    };
+    this.apiActivity.set(id, newActivity);
+    return newActivity;
+  }
+
+  async getRecentApiActivity(limit?: number, environment?: string): Promise<ApiActivity[]> {
+    let activities = Array.from(this.apiActivity.values()).filter(a => 
+      !environment || a.environment === environment
+    );
+    activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return limit ? activities.slice(0, limit) : activities;
+  }
+
+  async getApiActivityByDeveloper(developerId: string, limit?: number): Promise<ApiActivity[]> {
+    let activities = Array.from(this.apiActivity.values()).filter(a => a.developerId === developerId);
+    activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return limit ? activities.slice(0, limit) : activities;
+  }
+
+  async getAnalyticsSummary(environment?: string): Promise<{
+    totalRequests: number;
+    avgRequestsPerDay: number;
+    totalDevelopers: number;
+    uptime: number;
+    successRate: number;
+  }> {
+    const analytics = Array.from(this.dailyAnalytics.values()).filter(a => 
+      !environment || a.environment === environment
+    );
+    
+    const totalRequests = analytics.reduce((sum, a) => sum + a.totalRequests, 0);
+    const avgRequestsPerDay = analytics.length > 0 ? totalRequests / analytics.length : 0;
+    const totalDevelopers = new Set(Array.from(this.developers.keys())).size;
+    const totalSuccessful = analytics.reduce((sum, a) => sum + a.totalSuccessfulRequests, 0);
+    const successRate = totalRequests > 0 ? (totalSuccessful / totalRequests) * 100 : 0;
+    
+    return {
+      totalRequests,
+      avgRequestsPerDay,
+      totalDevelopers,
+      uptime: 99.9,
+      successRate
+    };
+  }
+
+  async getUsageOverTime(days: number, environment?: string): Promise<Array<{
+    date: string;
+    requests: number;
+    accounts: number;
+    payments: number;
+    kyc: number;
+  }>> {
+    const analytics = Array.from(this.dailyAnalytics.values()).filter(a => 
+      !environment || a.environment === environment
+    );
+    
+    return analytics.map(a => ({
+      date: a.date,
+      requests: a.totalRequests,
+      accounts: Math.floor(a.totalRequests * 0.3),
+      payments: Math.floor(a.totalRequests * 0.4),
+      kyc: Math.floor(a.totalRequests * 0.3)
+    }));
+  }
+
+  async getApiDistribution(environment?: string): Promise<Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>> {
+    const categories = Array.from(this.apiCategories.values());
+    return categories.map(cat => ({
+      name: cat.name,
+      value: Math.floor(Math.random() * 1000) + 100,
+      color: cat.color
+    }));
+  }
+
+  async getTopDevelopers(limit?: number, environment?: string): Promise<Array<{
+    id: string;
+    name: string;
+    company: string;
+    requests: number;
+    growth: string;
+  }>> {
+    const developers = Array.from(this.developers.values()).slice(0, limit || 10);
+    return developers.map(dev => ({
+      id: dev.id,
+      name: dev.name,
+      company: dev.team || 'Internal',
+      requests: Math.floor(Math.random() * 5000) + 100,
+      growth: `+${Math.floor(Math.random() * 50) + 1}%`
+    }));
+  }
+
+  // Documentation operations
+  async getAllDocumentationCategories(): Promise<DocumentationCategory[]> {
+    return Array.from(this.documentationCategories.values()).filter(cat => cat.isActive);
+  }
+
+  async getDocumentationCategory(id: string): Promise<DocumentationCategory | undefined> {
+    return this.documentationCategories.get(id);
+  }
+
+  async getDocumentationCategoryByName(name: string): Promise<DocumentationCategory | undefined> {
+    return Array.from(this.documentationCategories.values()).find(cat => cat.name === name);
+  }
+
+  async getDocumentationCategoriesByParent(parentId?: string): Promise<DocumentationCategory[]> {
+    return Array.from(this.documentationCategories.values()).filter(cat => cat.parentId === parentId);
+  }
+
+  async createDocumentationCategory(category: InsertDocumentationCategory): Promise<DocumentationCategory> {
+    const id = randomUUID();
+    const newCategory: DocumentationCategory = {
+      ...category,
+      displayOrder: category.displayOrder || 0,
+      isActive: category.isActive ?? true,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.documentationCategories.set(id, newCategory);
+    return newCategory;
+  }
+
+  async updateDocumentationCategory(id: string, updates: UpdateDocumentationCategory): Promise<DocumentationCategory | undefined> {
+    const category = this.documentationCategories.get(id);
+    if (!category) return undefined;
+    const updated = { ...category, ...updates, updatedAt: new Date() };
+    this.documentationCategories.set(id, updated);
+    return updated;
+  }
+
+  async deleteDocumentationCategory(id: string): Promise<boolean> {
+    return this.documentationCategories.delete(id);
+  }
+
+  async getAllDocumentationEndpoints(): Promise<DocumentationEndpoint[]> {
+    return Array.from(this.documentationEndpoints.values()).filter(ep => ep.isActive);
+  }
+
+  async getDocumentationEndpoint(id: string): Promise<DocumentationEndpoint | undefined> {
+    return this.documentationEndpoints.get(id);
+  }
+
+  async getDocumentationEndpointsByCategory(categoryId: string): Promise<DocumentationEndpoint[]> {
+    return Array.from(this.documentationEndpoints.values()).filter(ep => ep.categoryId === categoryId);
+  }
+
+  async getDocumentationEndpointsBySubcategory(subcategoryId: string): Promise<DocumentationEndpoint[]> {
+    return Array.from(this.documentationEndpoints.values()).filter(ep => ep.subcategoryId === subcategoryId);
+  }
+
+  async getDocumentationEndpointByName(name: string): Promise<DocumentationEndpoint | undefined> {
+    return Array.from(this.documentationEndpoints.values()).find(ep => ep.name === name);
+  }
+
+  async createDocumentationEndpoint(endpoint: InsertDocumentationEndpoint): Promise<DocumentationEndpoint> {
+    const id = randomUUID();
+    const newEndpoint: DocumentationEndpoint = {
+      ...endpoint,
+      summary: endpoint.summary ?? null,
+      subcategoryId: endpoint.subcategoryId ?? null,
+      requestBody: endpoint.requestBody ?? null,
+      displayOrder: endpoint.displayOrder || 0,
+      isActive: endpoint.isActive ?? true,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.documentationEndpoints.set(id, newEndpoint);
+    return newEndpoint;
+  }
+
+  async updateDocumentationEndpoint(id: string, updates: UpdateDocumentationEndpoint): Promise<DocumentationEndpoint | undefined> {
+    const endpoint = this.documentationEndpoints.get(id);
+    if (!endpoint) return undefined;
+    const updated = { ...endpoint, ...updates, updatedAt: new Date() };
+    this.documentationEndpoints.set(id, updated);
+    return updated;
+  }
+
+  async deleteDocumentationEndpoint(id: string): Promise<boolean> {
+    return this.documentationEndpoints.delete(id);
+  }
+
+  async getDocumentationParametersByEndpoint(endpointId: string): Promise<DocumentationParameter[]> {
+    return Array.from(this.documentationParameters.values()).filter(p => p.endpointId === endpointId);
+  }
+
+  async createDocumentationParameter(parameter: InsertDocumentationParameter): Promise<DocumentationParameter> {
+    const id = randomUUID();
+    const newParameter: DocumentationParameter = {
+      ...parameter,
+      example: parameter.example ?? null,
+      displayOrder: parameter.displayOrder || 0,
+      required: parameter.required ?? false,
+      id,
+      createdAt: new Date()
+    };
+    this.documentationParameters.set(id, newParameter);
+    return newParameter;
+  }
+
+  async updateDocumentationParameter(id: string, updates: Partial<InsertDocumentationParameter>): Promise<DocumentationParameter | undefined> {
+    const parameter = this.documentationParameters.get(id);
+    if (!parameter) return undefined;
+    const updated = { ...parameter, ...updates };
+    this.documentationParameters.set(id, updated);
+    return updated;
+  }
+
+  async deleteDocumentationParameter(id: string): Promise<boolean> {
+    return this.documentationParameters.delete(id);
+  }
+
+  async getDocumentationResponsesByEndpoint(endpointId: string): Promise<DocumentationResponse[]> {
+    return Array.from(this.documentationResponses.values()).filter(r => r.endpointId === endpointId);
+  }
+
+  async createDocumentationResponse(response: InsertDocumentationResponse): Promise<DocumentationResponse> {
+    const id = randomUUID();
+    const newResponse: DocumentationResponse = {
+      ...response,
+      example: response.example ?? null,
+      displayOrder: response.displayOrder || 0,
+      id,
+      createdAt: new Date()
+    };
+    this.documentationResponses.set(id, newResponse);
+    return newResponse;
+  }
+
+  async updateDocumentationResponse(id: string, updates: Partial<InsertDocumentationResponse>): Promise<DocumentationResponse | undefined> {
+    const response = this.documentationResponses.get(id);
+    if (!response) return undefined;
+    const updated = { ...response, ...updates };
+    this.documentationResponses.set(id, updated);
+    return updated;
+  }
+
+  async deleteDocumentationResponse(id: string): Promise<boolean> {
+    return this.documentationResponses.delete(id);
+  }
+
+  async getDocumentationExamplesByEndpoint(endpointId: string): Promise<DocumentationExample[]> {
+    return Array.from(this.documentationExamples.values()).filter(e => e.endpointId === endpointId);
+  }
+
+  async createDocumentationExample(example: InsertDocumentationExample): Promise<DocumentationExample> {
+    const id = randomUUID();
+    const newExample: DocumentationExample = {
+      ...example,
+      request: example.request ?? null,
+      response: example.response ?? null,
+      curlCommand: example.curlCommand ?? null,
+      displayOrder: example.displayOrder || 0,
+      id,
+      createdAt: new Date()
+    };
+    this.documentationExamples.set(id, newExample);
+    return newExample;
+  }
+
+  async updateDocumentationExample(id: string, updates: Partial<InsertDocumentationExample>): Promise<DocumentationExample | undefined> {
+    const example = this.documentationExamples.get(id);
+    if (!example) return undefined;
+    const updated = { ...example, ...updates };
+    this.documentationExamples.set(id, updated);
+    return updated;
+  }
+
+  async deleteDocumentationExample(id: string): Promise<boolean> {
+    return this.documentationExamples.delete(id);
+  }
+
+  async getDocumentationSecurityByEndpoint(endpointId: string): Promise<DocumentationSecurity[]> {
+    return Array.from(this.documentationSecurity.values()).filter(s => s.endpointId === endpointId);
+  }
+
+  async createDocumentationSecurity(security: InsertDocumentationSecurity): Promise<DocumentationSecurity> {
+    const id = randomUUID();
+    const newSecurity: DocumentationSecurity = {
+      ...security,
+      displayOrder: security.displayOrder || 0,
+      id,
+      createdAt: new Date()
+    };
+    this.documentationSecurity.set(id, newSecurity);
+    return newSecurity;
+  }
+
+  async updateDocumentationSecurity(id: string, updates: Partial<InsertDocumentationSecurity>): Promise<DocumentationSecurity | undefined> {
+    const security = this.documentationSecurity.get(id);
+    if (!security) return undefined;
+    const updated = { ...security, ...updates };
+    this.documentationSecurity.set(id, updated);
+    return updated;
+  }
+
+  async deleteDocumentationSecurity(id: string): Promise<boolean> {
+    return this.documentationSecurity.delete(id);
+  }
+
+  async getCompleteDocumentationStructure(): Promise<{
+    categories: DocumentationCategory[];
+    endpoints: DocumentationEndpoint[];
+    parameters: DocumentationParameter[];
+    responses: DocumentationResponse[];
+    examples: DocumentationExample[];
+    security: DocumentationSecurity[];
+  }> {
+    return {
+      categories: await this.getAllDocumentationCategories(),
+      endpoints: await this.getAllDocumentationEndpoints(),
+      parameters: Array.from(this.documentationParameters.values()),
+      responses: Array.from(this.documentationResponses.values()),
+      examples: Array.from(this.documentationExamples.values()),
+      security: Array.from(this.documentationSecurity.values())
+    };
+  }
+
+  // Add missing seedAnalyticsData method
+  private seedAnalyticsData() {
+    // Seed daily analytics
+    const today = new Date().toISOString().slice(0, 10);
+    const analytics: DailyAnalytics = {
+      id: "analytics-1",
+      date: today,
+      totalRequests: 1250,
+      totalSuccessfulRequests: 1100,
+      totalErrorRequests: 150,
+      averageResponseTime: 245,
+      uniqueDevelopers: 15,
+      topCategoryRequests: {
+        "Customer": 450,
+        "Payments": 380,
+        "Loans": 220,
+        "Cards": 200
+      },
+      environment: "sandbox",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.dailyAnalytics.set(analytics.id, analytics);
+
+    // Seed API activity
+    const activities: ApiActivity[] = [
+      {
+        id: "activity-1",
+        developerId: "dev-1", 
+        endpointId: "1",
+        method: "GET",
+        path: "/oauth/accesstoken",
+        statusCode: 200,
+        responseTime: 120,
+        environment: "sandbox",
+        userAgent: "Mozilla/5.0",
+        ipAddress: "192.168.1.1",
+        timestamp: new Date()
+      },
+      {
+        id: "activity-2", 
+        developerId: "dev-1",
+        endpointId: "2",
+        method: "POST", 
+        path: "/CNBPaymentService/paymentCreation",
+        statusCode: 201,
+        responseTime: 340,
+        environment: "sandbox",
+        userAgent: "Mozilla/5.0",
+        ipAddress: "192.168.1.1", 
+        timestamp: new Date()
+      }
+    ];
+    
+    activities.forEach(activity => {
+      this.apiActivity.set(activity.id, activity);
+    });
+  }
 }
 
 // Production database storage implementation
@@ -1952,6 +2405,23 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Database error in updateApiCategory:', error);
       throw new Error('Failed to update API category');
+    }
+  }
+
+  async updateEndpointCategories(oldCategoryName: string, newCategoryName: string): Promise<number> {
+    try {
+      const result = await db
+        .update(apiEndpoints)
+        .set({ 
+          category: newCategoryName, 
+          updatedAt: new Date() 
+        })
+        .where(eq(apiEndpoints.category, oldCategoryName));
+      
+      return result.rowCount ?? 0;
+    } catch (error) {
+      console.error('Database error in updateEndpointCategories:', error);
+      throw new Error('Failed to update endpoint categories');
     }
   }
 
@@ -2767,8 +3237,8 @@ export class DatabaseStorage implements IStorage {
         ? eq(categoryStyleConfigurations.environment, environment)
         : undefined;
       
-      const query = db.select().from(categoryStyleConfigurations).where(eq(categoryStyleConfigurations.isActive, true));
-      const finalQuery = whereClause ? query.where(and(whereClause, eq(categoryStyleConfigurations.isActive, true))) : query;
+      const whereConditions = whereClause ? and(whereClause, eq(categoryStyleConfigurations.isActive, true)) : eq(categoryStyleConfigurations.isActive, true);
+      const finalQuery = db.select().from(categoryStyleConfigurations).where(whereConditions);
       return await finalQuery.orderBy(categoryStyleConfigurations.displayOrder, categoryStyleConfigurations.categoryName);
     } catch (error) {
       console.error('Database error in getAllCategoryStyleConfigurations:', error);
@@ -3164,12 +3634,8 @@ export class DatabaseStorage implements IStorage {
 
   async getDocumentationCategoriesByParent(parentId?: string): Promise<DocumentationCategory[]> {
     try {
-      let query = db.select().from(documentationCategories);
-      if (parentId) {
-        query = query.where(eq(documentationCategories.parentId, parentId));
-      } else {
-        query = query.where(sql`${documentationCategories.parentId} IS NULL`);
-      }
+      const whereCondition = parentId ? eq(documentationCategories.parentId, parentId) : sql`${documentationCategories.parentId} IS NULL`;
+      const query = db.select().from(documentationCategories).where(whereCondition);
       return await query.orderBy(asc(documentationCategories.displayOrder));
     } catch (error) {
       console.error('Database error in getDocumentationCategoriesByParent:', error);
@@ -3179,8 +3645,8 @@ export class DatabaseStorage implements IStorage {
 
   async createDocumentationCategory(category: InsertDocumentationCategory): Promise<DocumentationCategory> {
     try {
-      const result = await db.insert(documentationCategories).values(category).returning();
-      return result[0];
+      const [result] = await db.insert(documentationCategories).values(category).returning();
+      return result;
     } catch (error) {
       console.error('Database error in createDocumentationCategory:', error);
       throw new Error('Failed to create documentation category');
@@ -3193,7 +3659,7 @@ export class DatabaseStorage implements IStorage {
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(documentationCategories.id, id))
         .returning();
-      return result[0];
+      return result[0]!;
     } catch (error) {
       console.error('Database error in updateDocumentationCategory:', error);
       throw new Error('Failed to update documentation category');
@@ -3203,7 +3669,7 @@ export class DatabaseStorage implements IStorage {
   async deleteDocumentationCategory(id: string): Promise<boolean> {
     try {
       const result = await db.delete(documentationCategories).where(eq(documentationCategories.id, id));
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error('Database error in deleteDocumentationCategory:', error);
       throw new Error('Failed to delete documentation category');
@@ -3287,7 +3753,7 @@ export class DatabaseStorage implements IStorage {
   async deleteDocumentationEndpoint(id: string): Promise<boolean> {
     try {
       const result = await db.delete(documentationEndpoints).where(eq(documentationEndpoints.id, id));
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error('Database error in deleteDocumentationEndpoint:', error);
       throw new Error('Failed to delete documentation endpoint');
@@ -3331,7 +3797,7 @@ export class DatabaseStorage implements IStorage {
   async deleteDocumentationParameter(id: string): Promise<boolean> {
     try {
       const result = await db.delete(documentationParameters).where(eq(documentationParameters.id, id));
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error('Database error in deleteDocumentationParameter:', error);
       throw new Error('Failed to delete documentation parameter');
@@ -3375,7 +3841,7 @@ export class DatabaseStorage implements IStorage {
   async deleteDocumentationResponse(id: string): Promise<boolean> {
     try {
       const result = await db.delete(documentationResponses).where(eq(documentationResponses.id, id));
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error('Database error in deleteDocumentationResponse:', error);
       throw new Error('Failed to delete documentation response');
@@ -3419,7 +3885,7 @@ export class DatabaseStorage implements IStorage {
   async deleteDocumentationExample(id: string): Promise<boolean> {
     try {
       const result = await db.delete(documentationExamples).where(eq(documentationExamples.id, id));
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error('Database error in deleteDocumentationExample:', error);
       throw new Error('Failed to delete documentation example');
@@ -3463,7 +3929,7 @@ export class DatabaseStorage implements IStorage {
   async deleteDocumentationSecurity(id: string): Promise<boolean> {
     try {
       const result = await db.delete(documentationSecurity).where(eq(documentationSecurity.id, id));
-      return result.rowCount > 0;
+      return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error('Database error in deleteDocumentationSecurity:', error);
       throw new Error('Failed to delete documentation security');

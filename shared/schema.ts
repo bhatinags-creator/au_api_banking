@@ -583,14 +583,14 @@ export type ApiToken = typeof apiTokens.$inferSelect;
 export type InsertApiToken = z.infer<typeof insertApiTokenSchema>;
 
 // Documentation System Tables
-export const documentationCategories = pgTable("documentation_categories", {
+export const documentationCategories: any = pgTable("documentation_categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(), // Used as identifier (e.g., "security", "customer") 
   title: text("title").notNull(), // Display name (e.g., "Security", "Customer")
   description: text("description").notNull(),
   icon: text("icon").notNull().default("BookOpen"), // Lucide icon name
   color: text("color").notNull().default("#603078"),
-  parentId: varchar("parent_id").references(() => documentationCategories.id), // For subcategories
+  parentId: varchar("parent_id").references((): any => documentationCategories.id), // For subcategories
   displayOrder: integer("display_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
