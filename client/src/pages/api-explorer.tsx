@@ -6,40 +6,61 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, CreditCard, Shield, ArrowLeft, Play, Copy } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { Link } from "wouter";
 import { ApiEndpoint } from "@shared/schema";
-
-const categoryIcons = {
-  auth: Shield,
-  accounts: Building2,
-  payments: CreditCard,
-  kyc: Shield,
-};
-
-const categoryColors = {
-  auth: "bg-[var(--au-bg-soft-1)] text-[var(--au-primary-700)]",
-  accounts: "bg-[var(--au-bg-soft-2)] text-[var(--au-primary)]",
-  payments: "bg-[var(--au-bg-soft-3)] text-[var(--au-primary-700)]", 
-  kyc: "bg-purple-100 text-[var(--au-primary)]",
-};
+import { useApiExplorerConfig } from "@/hooks/useConfigurations";
 
 export default function ApiExplorer() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("accounts");
   const [selectedEndpoint, setSelectedEndpoint] = useState<ApiEndpoint | null>(null);
   const [requestBody, setRequestBody] = useState("");
-  const [apiKey, setApiKey] = useState("lEbnG39cJwC4lKUe5fliVA9HFcyR");
   const [response, setResponse] = useState<any>(null);
 
-  const { data: endpoints = [], isLoading } = useQuery<ApiEndpoint[]>({
+  // Use dynamic configuration instead of hardcoded values
+  const { 
+    apiKey: defaultApiKey, 
+    categoryIcons, 
+    categoryColors, 
+    isLoading: configLoading,
+    isError: configError 
+  } = useApiExplorerConfig();
+
+  const [apiKey, setApiKey] = useState(defaultApiKey || "");
+
+  const { data: endpoints = [], isLoading: endpointsLoading } = useQuery<ApiEndpoint[]>({
     queryKey: ["/api/endpoints"],
   });
 
-  const categories = ["auth", "accounts", "payments", "kyc"];
+  // Get categories dynamically from the endpoints data
+  const categories = Array.from(new Set(endpoints.map((endpoint: ApiEndpoint) => endpoint.category)))
+    .filter(Boolean)
+    .sort();
+
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  // Initialize selected category when categories are available
+  React.useEffect(() => {
+    if (categories.length > 0 && !selectedCategory) {
+      setSelectedCategory(categories[0]);
+    }
+  }, [categories, selectedCategory]);
+
+  // Update API key when default changes
+  React.useEffect(() => {
+    if (defaultApiKey && !apiKey) {
+      setApiKey(defaultApiKey);
+    }
+  }, [defaultApiKey, apiKey]);
   
   const filteredEndpoints = endpoints.filter((endpoint: ApiEndpoint) => 
     endpoint.category === selectedCategory
   );
+
+  // Helper function to get icon component from icon name
+  const getIconComponent = (iconName: string) => {
+    const IconComponent = (LucideIcons as any)[iconName];
+    return IconComponent || LucideIcons.Code; // Fallback to Code icon
+  };
 
   // Set sample request body when endpoint changes
   React.useEffect(() => {
@@ -113,8 +134,30 @@ export default function ApiExplorer() {
     navigator.clipboard.writeText(text);
   };
 
-  if (isLoading) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
+  // Show loading state while endpoints or configuration are loading
+  if (endpointsLoading || configLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" data-testid="loading-state">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="text-gray-600">
+            {configLoading ? "Loading configuration..." : "Loading API endpoints..."}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if configuration failed to load
+  if (configError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" data-testid="error-state">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">Failed to load configuration</div>
+          <div className="text-gray-600">Using default settings</div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -154,7 +197,10 @@ export default function ApiExplorer() {
               </h2>
               <div className="space-y-2">
                 {categories.map((category) => {
-                  const Icon = categoryIcons[category as keyof typeof categoryIcons];
+                  const iconName = categoryIcons[category.toLowerCase()] || "Code";
+                  const Icon = getIconComponent(iconName);
+                  const colors = categoryColors[category.toLowerCase()] || {};
+                  
                   return (
                     <button
                       key={category}
@@ -165,12 +211,15 @@ export default function ApiExplorer() {
                       }}
                       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
                         selectedCategory === category
-                          ? "bg-blue-100 text-blue-700 border border-blue-200"
-                          : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                          ? colors.selected || "bg-blue-100 text-blue-700 border border-blue-200"
+                          : colors.background || "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
                       }`}
                       data-testid={`button-category-${category}`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon 
+                        className="w-5 h-5" 
+                        style={{ color: colors.iconColor || "#603078" }}
+                      />
                       <span className="font-medium capitalize">{category}</span>
                     </button>
                   );

@@ -3,7 +3,9 @@ import type {
   UiConfiguration, 
   FormConfiguration, 
   SystemConfiguration, 
-  ValidationConfiguration 
+  ValidationConfiguration,
+  ApiExplorerConfiguration,
+  CategoryStyleConfiguration
 } from "@shared/schema";
 
 // Default fallback configurations
@@ -61,6 +63,103 @@ const DEFAULT_SYSTEM_CONFIG = {
     maxTagCount: 10
   }
 };
+
+const DEFAULT_API_EXPLORER_CONFIG = {
+  environment: "all",
+  testApiKeys: { default: "lEbnG39cJwC4lKUe5fliVA9HFcyR" },
+  defaultApiKey: "lEbnG39cJwC4lKUe5fliVA9HFcyR",
+  sampleRequestTemplates: {},
+  endpointSettings: {},
+  uiSettings: { showTestData: true, autoLoadApiKey: true },
+  isActive: true
+};
+
+const DEFAULT_CATEGORY_STYLE_CONFIG = [
+  {
+    categoryName: "Authentication",
+    iconName: "Shield",
+    iconColor: "#603078",
+    backgroundColor: "bg-gray-100",
+    textColor: "text-gray-700",
+    hoverBackgroundColor: "bg-gray-50",
+    selectedBackgroundColor: "bg-blue-100",
+    selectedTextColor: "text-blue-700",
+    selectedBorderColor: "border-blue-200",
+    displayOrder: 1,
+    environment: "all",
+    isActive: true
+  },
+  {
+    categoryName: "Customer",
+    iconName: "Users",
+    iconColor: "#603078",
+    backgroundColor: "bg-gray-100",
+    textColor: "text-gray-700",
+    hoverBackgroundColor: "bg-gray-50",
+    selectedBackgroundColor: "bg-blue-100",
+    selectedTextColor: "text-blue-700",
+    selectedBorderColor: "border-blue-200",
+    displayOrder: 2,
+    environment: "all",
+    isActive: true
+  },
+  {
+    categoryName: "Payments",
+    iconName: "CreditCard",
+    iconColor: "#603078",
+    backgroundColor: "bg-gray-100",
+    textColor: "text-gray-700",
+    hoverBackgroundColor: "bg-gray-50",
+    selectedBackgroundColor: "bg-blue-100",
+    selectedTextColor: "text-blue-700",
+    selectedBorderColor: "border-blue-200",
+    displayOrder: 3,
+    environment: "all",
+    isActive: true
+  },
+  {
+    categoryName: "Cards",
+    iconName: "CreditCard",
+    iconColor: "#603078",
+    backgroundColor: "bg-gray-100",
+    textColor: "text-gray-700",
+    hoverBackgroundColor: "bg-gray-50",
+    selectedBackgroundColor: "bg-blue-100",
+    selectedTextColor: "text-blue-700",
+    selectedBorderColor: "border-blue-200",
+    displayOrder: 4,
+    environment: "all",
+    isActive: true
+  },
+  {
+    categoryName: "Loans",
+    iconName: "DollarSign",
+    iconColor: "#603078",
+    backgroundColor: "bg-gray-100",
+    textColor: "text-gray-700",
+    hoverBackgroundColor: "bg-gray-50",
+    selectedBackgroundColor: "bg-blue-100",
+    selectedTextColor: "text-blue-700",
+    selectedBorderColor: "border-blue-200",
+    displayOrder: 5,
+    environment: "all",
+    isActive: true
+  },
+  {
+    categoryName: "Trade Services",
+    iconName: "Globe",
+    iconColor: "#603078",
+    backgroundColor: "bg-gray-100",
+    textColor: "text-gray-700",
+    hoverBackgroundColor: "bg-gray-50",
+    selectedBackgroundColor: "bg-blue-100",
+    selectedTextColor: "text-blue-700",
+    selectedBorderColor: "border-blue-200",
+    displayOrder: 6,
+    environment: "all",
+    isActive: true
+  }
+];
 
 // Hook to fetch UI configuration
 export const useUiConfiguration = (environment: string = 'all') => {
@@ -272,5 +371,107 @@ export const useAdminFormConfigurations = (environment: string = 'all') => {
   };
 };
 
+// Hook to fetch API Explorer configuration
+export const useApiExplorerConfiguration = (environment: string = 'all') => {
+  return useQuery({
+    queryKey: ['/api/config/api-explorer', { environment }],
+    queryFn: async () => {
+      const response = await fetch(`/api/config/api-explorer?environment=${environment}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch API Explorer configuration');
+      }
+      
+      const data = await response.json();
+      return data.data as ApiExplorerConfiguration;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    // Return default config on error
+    select: (data) => data || DEFAULT_API_EXPLORER_CONFIG
+  });
+};
+
+// Hook to fetch Category Style configurations
+export const useCategoryStyleConfiguration = (environment: string = 'all') => {
+  return useQuery({
+    queryKey: ['/api/config/category-styling', { environment }],
+    queryFn: async () => {
+      const response = await fetch(`/api/config/category-styling?environment=${environment}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch Category Style configurations');
+      }
+      
+      const data = await response.json();
+      return data.data as CategoryStyleConfiguration[];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+    // Return default config on error
+    select: (data) => data && data.length > 0 ? data : DEFAULT_CATEGORY_STYLE_CONFIG
+  });
+};
+
+// Helper hook to get category styling for API Explorer
+export const useApiExplorerStyling = (environment: string = 'all') => {
+  const { data: categoryStyles = [], isLoading, isError } = useCategoryStyleConfiguration(environment);
+  
+  // Convert array to icon and color mappings for easy use in components
+  const categoryIcons = categoryStyles.reduce((acc, style) => {
+    acc[style.categoryName.toLowerCase()] = style.iconName;
+    return acc;
+  }, {} as Record<string, string>);
+  
+  const categoryColors = categoryStyles.reduce((acc, style) => {
+    acc[style.categoryName.toLowerCase()] = {
+      background: style.backgroundColor,
+      text: style.textColor,
+      hover: style.hoverBackgroundColor,
+      selected: style.selectedBackgroundColor,
+      selectedText: style.selectedTextColor,
+      selectedBorder: style.selectedBorderColor,
+      iconColor: style.iconColor
+    };
+    return acc;
+  }, {} as Record<string, any>);
+  
+  return {
+    categoryIcons,
+    categoryColors,
+    categoryStyles,
+    isLoading,
+    isError
+  };
+};
+
+// Combined hook for API Explorer - includes both configuration and styling
+export const useApiExplorerConfig = (environment: string = 'all') => {
+  const explorerConfig = useApiExplorerConfiguration(environment);
+  const stylingConfig = useApiExplorerStyling(environment);
+  
+  return {
+    config: explorerConfig,
+    styling: stylingConfig,
+    isLoading: explorerConfig.isLoading || stylingConfig.isLoading,
+    isError: explorerConfig.isError || stylingConfig.isError,
+    // Easy access to common values
+    apiKey: explorerConfig.data?.defaultApiKey || DEFAULT_API_EXPLORER_CONFIG.defaultApiKey,
+    testApiKeys: explorerConfig.data?.testApiKeys || DEFAULT_API_EXPLORER_CONFIG.testApiKeys,
+    categoryIcons: stylingConfig.categoryIcons,
+    categoryColors: stylingConfig.categoryColors
+  };
+};
+
 // Export default configurations for direct use
-export { DEFAULT_UI_CONFIG, DEFAULT_FORM_CONFIG, DEFAULT_SYSTEM_CONFIG };
+export { 
+  DEFAULT_UI_CONFIG, 
+  DEFAULT_FORM_CONFIG, 
+  DEFAULT_SYSTEM_CONFIG,
+  DEFAULT_API_EXPLORER_CONFIG,
+  DEFAULT_CATEGORY_STYLE_CONFIG
+};

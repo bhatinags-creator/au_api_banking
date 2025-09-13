@@ -17,6 +17,8 @@ import {
   type ValidationConfiguration, type InsertValidationConfiguration, type UpdateValidationConfiguration,
   type SystemConfiguration, type InsertSystemConfiguration, type UpdateSystemConfiguration,
   type EnvironmentConfiguration, type InsertEnvironmentConfiguration, type UpdateEnvironmentConfiguration,
+  type ApiExplorerConfiguration, type InsertApiExplorerConfiguration, type UpdateApiExplorerConfiguration,
+  type CategoryStyleConfiguration, type InsertCategoryStyleConfiguration, type UpdateCategoryStyleConfiguration,
   type DocumentationCategory, type InsertDocumentationCategory, type UpdateDocumentationCategory,
   type DocumentationEndpoint, type InsertDocumentationEndpoint, type UpdateDocumentationEndpoint,
   type DocumentationParameter, type InsertDocumentationParameter,
@@ -25,6 +27,7 @@ import {
   type DocumentationSecurity, type InsertDocumentationSecurity,
   users, developers, applications, apiEndpoints, apiCategories, apiUsage, dailyAnalytics, apiActivity, corporateRegistrations, auditLogs, apiTokens,
   configCategories, configurations, uiConfigurations, formConfigurations, validationConfigurations, systemConfigurations, environmentConfigurations,
+  apiExplorerConfigurations, categoryStyleConfigurations,
   documentationCategories, documentationEndpoints, documentationParameters, documentationResponses, documentationExamples, documentationSecurity
 } from "@shared/schema";
 import { db } from "./db";
@@ -156,6 +159,22 @@ export interface IStorage {
   updateEnvironmentConfiguration(id: string, updates: UpdateEnvironmentConfiguration): Promise<EnvironmentConfiguration | undefined>;
   deleteEnvironmentConfiguration(id: string): Promise<boolean>;
   
+  // API Explorer Configurations
+  getAllApiExplorerConfigurations(environment?: string): Promise<ApiExplorerConfiguration[]>;
+  getApiExplorerConfiguration(id: string): Promise<ApiExplorerConfiguration | undefined>;
+  getApiExplorerConfigurationByEnvironment(environment: string): Promise<ApiExplorerConfiguration | undefined>;
+  createApiExplorerConfiguration(config: InsertApiExplorerConfiguration): Promise<ApiExplorerConfiguration>;
+  updateApiExplorerConfiguration(id: string, updates: UpdateApiExplorerConfiguration): Promise<ApiExplorerConfiguration | undefined>;
+  deleteApiExplorerConfiguration(id: string): Promise<boolean>;
+  
+  // Category Style Configurations
+  getAllCategoryStyleConfigurations(environment?: string): Promise<CategoryStyleConfiguration[]>;
+  getCategoryStyleConfiguration(id: string): Promise<CategoryStyleConfiguration | undefined>;
+  getCategoryStyleConfigurationByName(categoryName: string, environment?: string): Promise<CategoryStyleConfiguration | undefined>;
+  createCategoryStyleConfiguration(config: InsertCategoryStyleConfiguration): Promise<CategoryStyleConfiguration>;
+  updateCategoryStyleConfiguration(id: string, updates: UpdateCategoryStyleConfiguration): Promise<CategoryStyleConfiguration | undefined>;
+  deleteCategoryStyleConfiguration(id: string): Promise<boolean>;
+  
   // Analytics operations
   createDailyAnalytics(analytics: InsertDailyAnalytics): Promise<DailyAnalytics>;
   updateDailyAnalytics(date: string, environment: string, updates: Partial<InsertDailyAnalytics>): Promise<DailyAnalytics | undefined>;
@@ -272,6 +291,8 @@ export class MemStorage implements IStorage {
   private validationConfigurations: Map<string, ValidationConfiguration>;
   private systemConfigurations: Map<string, SystemConfiguration>;
   private environmentConfigurations: Map<string, EnvironmentConfiguration>;
+  private apiExplorerConfigurations: Map<string, ApiExplorerConfiguration>;
+  private categoryStyleConfigurations: Map<string, CategoryStyleConfiguration>;
 
   // Documentation storage
   private documentationCategories: Map<string, DocumentationCategory>;
@@ -304,6 +325,8 @@ export class MemStorage implements IStorage {
     this.validationConfigurations = new Map();
     this.systemConfigurations = new Map();
     this.environmentConfigurations = new Map();
+    this.apiExplorerConfigurations = new Map();
+    this.categoryStyleConfigurations = new Map();
 
     // Initialize documentation storage
     this.documentationCategories = new Map();
@@ -1470,6 +1493,112 @@ export class MemStorage implements IStorage {
   async deleteEnvironmentConfiguration(id: string): Promise<boolean> {
     return this.environmentConfigurations.delete(id);
   }
+
+  // API Explorer Configuration operations
+  async getAllApiExplorerConfigurations(environment?: string): Promise<ApiExplorerConfiguration[]> {
+    return Array.from(this.apiExplorerConfigurations.values()).filter(config =>
+      (!environment || environment === 'all' || config.environment === environment) && config.isActive
+    );
+  }
+
+  async getApiExplorerConfiguration(id: string): Promise<ApiExplorerConfiguration | undefined> {
+    return this.apiExplorerConfigurations.get(id);
+  }
+
+  async getApiExplorerConfigurationByEnvironment(environment: string): Promise<ApiExplorerConfiguration | undefined> {
+    return Array.from(this.apiExplorerConfigurations.values()).find(config =>
+      config.environment === environment && config.isActive
+    );
+  }
+
+  async createApiExplorerConfiguration(config: InsertApiExplorerConfiguration): Promise<ApiExplorerConfiguration> {
+    const id = randomUUID();
+    const newConfig: ApiExplorerConfiguration = {
+      ...config,
+      environment: config.environment || "all",
+      testApiKeys: config.testApiKeys || {},
+      defaultApiKey: config.defaultApiKey || null,
+      sampleRequestTemplates: config.sampleRequestTemplates || {},
+      endpointSettings: config.endpointSettings || {},
+      uiSettings: config.uiSettings || { showTestData: true, autoLoadApiKey: true },
+      isActive: config.isActive ?? true,
+      lastModifiedBy: config.lastModifiedBy || null,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.apiExplorerConfigurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateApiExplorerConfiguration(id: string, updates: UpdateApiExplorerConfiguration): Promise<ApiExplorerConfiguration | undefined> {
+    const config = this.apiExplorerConfigurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.apiExplorerConfigurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteApiExplorerConfiguration(id: string): Promise<boolean> {
+    return this.apiExplorerConfigurations.delete(id);
+  }
+
+  // Category Style Configuration operations
+  async getAllCategoryStyleConfigurations(environment?: string): Promise<CategoryStyleConfiguration[]> {
+    return Array.from(this.categoryStyleConfigurations.values())
+      .filter(config => 
+        (!environment || environment === 'all' || config.environment === environment) && config.isActive
+      )
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async getCategoryStyleConfiguration(id: string): Promise<CategoryStyleConfiguration | undefined> {
+    return this.categoryStyleConfigurations.get(id);
+  }
+
+  async getCategoryStyleConfigurationByName(categoryName: string, environment?: string): Promise<CategoryStyleConfiguration | undefined> {
+    return Array.from(this.categoryStyleConfigurations.values()).find(config =>
+      config.categoryName === categoryName &&
+      (!environment || environment === 'all' || config.environment === environment) &&
+      config.isActive
+    );
+  }
+
+  async createCategoryStyleConfiguration(config: InsertCategoryStyleConfiguration): Promise<CategoryStyleConfiguration> {
+    const id = randomUUID();
+    const newConfig: CategoryStyleConfiguration = {
+      ...config,
+      iconName: config.iconName || "Code",
+      iconColor: config.iconColor || "#603078",
+      backgroundColor: config.backgroundColor || "bg-gray-100",
+      textColor: config.textColor || "text-gray-700",
+      hoverBackgroundColor: config.hoverBackgroundColor || "bg-gray-50",
+      selectedBackgroundColor: config.selectedBackgroundColor || "bg-blue-100",
+      selectedTextColor: config.selectedTextColor || "text-blue-700",
+      selectedBorderColor: config.selectedBorderColor || "border-blue-200",
+      displayOrder: config.displayOrder ?? 0,
+      environment: config.environment || "all",
+      isActive: config.isActive ?? true,
+      lastModifiedBy: config.lastModifiedBy || null,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.categoryStyleConfigurations.set(id, newConfig);
+    return newConfig;
+  }
+
+  async updateCategoryStyleConfiguration(id: string, updates: UpdateCategoryStyleConfiguration): Promise<CategoryStyleConfiguration | undefined> {
+    const config = this.categoryStyleConfigurations.get(id);
+    if (!config) return undefined;
+    const updated = { ...config, ...updates, updatedAt: new Date() };
+    this.categoryStyleConfigurations.set(id, updated);
+    return updated;
+  }
+
+  async deleteCategoryStyleConfiguration(id: string): Promise<boolean> {
+    return this.categoryStyleConfigurations.delete(id);
+  }
 }
 
 // Production database storage implementation
@@ -2549,6 +2678,175 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Database error in deleteEnvironmentConfiguration:', error);
       throw new Error('Failed to delete environment configuration');
+    }
+  }
+
+  // API Explorer Configurations
+  async getAllApiExplorerConfigurations(environment?: string): Promise<ApiExplorerConfiguration[]> {
+    try {
+      const whereClause = environment && environment !== 'all'
+        ? eq(apiExplorerConfigurations.environment, environment)
+        : undefined;
+      
+      const query = db.select().from(apiExplorerConfigurations);
+      const finalQuery = whereClause ? query.where(whereClause) : query;
+      return await finalQuery.orderBy(apiExplorerConfigurations.environment);
+    } catch (error) {
+      console.error('Database error in getAllApiExplorerConfigurations:', error);
+      throw new Error('Failed to fetch API Explorer configurations');
+    }
+  }
+
+  async getApiExplorerConfiguration(id: string): Promise<ApiExplorerConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(apiExplorerConfigurations)
+        .where(eq(apiExplorerConfigurations.id, id));
+      return config;
+    } catch (error) {
+      console.error('Database error in getApiExplorerConfiguration:', error);
+      throw new Error('Failed to get API Explorer configuration');
+    }
+  }
+
+  async getApiExplorerConfigurationByEnvironment(environment: string): Promise<ApiExplorerConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(apiExplorerConfigurations)
+        .where(eq(apiExplorerConfigurations.environment, environment));
+      return config;
+    } catch (error) {
+      console.error('Database error in getApiExplorerConfigurationByEnvironment:', error);
+      throw new Error('Failed to get API Explorer configuration by environment');
+    }
+  }
+
+  async createApiExplorerConfiguration(configData: InsertApiExplorerConfiguration): Promise<ApiExplorerConfiguration> {
+    try {
+      const [config] = await db
+        .insert(apiExplorerConfigurations)
+        .values(configData)
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createApiExplorerConfiguration:', error);
+      throw new Error('Failed to create API Explorer configuration');
+    }
+  }
+
+  async updateApiExplorerConfiguration(id: string, updates: UpdateApiExplorerConfiguration): Promise<ApiExplorerConfiguration | undefined> {
+    try {
+      const [updated] = await db
+        .update(apiExplorerConfigurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(apiExplorerConfigurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateApiExplorerConfiguration:', error);
+      throw new Error('Failed to update API Explorer configuration');
+    }
+  }
+
+  async deleteApiExplorerConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(apiExplorerConfigurations).where(eq(apiExplorerConfigurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteApiExplorerConfiguration:', error);
+      throw new Error('Failed to delete API Explorer configuration');
+    }
+  }
+
+  // Category Style Configurations
+  async getAllCategoryStyleConfigurations(environment?: string): Promise<CategoryStyleConfiguration[]> {
+    try {
+      const whereClause = environment && environment !== 'all'
+        ? eq(categoryStyleConfigurations.environment, environment)
+        : undefined;
+      
+      const query = db.select().from(categoryStyleConfigurations).where(eq(categoryStyleConfigurations.isActive, true));
+      const finalQuery = whereClause ? query.where(and(whereClause, eq(categoryStyleConfigurations.isActive, true))) : query;
+      return await finalQuery.orderBy(categoryStyleConfigurations.displayOrder, categoryStyleConfigurations.categoryName);
+    } catch (error) {
+      console.error('Database error in getAllCategoryStyleConfigurations:', error);
+      throw new Error('Failed to fetch category style configurations');
+    }
+  }
+
+  async getCategoryStyleConfiguration(id: string): Promise<CategoryStyleConfiguration | undefined> {
+    try {
+      const [config] = await db
+        .select()
+        .from(categoryStyleConfigurations)
+        .where(eq(categoryStyleConfigurations.id, id));
+      return config;
+    } catch (error) {
+      console.error('Database error in getCategoryStyleConfiguration:', error);
+      throw new Error('Failed to get category style configuration');
+    }
+  }
+
+  async getCategoryStyleConfigurationByName(categoryName: string, environment?: string): Promise<CategoryStyleConfiguration | undefined> {
+    try {
+      const whereClause = environment && environment !== 'all'
+        ? and(
+            eq(categoryStyleConfigurations.categoryName, categoryName),
+            eq(categoryStyleConfigurations.environment, environment),
+            eq(categoryStyleConfigurations.isActive, true)
+          )
+        : and(
+            eq(categoryStyleConfigurations.categoryName, categoryName),
+            eq(categoryStyleConfigurations.isActive, true)
+          );
+      
+      const [config] = await db
+        .select()
+        .from(categoryStyleConfigurations)
+        .where(whereClause);
+      return config;
+    } catch (error) {
+      console.error('Database error in getCategoryStyleConfigurationByName:', error);
+      throw new Error('Failed to get category style configuration by name');
+    }
+  }
+
+  async createCategoryStyleConfiguration(configData: InsertCategoryStyleConfiguration): Promise<CategoryStyleConfiguration> {
+    try {
+      const [config] = await db
+        .insert(categoryStyleConfigurations)
+        .values(configData)
+        .returning();
+      return config;
+    } catch (error) {
+      console.error('Database error in createCategoryStyleConfiguration:', error);
+      throw new Error('Failed to create category style configuration');
+    }
+  }
+
+  async updateCategoryStyleConfiguration(id: string, updates: UpdateCategoryStyleConfiguration): Promise<CategoryStyleConfiguration | undefined> {
+    try {
+      const [updated] = await db
+        .update(categoryStyleConfigurations)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(categoryStyleConfigurations.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Database error in updateCategoryStyleConfiguration:', error);
+      throw new Error('Failed to update category style configuration');
+    }
+  }
+
+  async deleteCategoryStyleConfiguration(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(categoryStyleConfigurations).where(eq(categoryStyleConfigurations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Database error in deleteCategoryStyleConfiguration:', error);
+      throw new Error('Failed to delete category style configuration');
     }
   }
 

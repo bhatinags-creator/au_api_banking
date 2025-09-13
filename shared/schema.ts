@@ -309,6 +309,41 @@ export const environmentConfigurations = pgTable("environment_configurations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// API Explorer configurations for test keys and settings
+export const apiExplorerConfigurations = pgTable("api_explorer_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  environment: text("environment").notNull().default("all"), // all, sandbox, uat, production
+  testApiKeys: jsonb("test_api_keys").default(sql`'{}'::jsonb`), // environment-specific test keys
+  defaultApiKey: text("default_api_key"), // default test API key
+  sampleRequestTemplates: jsonb("sample_request_templates").default(sql`'{}'::jsonb`), // category-specific sample requests
+  endpointSettings: jsonb("endpoint_settings").default(sql`'{}'::jsonb`), // test endpoint configurations
+  uiSettings: jsonb("ui_settings").default(sql`'{"showTestData": true, "autoLoadApiKey": true}'::jsonb`),
+  isActive: boolean("is_active").notNull().default(true),
+  lastModifiedBy: varchar("last_modified_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Category styling configurations for icons and colors
+export const categoryStyleConfigurations = pgTable("category_style_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryName: text("category_name").notNull().unique(), // auth, accounts, payments, kyc, etc.
+  iconName: text("icon_name").notNull().default("Code"), // Lucide icon name
+  iconColor: text("icon_color").notNull().default("#603078"), // icon color hex
+  backgroundColor: text("background_color").notNull().default("bg-gray-100"), // tailwind background class
+  textColor: text("text_color").notNull().default("text-gray-700"), // tailwind text class
+  hoverBackgroundColor: text("hover_background_color").notNull().default("bg-gray-50"), // tailwind hover class
+  selectedBackgroundColor: text("selected_background_color").notNull().default("bg-blue-100"), // tailwind selected class
+  selectedTextColor: text("selected_text_color").notNull().default("text-blue-700"), // tailwind selected text class
+  selectedBorderColor: text("selected_border_color").notNull().default("border-blue-200"), // tailwind selected border class
+  displayOrder: integer("display_order").notNull().default(0),
+  environment: text("environment").notNull().default("all"),
+  isActive: boolean("is_active").notNull().default(true),
+  lastModifiedBy: varchar("last_modified_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // User schema for internal developers
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -494,6 +529,29 @@ export const updateEnvironmentConfigurationSchema = createInsertSchema(environme
   createdAt: true,
 }).partial();
 
+// API Explorer configuration schemas
+export const insertApiExplorerConfigurationSchema = createInsertSchema(apiExplorerConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateApiExplorerConfigurationSchema = createInsertSchema(apiExplorerConfigurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
+export const insertCategoryStyleConfigurationSchema = createInsertSchema(categoryStyleConfigurations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateCategoryStyleConfigurationSchema = createInsertSchema(categoryStyleConfigurations).omit({
+  id: true,
+  createdAt: true,
+}).partial();
+
 // Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpdateUser = z.infer<typeof updateUserSchema>;
@@ -657,6 +715,14 @@ export type UpdateSystemConfiguration = z.infer<typeof updateSystemConfiguration
 export type EnvironmentConfiguration = typeof environmentConfigurations.$inferSelect;
 export type InsertEnvironmentConfiguration = z.infer<typeof insertEnvironmentConfigurationSchema>;
 export type UpdateEnvironmentConfiguration = z.infer<typeof updateEnvironmentConfigurationSchema>;
+
+// API Explorer configuration type exports
+export type ApiExplorerConfiguration = typeof apiExplorerConfigurations.$inferSelect;
+export type InsertApiExplorerConfiguration = z.infer<typeof insertApiExplorerConfigurationSchema>;
+export type UpdateApiExplorerConfiguration = z.infer<typeof updateApiExplorerConfigurationSchema>;
+export type CategoryStyleConfiguration = typeof categoryStyleConfigurations.$inferSelect;
+export type InsertCategoryStyleConfiguration = z.infer<typeof insertCategoryStyleConfigurationSchema>;
+export type UpdateCategoryStyleConfiguration = z.infer<typeof updateCategoryStyleConfigurationSchema>;
 
 // Documentation type exports
 export type DocumentationCategory = typeof documentationCategories.$inferSelect;

@@ -15,6 +15,8 @@ import {
   insertValidationConfigurationSchema, updateValidationConfigurationSchema,
   insertSystemConfigurationSchema, updateSystemConfigurationSchema,
   insertEnvironmentConfigurationSchema, updateEnvironmentConfigurationSchema,
+  insertApiExplorerConfigurationSchema, updateApiExplorerConfigurationSchema,
+  insertCategoryStyleConfigurationSchema, updateCategoryStyleConfigurationSchema,
   insertDocumentationCategorySchema, updateDocumentationCategorySchema,
   insertDocumentationEndpointSchema, updateDocumentationEndpointSchema,
   insertDocumentationParameterSchema, insertDocumentationResponseSchema,
@@ -2158,6 +2160,259 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete environment configuration error:', error);
       res.status(500).json({ error: 'Failed to delete environment configuration' });
+    }
+  });
+
+  // API Explorer Configuration endpoints
+  app.get("/api/config/api-explorer", async (req, res) => {
+    try {
+      const { environment = 'all' } = req.query;
+      const apiExplorerConfig = await storage.getApiExplorerConfigurationByEnvironment(environment as string);
+      
+      if (!apiExplorerConfig) {
+        // Return default configuration if none exists
+        const defaultConfig = {
+          environment: environment as string,
+          testApiKeys: { default: "lEbnG39cJwC4lKUe5fliVA9HFcyR" },
+          defaultApiKey: "lEbnG39cJwC4lKUe5fliVA9HFcyR",
+          sampleRequestTemplates: {},
+          endpointSettings: {},
+          uiSettings: { showTestData: true, autoLoadApiKey: true },
+          isActive: true
+        };
+        return res.json({ success: true, data: defaultConfig });
+      }
+      
+      res.json({ success: true, data: apiExplorerConfig });
+    } catch (error) {
+      console.error('Get API Explorer configuration error:', error);
+      res.status(500).json({ error: 'Failed to retrieve API Explorer configuration' });
+    }
+  });
+
+  app.post("/api/config/api-explorer", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const apiExplorerConfigData = insertApiExplorerConfigurationSchema.parse(req.body);
+      apiExplorerConfigData.lastModifiedBy = req.user!.id;
+      const apiExplorerConfig = await storage.createApiExplorerConfiguration(apiExplorerConfigData);
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'api_explorer_config_created',
+        resource: 'api_explorer_configuration',
+        resourceId: apiExplorerConfig.id,
+        details: apiExplorerConfigData,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: apiExplorerConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create API Explorer configuration error:', error);
+      res.status(500).json({ error: 'Failed to create API Explorer configuration' });
+    }
+  });
+
+  app.put("/api/config/api-explorer/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateApiExplorerConfigurationSchema.parse(req.body);
+      updates.lastModifiedBy = req.user!.id;
+      const apiExplorerConfig = await storage.updateApiExplorerConfiguration(id, updates);
+      
+      if (!apiExplorerConfig) {
+        return res.status(404).json({ error: 'API Explorer configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'api_explorer_config_updated',
+        resource: 'api_explorer_configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: apiExplorerConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update API Explorer configuration error:', error);
+      res.status(500).json({ error: 'Failed to update API Explorer configuration' });
+    }
+  });
+
+  app.delete("/api/config/api-explorer/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteApiExplorerConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'API Explorer configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'api_explorer_config_deleted',
+        resource: 'api_explorer_configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'API Explorer configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete API Explorer configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete API Explorer configuration' });
+    }
+  });
+
+  // Category Style Configuration endpoints
+  app.get("/api/config/category-styling", async (req, res) => {
+    try {
+      const { environment = 'all' } = req.query;
+      const categoryStyles = await storage.getAllCategoryStyleConfigurations(environment as string);
+      
+      if (categoryStyles.length === 0) {
+        // Return default styling configurations if none exist
+        const defaultStyles = [
+          {
+            categoryName: "Authentication",
+            iconName: "Shield",
+            iconColor: "#603078",
+            backgroundColor: "bg-gray-100",
+            textColor: "text-gray-700",
+            hoverBackgroundColor: "bg-gray-50",
+            selectedBackgroundColor: "bg-blue-100",
+            selectedTextColor: "text-blue-700",
+            selectedBorderColor: "border-blue-200",
+            displayOrder: 1,
+            environment: environment as string,
+            isActive: true
+          },
+          {
+            categoryName: "Customer",
+            iconName: "Users",
+            iconColor: "#603078",
+            backgroundColor: "bg-gray-100",
+            textColor: "text-gray-700",
+            hoverBackgroundColor: "bg-gray-50",
+            selectedBackgroundColor: "bg-blue-100",
+            selectedTextColor: "text-blue-700",
+            selectedBorderColor: "border-blue-200",
+            displayOrder: 2,
+            environment: environment as string,
+            isActive: true
+          },
+          {
+            categoryName: "Payments",
+            iconName: "CreditCard",
+            iconColor: "#603078",
+            backgroundColor: "bg-gray-100",
+            textColor: "text-gray-700",
+            hoverBackgroundColor: "bg-gray-50",
+            selectedBackgroundColor: "bg-blue-100",
+            selectedTextColor: "text-blue-700",
+            selectedBorderColor: "border-blue-200",
+            displayOrder: 3,
+            environment: environment as string,
+            isActive: true
+          }
+        ];
+        return res.json({ success: true, data: defaultStyles });
+      }
+      
+      res.json({ success: true, data: categoryStyles });
+    } catch (error) {
+      console.error('Get Category Style configurations error:', error);
+      res.status(500).json({ error: 'Failed to retrieve Category Style configurations' });
+    }
+  });
+
+  app.post("/api/config/category-styling", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const categoryStyleConfigData = insertCategoryStyleConfigurationSchema.parse(req.body);
+      categoryStyleConfigData.lastModifiedBy = req.user!.id;
+      const categoryStyleConfig = await storage.createCategoryStyleConfiguration(categoryStyleConfigData);
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'category_style_config_created',
+        resource: 'category_style_configuration',
+        resourceId: categoryStyleConfig.id,
+        details: categoryStyleConfigData,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: categoryStyleConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Create Category Style configuration error:', error);
+      res.status(500).json({ error: 'Failed to create Category Style configuration' });
+    }
+  });
+
+  app.put("/api/config/category-styling/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = updateCategoryStyleConfigurationSchema.parse(req.body);
+      updates.lastModifiedBy = req.user!.id;
+      const categoryStyleConfig = await storage.updateCategoryStyleConfiguration(id, updates);
+      
+      if (!categoryStyleConfig) {
+        return res.status(404).json({ error: 'Category Style configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'category_style_config_updated',
+        resource: 'category_style_configuration',
+        resourceId: id,
+        details: updates,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, data: categoryStyleConfig });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ error: 'Validation error', details: error.errors });
+      }
+      console.error('Update Category Style configuration error:', error);
+      res.status(500).json({ error: 'Failed to update Category Style configuration' });
+    }
+  });
+
+  app.delete("/api/config/category-styling/:id", authenticate, requireRole(['admin']), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteCategoryStyleConfiguration(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Category Style configuration not found' });
+      }
+
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'category_style_config_deleted',
+        resource: 'category_style_configuration',
+        resourceId: id,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      res.json({ success: true, message: 'Category Style configuration deleted successfully' });
+    } catch (error) {
+      console.error('Delete Category Style configuration error:', error);
+      res.status(500).json({ error: 'Failed to delete Category Style configuration' });
     }
   });
 
