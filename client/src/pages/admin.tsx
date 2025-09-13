@@ -524,6 +524,16 @@ export default function AdminPanel() {
     // Implementation for user deletion
   };
 
+  // Add debugging info to console on component render (MUST BE BEFORE CONDITIONAL RETURN)
+  useEffect(() => {
+    console.log('🔧 DEBUG: AdminPanel component rendered');
+    console.log('🔧 DEBUG: isAuthenticated:', isAuthenticated);
+    console.log('🔧 DEBUG: apis length:', apis.length);
+    console.log('🔧 DEBUG: categories length:', categories.length);
+    console.log('🔧 DEBUG: showApiDialog:', showApiDialog);
+    console.log('🔧 DEBUG: editingApi:', editingApi);
+  }, [isAuthenticated, apis.length, categories.length, showApiDialog, editingApi]);
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50">
@@ -539,16 +549,6 @@ export default function AdminPanel() {
       </div>
     );
   }
-
-  // Add debugging info to console on component render
-  useEffect(() => {
-    console.log('🔧 DEBUG: AdminPanel component rendered');
-    console.log('🔧 DEBUG: isAuthenticated:', isAuthenticated);
-    console.log('🔧 DEBUG: apis length:', apis.length);
-    console.log('🔧 DEBUG: categories length:', categories.length);
-    console.log('🔧 DEBUG: showApiDialog:', showApiDialog);
-    console.log('🔧 DEBUG: editingApi:', editingApi);
-  }, [isAuthenticated, apis.length, categories.length, showApiDialog, editingApi]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
