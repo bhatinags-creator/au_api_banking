@@ -1948,7 +1948,7 @@ export default function APIDocs() {
             <div className="space-y-1">
               {/* Dynamic Categories */}
               {apiCategories
-                .filter(category => category.id !== 'introduction' && category.endpoints && category.endpoints.length > 0)
+                .filter(category => category.id !== 'introduction')
                 .map((category) => {
                   const IconComponent = category.icon || BookOpen;
                   const isSelected = selectedCategory === category.id;
