@@ -235,6 +235,7 @@ export default function AdminPanel() {
       });
       // Invalidate and refetch APIs and categories
       queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/endpoints'] });
       queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
       setEditingApi(null);
       setShowApiDialog(false);
@@ -274,6 +275,7 @@ export default function AdminPanel() {
       });
       // Invalidate and refetch APIs and categories
       queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/endpoints'] });
       queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
       setEditingApi(null);
       setShowApiDialog(false);
@@ -299,6 +301,7 @@ export default function AdminPanel() {
       });
       // Invalidate and refetch APIs and categories
       queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/endpoints'] });
       queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
     },
     onError: (error: any) => {
