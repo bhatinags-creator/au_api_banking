@@ -2032,54 +2032,36 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   };
 
   const addResponse = () => {
-    console.log('🔧 DEBUG: addResponse function called');
-    console.log('🔧 DEBUG: Current formData.responses before add:', formData.responses);
-    console.log('🔧 DEBUG: Current formData.responses length:', formData.responses?.length || 0);
+    alert('Add Response button clicked!'); // Immediate feedback
+    const currentResponses = formData.responses || [];
+    const newResponse = { statusCode: 200, description: "New Response", schema: {}, example: "" };
+    const newResponses = [...currentResponses, newResponse];
     
-    const newResponse = { statusCode: 200, description: "", schema: {}, example: "" };
-    console.log('🔧 DEBUG: New response object to add:', newResponse);
+    setFormData(prev => ({
+      ...prev,
+      responses: newResponses
+    }));
     
-    const updatedResponses = [...formData.responses, newResponse];
-    console.log('🔧 DEBUG: Updated responses array:', updatedResponses);
-    
-    setFormData({
-      ...formData,
-      responses: updatedResponses
-    });
-    
-    console.log('🔧 DEBUG: setFormData called with new responses array');
-    console.log('🔧 DEBUG: addResponse function completed');
+    console.log('✅ Response added successfully. New count:', newResponses.length);
   };
 
   const removeResponse = (index: number) => {
-    console.log('🔧 DEBUG: removeResponse function called with index:', index);
-    console.log('🔧 DEBUG: Current formData.responses before remove:', formData.responses);
-    console.log('🔧 DEBUG: Current formData.responses length:', formData.responses?.length || 0);
+    alert(`Remove Response button clicked! Removing index: ${index}`); // Immediate feedback
+    const currentResponses = formData.responses || [];
     
-    if (!formData.responses || formData.responses.length === 0) {
-      console.warn('🔧 DEBUG: Warning - no responses to remove');
+    if (currentResponses.length === 0 || index < 0 || index >= currentResponses.length) {
+      alert('Cannot remove - invalid index or no responses');
       return;
     }
     
-    if (index < 0 || index >= formData.responses.length) {
-      console.error('🔧 DEBUG: Error - invalid index:', index, 'for responses array of length:', formData.responses.length);
-      return;
-    }
+    const newResponses = currentResponses.filter((_: any, i: number) => i !== index);
     
-    const responseToRemove = formData.responses[index];
-    console.log('🔧 DEBUG: Response to remove at index', index, ':', responseToRemove);
+    setFormData(prev => ({
+      ...prev,
+      responses: newResponses
+    }));
     
-    const filteredResponses = formData.responses.filter((_: any, i: number) => i !== index);
-    console.log('🔧 DEBUG: Filtered responses array:', filteredResponses);
-    console.log('🔧 DEBUG: New responses length:', filteredResponses.length);
-    
-    setFormData({
-      ...formData,
-      responses: filteredResponses
-    });
-    
-    console.log('🔧 DEBUG: setFormData called with filtered responses');
-    console.log('🔧 DEBUG: removeResponse function completed');
+    console.log('✅ Response removed successfully. New count:', newResponses.length);
   };
 
   const updateResponse = (index: number, field: string, value: any) => {
