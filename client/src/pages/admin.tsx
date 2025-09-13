@@ -17,7 +17,7 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminFormConfigurations, useValidationConfiguration } from "@/hooks/useConfigurations";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertValidationConfigurationSchema, updateValidationConfigurationSchema } from "@shared/schema";
 
 interface APIParameter {
@@ -104,9 +104,92 @@ export default function AdminPanel() {
   const [selectedApi, setSelectedApi] = useState<APIEndpoint | null>(null);
   
   const { toast } = useToast();
+  const queryClientInstance = useQueryClient();
   
   // Get validation configuration for admin panel
   const { data: validationConfigs, isLoading: validationLoading } = useValidationConfiguration();
+
+  // React Query mutations for category management
+  const createCategoryMutation = useMutation({
+    mutationFn: async (categoryData: Partial<APICategory>) => {
+      return apiRequest('/api/admin/categories', {
+        method: 'POST',
+        body: JSON.stringify(categoryData)
+      });
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Category Created", 
+        description: "New category has been created and saved to database" 
+      });
+      // Invalidate and refetch categories
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      setEditingCategory(null);
+      setShowCategoryDialog(false);
+    },
+    onError: (error: any) => {
+      console.error('Category creation error:', error);
+      toast({ 
+        title: "Category Creation Failed", 
+        description: error.message || "Failed to create category",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: Partial<APICategory> }) => {
+      return apiRequest(`/api/admin/categories/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Category Updated", 
+        description: "Category has been successfully updated" 
+      });
+      // Invalidate and refetch categories
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+      setEditingCategory(null);
+      setShowCategoryDialog(false);
+    },
+    onError: (error: any) => {
+      console.error('Category update error:', error);
+      toast({ 
+        title: "Category Update Failed", 
+        description: error.message || "Failed to update category",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (categoryId: string) => {
+      return apiRequest(`/api/admin/categories/${categoryId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      toast({ 
+        title: "Category Deleted", 
+        description: "Category has been permanently removed" 
+      });
+      // Invalidate and refetch categories
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClientInstance.invalidateQueries({ queryKey: ['/api/apis'] });
+    },
+    onError: (error: any) => {
+      console.error('Category deletion error:', error);
+      toast({ 
+        title: "Category Deletion Failed", 
+        description: error.message || "Failed to delete category",
+        variant: "destructive"
+      });
+    }
+  });
 
   // Backend admin authentication
   const handleAdminLogin = async (email: string, password: string) => {
@@ -261,24 +344,28 @@ export default function AdminPanel() {
   // Category Management Functions
   const handleSaveCategory = (categoryData: Partial<APICategory>) => {
     if (editingCategory) {
-      setCategories(categories.map(cat => cat.id === editingCategory.id ? { ...cat, ...categoryData } : cat));
-      toast({ title: "Category Updated", description: "Category has been successfully updated" });
+      // Update existing category
+      updateCategoryMutation.mutate({ 
+        id: editingCategory.id, 
+        data: categoryData 
+      });
     } else {
-      const newCategory: APICategory = {
-        ...categoryData as APICategory,
-        id: Date.now().toString(),
-        endpoints: []
+      // Create new category
+      const newCategoryData = {
+        name: categoryData.name,
+        description: categoryData.description,
+        color: categoryData.color,
+        icon: categoryData.icon || 'Package',
+        endpoints: categoryData.endpoints || []
       };
-      setCategories([...categories, newCategory]);
-      toast({ title: "Category Created", description: "New category has been created" });
+      createCategoryMutation.mutate(newCategoryData);
     }
-    setEditingCategory(null);
-    setShowCategoryDialog(false);
   };
 
   const handleDeleteCategory = (categoryId: string) => {
-    setCategories(categories.filter(cat => cat.id !== categoryId));
-    toast({ title: "Category Deleted", description: "Category has been removed" });
+    if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      deleteCategoryMutation.mutate(categoryId);
+    }
   };
 
   // User Management Functions
