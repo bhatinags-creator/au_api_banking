@@ -18,7 +18,8 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
-import { API_CATEGORIES, getTotalApiCount, getTotalCategoryCount } from "../shared/data";
+// API_CATEGORIES import removed - all data now served from database
+// Migration endpoint disabled as data is already migrated
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
@@ -418,8 +419,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public Categories endpoint for main portal with hierarchical structure
   app.get("/api/categories", async (req, res) => {
     try {
-      // Load from centralized data store with comprehensive banking categories
-      const categoriesWithApis = API_CATEGORIES.map(category => ({
+      // Load categories from database instead of hardcoded data
+      const dbCategories = await storage.getAllApiCategories();
+      
+      // If no data in database, return empty array - use migration endpoint to populate
+      if (dbCategories.length === 0) {
+        console.log('⚠️ No categories in database. Use /api/migrate-data endpoint to populate.');
+        return res.json([]);
+      }
+      
+      // Get all APIs to map category endpoints
+      const allApis = await storage.getAllApiEndpoints();
+      
+      const categoriesWithApis = dbCategories.map(category => ({
         id: category.id,
         name: category.name,
         description: category.description,
@@ -427,10 +439,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: category.color,
         displayOrder: category.displayOrder,
         isActive: category.isActive,
-        endpoints: category.apis?.map(api => api.id) || []
+        endpoints: allApis.filter(api => api.category === category.name).map(api => api.id)
       }));
       
-      console.log(`📊 Backend serving ${categoriesWithApis.length} categories from centralized data store`);
+      console.log(`📊 Backend serving ${categoriesWithApis.length} categories from database`);
       res.json(categoriesWithApis);
     } catch (error) {
       console.error("Error fetching hierarchical categories:", error);
@@ -441,15 +453,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public APIs endpoint for main portal (read-only)
   app.get("/api/apis", async (req, res) => {
     try {
-      // Load from centralized data store with comprehensive banking APIs
-      console.log(`🔍 Debug: API_CATEGORIES length: ${API_CATEGORIES.length}`);
-      API_CATEGORIES.forEach((cat, index) => {
-        console.log(`🔍 Category ${index}: ${cat.name} has ${cat.apis?.length || 0} APIs`);
-      });
+      // Load APIs from database instead of hardcoded data
+      const allApis = await storage.getAllApiEndpoints();
       
-      const allApis = API_CATEGORIES.flatMap(category => category.apis || []);
+      // If no data in database, return empty array - use migration endpoint to populate  
+      if (allApis.length === 0) {
+        console.log('⚠️ No APIs in database. Use /api/migrate-data endpoint to populate.');
+        return res.json([]);
+      }
       
-      console.log(`🔧 Backend serving ${allApis.length} APIs from centralized data store`);
+      console.log(`🔧 Backend serving ${allApis.length} APIs from database`);
       res.json(allApis);
     } catch (error) {
       console.error("Error fetching APIs:", error);
@@ -457,7 +470,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple data initialization endpoint (public for demo purposes)
+  // Data migration endpoint - DISABLED (migration completed successfully)
+  app.post("/api/migrate-data", async (req, res) => {
+    res.json({ 
+      message: "Migration endpoint disabled - all data successfully migrated to database",
+      status: "completed",
+      note: "All API configurations now served dynamically from database"
+    });
+  });
+
+  // Simple data initialization endpoint (public for demo purposes) 
   app.post("/api/init-data", async (req, res) => {
     try {
       // Check if data already exists

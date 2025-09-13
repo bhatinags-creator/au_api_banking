@@ -16,7 +16,7 @@ import {
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminFormConfigurations, useValidationConfiguration } from "@/hooks/useConfigurations";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { insertValidationConfigurationSchema, updateValidationConfigurationSchema } from "@shared/schema";
 
@@ -153,74 +153,79 @@ export default function AdminPanel() {
     }
   };
 
-  // Load initial data
+  // Use React Query to load data from backend APIs instead of hardcoded shared/data.ts
+  const { data: backendCategories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ['/api/categories'],
+    enabled: isAuthenticated
+  });
+  
+  const { data: backendApis, isLoading: apisLoading } = useQuery({
+    queryKey: ['/api/apis'],
+    enabled: isAuthenticated
+  });
+
+  // Load initial data and transform backend data for admin panel format
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && backendCategories && backendApis) {
       loadAdminData();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, backendCategories, backendApis]);
 
   const loadAdminData = async () => {
-    // Load centralized comprehensive data
-    console.log('🔧 ADMIN - Loading comprehensive data from centralized store');
+    if (!backendCategories || !backendApis) return;
     
-    const { API_CATEGORIES, getTotalApiCount, getTotalCategoryCount } = await import('@shared/data');
+    console.log('🔧 ADMIN - Loading data from backend APIs instead of hardcoded data');
     
-    // Transform comprehensive data for admin panel
-    const adminCategories: APICategory[] = API_CATEGORIES.map((cat) => ({
+    // Transform backend categories for admin panel
+    const adminCategories: APICategory[] = (backendCategories as any[]).map((cat: any) => ({
       id: cat.id,
       name: cat.name,
       description: cat.description,
       icon: cat.icon,
       color: cat.color,
-      endpoints: cat.apis.map(api => api.id)
+      endpoints: cat.endpoints || []
     }));
     
     setCategories(adminCategories);
     
-    // Extract all APIs with full documentation and sandbox details
-    const allApis: APIEndpoint[] = [];
-    API_CATEGORIES.forEach((cat) => {
-      cat.apis.forEach((api) => {
-        allApis.push({
-          id: api.id,
-          name: api.name,
-          method: api.method,
-          path: api.path,
-          category: api.category,
-          description: api.description,
-          summary: api.summary,
-          requiresAuth: api.requiresAuth,
-          authType: api.authType,
-          queryParameters: [],
-          pathParameters: [],
-          bodyParameters: api.parameters,
-          headers: api.headers,
-          responses: api.responses,
-          requestExample: api.requestExample,
-          responseExample: api.responseExample,
-          status: api.status === 'beta' ? 'draft' : api.status,
-          tags: api.tags,
-          rateLimit: api.rateLimits.sandbox,
-          timeout: api.timeout
-        });
-      });
-    });
+    // Transform backend APIs for admin panel format
+    const allApis: APIEndpoint[] = (backendApis as any[]).map((api: any) => ({
+      id: api.id,
+      name: api.name,
+      method: api.method,
+      path: api.path,
+      category: api.category,
+      description: api.description,
+      summary: api.summary || api.description,
+      requiresAuth: api.requiresAuth,
+      authType: api.authType,
+      queryParameters: [], // Backend stores all params in 'parameters' field
+      pathParameters: [],
+      bodyParameters: api.parameters || [],
+      headers: api.headers || [],
+      responses: api.responses || [],
+      requestExample: api.requestExample || '',
+      responseExample: api.responseExample || '',
+      status: api.status === 'beta' ? 'draft' : api.status,
+      tags: api.tags || [],
+      rateLimit: api.rateLimits?.sandbox || 100,
+      timeout: api.timeout || 30000,
+      documentation: api.documentation,
+      validationSchema: api.responseSchema
+    }));
     
     setApis(allApis);
     
-    // Categories now use drill-down navigation instead of expansion
+    const totalApis = allApis.length;
+    const totalCategories = adminCategories.length;
     
-    const totalApis = getTotalApiCount();
-    const totalCategories = getTotalCategoryCount();
+    console.log(`🔧 ADMIN - Loaded ${totalCategories} categories with ${totalApis} APIs from backend database`);
     
-    console.log(`🔧 ADMIN - Loaded ${totalCategories} categories with ${totalApis} APIs from centralized data store`);
-    
-    // Debug API category matching
-    console.log('🔍 ADMIN - Debug API Category Matching:');
-    API_CATEGORIES.forEach((cat) => {
+    // Debug API category matching with backend data
+    console.log('🔍 ADMIN - Debug API Category Matching (Backend Data):');
+    adminCategories.forEach((cat) => {
       const matchingApis = allApis.filter(api => api.category === cat.name);
-      console.log(`🔍 Category "${cat.name}" should have ${cat.apis.length} APIs, filtered ${matchingApis.length} APIs:`, 
+      console.log(`🔍 Category "${cat.name}" has ${matchingApis.length} APIs:`, 
         matchingApis.map(api => api.name));
     });
     
