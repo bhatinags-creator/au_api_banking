@@ -2056,6 +2056,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const addResponse = () => {
     const currentResponses = formData.responses || [];
     const newResponse = { 
+      id: `response-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Stable unique ID
       statusCode: 200, 
       description: "", 
       schema: "{}", 
@@ -2382,7 +2383,7 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
               </Button>
             </div>
             {(formData.responses || []).map((response: any, index: number) => {
-              const responseKey = response.id || `response-${index}-${response.statusCode}-${Date.now()}`;
+              const responseKey = response.id || `response-${index}-${response.statusCode}`;
               return (
               <Card key={responseKey} className="p-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
