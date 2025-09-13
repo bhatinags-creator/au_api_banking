@@ -112,10 +112,7 @@ export default function AdminPanel() {
   // React Query mutations for category management
   const createCategoryMutation = useMutation({
     mutationFn: async (categoryData: Partial<APICategory>) => {
-      return apiRequest('/api/admin/categories', {
-        method: 'POST',
-        body: JSON.stringify(categoryData)
-      });
+      return apiRequest('POST', '/api/admin/categories', categoryData);
     },
     onSuccess: (data) => {
       toast({ 
@@ -140,10 +137,7 @@ export default function AdminPanel() {
 
   const updateCategoryMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<APICategory> }) => {
-      return apiRequest(`/api/admin/categories/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      });
+      return apiRequest('PUT', `/api/admin/categories/${id}`, data);
     },
     onSuccess: (data) => {
       toast({ 
@@ -168,9 +162,7 @@ export default function AdminPanel() {
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: string) => {
-      return apiRequest(`/api/admin/categories/${categoryId}`, {
-        method: 'DELETE'
-      });
+      return apiRequest('DELETE', `/api/admin/categories/${categoryId}`);
     },
     onSuccess: () => {
       toast({ 
