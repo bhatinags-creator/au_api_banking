@@ -12,7 +12,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { 
   ArrowLeft, Settings, Plus, Edit, Trash2, Save, Eye, Users, 
   Database, Shield, CreditCard, BookOpen, Code, FileText,
-  BarChart3, Activity, Globe, Lock, Check, X, CheckCircle, XCircle, ChevronDown, ChevronRight, PlayCircle, AlertCircle
+  BarChart3, Activity, Globe, Lock, Check, X, CheckCircle, XCircle, ChevronDown, ChevronRight, PlayCircle, AlertCircle,
+  Upload, File, Loader2, CheckSquare
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -1879,6 +1880,358 @@ const CategoryEditDialog = ({ category, onSave, onClose }: any) => {
   );
 };
 
+// Document Upload Section Component
+interface UploadState {
+  file: File | null;
+  uploading: boolean;
+  parsing: boolean;
+  parsed: boolean;
+  parsedData: any;
+  error: string | null;
+}
+
+interface FormData {
+  id: string;
+  name: string;
+  method: string;
+  path: string;
+  category: string;
+  description: string;
+  summary: string;
+  requiresAuth: boolean;
+  authType: string;
+  status: string;
+  timeout: number;
+  documentation: string;
+  requestExample: string;
+  responseExample: string;
+  responseSchema: string;
+  tags: string;
+  parameters: any[];
+  headers: any[];
+  responses: any[];
+  rateLimits: any;
+  sandbox: any;
+}
+
+interface DocumentUploadSectionProps {
+  uploadState: UploadState;
+  setUploadState: React.Dispatch<React.SetStateAction<UploadState>>;
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  categories: any[];
+  setActiveTab: (tab: string) => void;
+}
+
+const DocumentUploadSection = ({ uploadState, setUploadState, formData, setFormData, categories, setActiveTab }: DocumentUploadSectionProps) => {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('document', file);
+      
+      const response = await fetch('/api/admin/upload-document', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload document');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setUploadState((prev: UploadState) => ({
+        ...prev,
+        parsing: false,
+        parsed: true,
+        parsedData: data,
+        error: null
+      }));
+      toast({
+        title: "Document Parsed Successfully",
+        description: "API configuration extracted from document. Review and apply changes."
+      });
+    },
+    onError: (error: any) => {
+      setUploadState((prev: UploadState) => ({
+        ...prev,
+        uploading: false,
+        parsing: false,
+        error: error.message
+      }));
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a PDF, DOCX, or TXT file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload a file smaller than 10MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadState((prev: UploadState) => ({
+      ...prev,
+      file,
+      uploading: true,
+      parsing: true,
+      parsed: false,
+      parsedData: null,
+      error: null
+    }));
+
+    uploadDocumentMutation.mutate(file);
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (fileInputRef.current) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInputRef.current.files = dt.files;
+        handleFileSelect({ target: { files: dt.files } } as any);
+      }
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+  };
+
+  const applyParsedData = () => {
+    if (!uploadState.parsedData) return;
+
+    const parsed = uploadState.parsedData;
+    
+    // Apply parsed data to form
+    setFormData((prev: FormData) => ({
+      ...prev,
+      name: parsed.name || prev.name,
+      method: parsed.method || prev.method,
+      path: parsed.path || prev.path,
+      category: parsed.category || prev.category,
+      description: parsed.description || prev.description,
+      summary: parsed.summary || prev.summary,
+      documentation: parsed.documentation || prev.documentation,
+      requestExample: parsed.requestExample || prev.requestExample,
+      responseExample: parsed.responseExample || prev.responseExample,
+      tags: parsed.tags ? parsed.tags.join(', ') : prev.tags,
+      parameters: parsed.parameters || prev.parameters,
+      headers: parsed.headers || prev.headers,
+      responses: parsed.responses || prev.responses,
+      requiresAuth: parsed.requiresAuth !== undefined ? parsed.requiresAuth : prev.requiresAuth,
+      authType: parsed.authType || prev.authType
+    }));
+
+    toast({
+      title: "Data Applied",
+      description: "Parsed document data has been applied to the form. You can now review and edit before saving."
+    });
+
+    setActiveTab("basic");
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold mb-2">Upload API Documentation</h3>
+        <p className="text-muted-foreground mb-4">
+          Upload a document (.pdf, .docx, .txt) containing API specifications to automatically extract configuration
+        </p>
+      </div>
+
+      {/* File Upload Area */}
+      <div
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          uploadState.uploading ? 'border-blue-300 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+        }`}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        data-testid="document-upload-area"
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.docx,.txt"
+          onChange={handleFileSelect}
+          className="hidden"
+          data-testid="input-document-upload"
+        />
+        
+        {uploadState.uploading ? (
+          <div className="space-y-4">
+            <Loader2 className="w-12 h-12 text-blue-500 mx-auto animate-spin" />
+            <div>
+              <p className="font-medium text-blue-700">
+                {uploadState.parsing ? 'Parsing document...' : 'Uploading...'}
+              </p>
+              <p className="text-sm text-blue-600">
+                {uploadState.file?.name}
+              </p>
+            </div>
+          </div>
+        ) : uploadState.parsed ? (
+          <div className="space-y-4">
+            <CheckSquare className="w-12 h-12 text-green-500 mx-auto" />
+            <div>
+              <p className="font-medium text-green-700">Document parsed successfully!</p>
+              <p className="text-sm text-green-600">{uploadState.file?.name}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <Upload className="w-12 h-12 text-gray-400 mx-auto" />
+            <div>
+              <p className="font-medium">Drop your API document here</p>
+              <p className="text-sm text-muted-foreground">or click to browse files</p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-4"
+                data-testid="button-browse-files"
+              >
+                <File className="w-4 h-4 mr-2" />
+                Browse Files
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Error Display */}
+      {uploadState.error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+            <div>
+              <p className="font-medium text-red-700">Upload Error</p>
+              <p className="text-sm text-red-600">{uploadState.error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Parsed Data Preview */}
+      {uploadState.parsed && uploadState.parsedData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <CheckSquare className="w-5 h-5 text-green-600" />
+              <span>Extracted API Data</span>
+            </CardTitle>
+            <CardDescription>
+              Review the extracted information and apply it to the form
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <Label className="font-medium">API Name:</Label>
+                <p className="text-muted-foreground">{uploadState.parsedData.name || 'Not found'}</p>
+              </div>
+              <div>
+                <Label className="font-medium">Method:</Label>
+                <p className="text-muted-foreground">{uploadState.parsedData.method || 'Not found'}</p>
+              </div>
+              <div>
+                <Label className="font-medium">Path:</Label>
+                <p className="text-muted-foreground">{uploadState.parsedData.path || 'Not found'}</p>
+              </div>
+              <div>
+                <Label className="font-medium">Parameters:</Label>
+                <p className="text-muted-foreground">
+                  {uploadState.parsedData.parameters?.length || 0} found
+                </p>
+              </div>
+            </div>
+            
+            {uploadState.parsedData.description && (
+              <div>
+                <Label className="font-medium">Description:</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {uploadState.parsedData.description.substring(0, 200)}
+                  {uploadState.parsedData.description.length > 200 ? '...' : ''}
+                </p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Ready to apply extracted data to the form
+              </p>
+              <Button
+                type="button"
+                onClick={applyParsedData}
+                className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
+                data-testid="button-apply-parsed-data"
+              >
+                <CheckSquare className="w-4 h-4 mr-2" />
+                Apply Data to Form
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* File Format Guide */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Supported Document Formats</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center space-x-2">
+              <FileText className="w-4 h-4 text-red-500" />
+              <span>PDF (.pdf)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <FileText className="w-4 h-4 text-blue-500" />
+              <span>Word (.docx)</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <FileText className="w-4 h-4 text-gray-500" />
+              <span>Text (.txt)</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Documents should contain API specifications including parameters, request/response examples, and error codes for best results.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 // API Edit Dialog Component
 const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   const { merged: config, isLoading: configLoading } = useAdminFormConfigurations();
@@ -2008,7 +2361,15 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     onClose();
   };
 
-  const [activeTab, setActiveTab] = useState("basic");
+  const [activeTab, setActiveTab] = useState("upload");
+  const [uploadState, setUploadState] = useState({
+    file: null as File | null,
+    uploading: false,
+    parsing: false,
+    parsed: false,
+    parsedData: null as any,
+    error: null as string | null
+  });
   
 
   const addParameter = () => {
@@ -2137,7 +2498,11 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" style={{ opacity: configLoading ? 0.5 : 1 }}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="upload" className="flex items-center space-x-2">
+            <Upload className="w-4 h-4" />
+            <span>Upload Doc</span>
+          </TabsTrigger>
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="parameters">Parameters</TabsTrigger>
           <TabsTrigger value="headers">Headers</TabsTrigger>
@@ -2146,6 +2511,17 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
         </TabsList>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <TabsContent value="upload" className="space-y-6">
+            <DocumentUploadSection 
+              uploadState={uploadState}
+              setUploadState={setUploadState}
+              formData={formData}
+              setFormData={setFormData}
+              categories={categories}
+              setActiveTab={setActiveTab}
+            />
+          </TabsContent>
+
           <TabsContent value="basic" className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>

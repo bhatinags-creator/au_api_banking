@@ -24,8 +24,379 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { ZodError } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import mammoth from "mammoth";
+// import pdfParse from "pdf-parse"; // Use dynamic import to avoid initialization issues
 // API_CATEGORIES import removed - all data now served from database
 // Migration endpoint disabled as data is already migrated
+
+// Magic number validation for file types
+function validateFileSignature(buffer: Buffer, originalName: string): boolean {
+  const fileExtension = path.extname(originalName).toLowerCase();
+  
+  switch (fileExtension) {
+    case '.pdf':
+      // PDF magic number: %PDF
+      return buffer.length >= 4 && 
+             buffer[0] === 0x25 && 
+             buffer[1] === 0x50 && 
+             buffer[2] === 0x44 && 
+             buffer[3] === 0x46;
+    
+    case '.docx':
+      // DOCX is a ZIP file, check for ZIP magic number: PK
+      return buffer.length >= 2 && 
+             buffer[0] === 0x50 && 
+             buffer[1] === 0x4B;
+    
+    case '.txt':
+      // TXT files should be valid UTF-8 and not contain null bytes
+      try {
+        const text = buffer.toString('utf-8');
+        return !text.includes('\0') && text.length > 0;
+      } catch {
+        return false;
+      }
+    
+    default:
+      return false;
+  }
+}
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: 'temp/uploads/',
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
+    
+    // First check MIME type
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type. Only PDF, DOCX, and TXT files are allowed.'));
+    }
+    
+    // Check file extension matches MIME type
+    const ext = path.extname(file.originalname).toLowerCase();
+    const validExtensions = ['.pdf', '.docx', '.txt'];
+    if (!validExtensions.includes(ext)) {
+      return cb(new Error('Invalid file extension. Only .pdf, .docx, and .txt files are allowed.'));
+    }
+    
+    cb(null, true);
+  }
+});
+
+// Document parsing service
+async function parseDocument(filePath: string, originalName: string): Promise<any> {
+  const fileExtension = path.extname(originalName).toLowerCase();
+  let content = '';
+
+  try {
+    switch (fileExtension) {
+      case '.pdf':
+        const pdfBuffer = fs.readFileSync(filePath);
+        // Dynamic import to avoid initialization issues with pdf-parse
+        const pdfParse = (await import('pdf-parse')).default;
+        const pdfData = await pdfParse(pdfBuffer);
+        content = pdfData.text;
+        break;
+      
+      case '.docx':
+        const docxResult = await mammoth.extractRawText({ path: filePath });
+        content = docxResult.value;
+        break;
+      
+      case '.txt':
+        content = fs.readFileSync(filePath, 'utf-8');
+        break;
+      
+      default:
+        throw new Error('Unsupported file format');
+    }
+
+    // Parse the content to extract API information
+    const parsedData = extractApiInformation(content);
+    return parsedData;
+
+  } finally {
+    // Clean up uploaded file
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (cleanupError) {
+      console.error('Error cleaning up uploaded file:', cleanupError);
+    }
+  }
+}
+
+// Extract API information from document content
+function extractApiInformation(content: string): any {
+  const result = {
+    name: null as string | null,
+    method: 'POST' as string,
+    path: null as string | null,
+    category: null as string | null,
+    description: null as string | null,
+    summary: null as string | null,
+    documentation: content as string,
+    parameters: [] as any[],
+    headers: [] as any[],
+    responses: [] as any[],
+    requestExample: null as string | null,
+    responseExample: null as string | null,
+    requiresAuth: false as boolean,
+    authType: 'bearer' as string,
+    tags: [] as string[]
+  };
+
+  // Extract API name
+  const nameMatches = [
+    /(?:API\s+Name|Service\s+Name|Endpoint\s+Name)[:\s]*([^\n\r]+)/i,
+    /^([A-Z][A-Za-z\s]+(?:API|Service|Endpoint))/m,
+    /(?:^|\n)([A-Z][A-Za-z\s&]+(?:API|Service))/m
+  ];
+  
+  for (const pattern of nameMatches) {
+    const match = content.match(pattern);
+    if (match && match[1]) {
+      result.name = match[1].trim().replace(/[^\w\s&-]/g, '') || null;
+      break;
+    }
+  }
+
+  // Extract URL/Path
+  const urlPatterns = [
+    /(?:URL|Endpoint|Path)[:\s]*([^\s\n\r]+)/i,
+    /(https?:\/\/[^\s\n\r]+)/g,
+    /(?:\/[a-zA-Z][a-zA-Z0-9\/\-_]*)/g
+  ];
+  
+  for (const pattern of urlPatterns) {
+    const match = content.match(pattern);
+    if (match) {
+      let url = Array.isArray(match) ? match[match.length - 1] : match[1] || match[0];
+      if (url.startsWith('http')) {
+        // Extract path from full URL
+        try {
+          const urlObj = new URL(url);
+          result.path = urlObj.pathname || null;
+        } catch {
+          result.path = url || null;
+        }
+      } else if (url.startsWith('/')) {
+        result.path = url || null;
+      }
+      if (result.path) break;
+    }
+  }
+
+  // Extract method
+  const methodMatch = content.match(/(?:Method|HTTP\s+Method)[:\s]*(GET|POST|PUT|DELETE|PATCH)/i);
+  if (methodMatch) {
+    result.method = methodMatch[1].toUpperCase();
+  }
+
+  // Extract description
+  const descriptionPatterns = [
+    /(?:Description|Summary)[:\s]*([^\n\r]{10,200})/i,
+    /(?:This\s+(?:service|API|endpoint))[^\n\r]{10,200}/i
+  ];
+  
+  for (const pattern of descriptionPatterns) {
+    const match = content.match(pattern);
+    if (match && match[1]) {
+      result.description = match[1].trim() || null;
+      result.summary = match[1].trim().substring(0, 100) || null;
+      break;
+    }
+  }
+
+  // Extract parameters from tables
+  result.parameters = extractParametersFromContent(content);
+
+  // Extract request/response examples
+  const examples = extractExamples(content);
+  if (examples.request) result.requestExample = examples.request || null;
+  if (examples.response) result.responseExample = examples.response || null;
+
+  // Extract responses/error codes
+  result.responses = extractResponses(content);
+
+  // Determine category based on content
+  result.category = determineCategory(content) || null;
+
+  // Extract tags
+  result.tags = extractTags(content);
+
+  return result;
+}
+
+// Extract parameters from document content
+function extractParametersFromContent(content: string): any[] {
+  const parameters = [];
+  
+  // Look for parameter tables
+  const tablePattern = /(?:Parameter|Field|Input)[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi;
+  const matches = content.match(tablePattern);
+  
+  if (matches) {
+    for (const tableSection of matches) {
+      // Extract individual parameter entries
+      const paramLines = tableSection.split('\n').filter(line => line.trim());
+      
+      for (const line of paramLines) {
+        // Skip header lines
+        if (line.match(/parameter|field|name|type|mandatory|description/i)) continue;
+        
+        // Try to parse parameter information
+        const paramMatch = line.match(/^([A-Za-z][A-Za-z0-9_]*)\s+([A-Za-z]+)?\s*(\d+)?\s*(Mandatory|Optional|Yes|No)?\s*(.*)/i);
+        
+        if (paramMatch) {
+          const [, name, type = 'string', length, mandatory, description] = paramMatch;
+          
+          parameters.push({
+            name: name.trim(),
+            type: mapParameterType(type),
+            required: mandatory ? mandatory.match(/mandatory|yes/i) !== null : false,
+            description: description ? description.trim() : `${name} parameter`,
+            example: generateExampleValue(name, type)
+          });
+        }
+      }
+    }
+  }
+
+  return parameters;
+}
+
+// Extract JSON examples from content
+function extractExamples(content: string): { request: string | null, response: string | null } {
+  const result: { request: string | null, response: string | null } = { request: null, response: null };
+
+  // Look for JSON blocks
+  const jsonPattern = /\{[\s\S]*?\}/g;
+  const jsonMatches = content.match(jsonPattern);
+
+  if (jsonMatches) {
+    // Try to identify request vs response
+    for (const jsonStr of jsonMatches) {
+      try {
+        const parsed = JSON.parse(jsonStr);
+        
+        // Heuristics to determine if it's a request or response
+        if (jsonStr.toLowerCase().includes('request') || 
+            Object.keys(parsed).some(key => key.toLowerCase().includes('request'))) {
+          result.request = JSON.stringify(parsed, null, 2) as string;
+        } else if (jsonStr.toLowerCase().includes('response') || 
+                   Object.keys(parsed).some(key => key.toLowerCase().includes('status'))) {
+          result.response = JSON.stringify(parsed, null, 2) as string;
+        } else if (!result.request) {
+          result.request = JSON.stringify(parsed, null, 2) as string;
+        } else if (!result.response) {
+          result.response = JSON.stringify(parsed, null, 2) as string;
+        }
+      } catch {
+        // Invalid JSON, skip
+      }
+    }
+  }
+
+  return result;
+}
+
+// Extract response/error codes
+function extractResponses(content: string): any[] {
+  const responses = [];
+  
+  // Look for error code patterns
+  const errorPattern = /(\d{3})\s*[:\-]?\s*([^\n\r]+)/g;
+  let match;
+  
+  while ((match = errorPattern.exec(content)) !== null) {
+    const [, code, description] = match;
+    const statusCode = parseInt(code);
+    
+    if (statusCode >= 200 && statusCode < 600) {
+      responses.push({
+        statusCode,
+        description: description.trim(),
+        schema: statusCode < 400 ? '{"status": "success"}' : '{"error": "string"}',
+        example: statusCode < 400 ? '{"status": "success", "data": {}}' : `{"error": "${description.trim()}"}`
+      });
+    }
+  }
+
+  // Add default success response if none found
+  if (!responses.some(r => r.statusCode >= 200 && r.statusCode < 300)) {
+    responses.unshift({
+      statusCode: 200,
+      description: 'Success',
+      schema: '{"status": "success"}',
+      example: '{"status": "success", "data": {}}'
+    });
+  }
+
+  return responses;
+}
+
+// Helper functions
+function mapParameterType(type: string): string {
+  if (!type) return 'string';
+  const lowerType = type.toLowerCase();
+  if (lowerType.includes('number') || lowerType.includes('int')) return 'number';
+  if (lowerType.includes('bool')) return 'boolean';
+  if (lowerType.includes('array')) return 'array';
+  if (lowerType.includes('object')) return 'object';
+  return 'string';
+}
+
+function generateExampleValue(name: string, type: string): string {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('email')) return 'user@example.com';
+  if (lowerName.includes('phone')) return '9876543210';
+  if (lowerName.includes('amount')) return '1000';
+  if (lowerName.includes('id')) return '12345';
+  if (lowerName.includes('number')) return '123456789';
+  if (type === 'number') return '100';
+  if (type === 'boolean') return 'true';
+  return 'example_value';
+}
+
+function determineCategory(content: string): string {
+  const contentLower = content.toLowerCase();
+  
+  if (contentLower.includes('payment') || contentLower.includes('upi')) return 'Payment Services';
+  if (contentLower.includes('account') || contentLower.includes('customer')) return 'Account Management';
+  if (contentLower.includes('kyc') || contentLower.includes('verification')) return 'Identity Verification';
+  if (contentLower.includes('loan') || contentLower.includes('credit')) return 'Lending Services';
+  if (contentLower.includes('bill') || contentLower.includes('bbps')) return 'Bill Payment';
+  if (contentLower.includes('auth') || contentLower.includes('login')) return 'Authentication';
+  
+  return 'General';
+}
+
+function extractTags(content: string): string[] {
+  const tags = [];
+  const contentLower = content.toLowerCase();
+  
+  if (contentLower.includes('cbs')) tags.push('CBS');
+  if (contentLower.includes('account')) tags.push('account');
+  if (contentLower.includes('customer')) tags.push('customer');
+  if (contentLower.includes('payment')) tags.push('payment');
+  if (contentLower.includes('api')) tags.push('api');
+  if (contentLower.includes('service')) tags.push('service');
+  
+  return tags;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware
@@ -34,6 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rate limiting for API routes
   const apiRateLimit = createRateLimiter(60 * 1000, 100); // 100 requests per minute
   const authRateLimit = createRateLimiter(15 * 60 * 1000, 5); // 5 login attempts per 15 minutes
+  const uploadRateLimit = createRateLimiter(5 * 60 * 1000, 10); // 10 document uploads per 5 minutes
 
   // Health check
   app.get("/api/health", (req, res) => {
@@ -793,6 +1165,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete API error:', error);
       res.status(500).json({ error: "Failed to delete API" });
+    }
+  });
+
+  // Document upload and parsing route
+  app.post("/api/admin/upload-document", authenticate, requireRole(['admin']), uploadRateLimit, upload.single('document'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      // Validate file signature using magic numbers
+      try {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        if (!validateFileSignature(fileBuffer, req.file.originalname)) {
+          // Clean up invalid file
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          
+          // Log security incident
+          await storage.createAuditLog({
+            userId: req.user!.id,
+            action: 'invalid_file_upload',
+            resource: 'api_document',
+            details: { 
+              fileName: req.file.originalname,
+              fileSize: req.file.size,
+              reason: 'Invalid file signature'
+            },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+          });
+          
+          return res.status(400).json({ 
+            error: "Invalid file format",
+            message: "File signature does not match the expected format for this file type."
+          });
+        }
+      } catch (signatureError) {
+        console.error('File signature validation error:', signatureError);
+        
+        // Clean up file on error
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        
+        return res.status(400).json({ 
+          error: "File validation failed",
+          message: "Unable to validate file format."
+        });
+      }
+
+      console.log(`Processing document: ${req.file.originalname} (${req.file.size} bytes) - File signature validated`);
+
+      // Create temp directory if it doesn't exist
+      const tempDir = path.dirname(req.file.path);
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+
+      // Parse the document
+      const parsedData = await parseDocument(req.file.path, req.file.originalname);
+      
+      // Log the document upload and parsing
+      await storage.createAuditLog({
+        userId: req.user!.id,
+        action: 'document_uploaded',
+        resource: 'api_document',
+        details: { 
+          fileName: req.file.originalname, 
+          fileSize: req.file.size,
+          extractedApiName: parsedData.name,
+          extractedPath: parsedData.path,
+          parametersCount: parsedData.parameters?.length || 0
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+      });
+
+      console.log(`Document parsed successfully: ${JSON.stringify(parsedData, null, 2)}`);
+
+      res.json({
+        success: true,
+        message: "Document parsed successfully",
+        data: parsedData,
+        fileName: req.file.originalname,
+        fileSize: req.file.size
+      });
+    } catch (error) {
+      console.error('Document upload/parsing error:', error);
+      
+      // Clean up file on error
+      if (req.file && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.error('Error cleaning up file:', cleanupError);
+        }
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      res.status(500).json({ 
+        error: "Failed to parse document",
+        message: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
     }
   });
 
