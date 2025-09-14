@@ -56,7 +56,7 @@ function Router() {
       <Route path="/signin" component={SignIn} />
       <Route path="/signup" component={SignUp} />
       <Route path="/register" component={CorporateRegistration} />
-      <Route path="/docs" component={APIDocs} />
+      <Route path="/api-docs" component={APIDocs} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/admin" component={AdminPanel} />
       <Route path="/" component={Home} />
