@@ -782,7 +782,14 @@ export default function Sandbox() {
         category: endpoint.category,
         description: endpoint.description,
         requiresAuth: endpoint.requiresAuth || false,
-        sampleRequest: endpoint.requestExample || {},
+        sampleRequest: endpoint.requestExample ? (() => {
+          try {
+            return JSON.parse(endpoint.requestExample);
+          } catch (e) {
+            console.warn('Failed to parse requestExample for endpoint:', endpoint.name, e);
+            return {};
+          }
+        })() : {},
         sampleResponse: endpoint.responseExample || null // Add response example mapping
       }));
   }, [dbEndpoints]);
