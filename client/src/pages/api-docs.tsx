@@ -34,6 +34,7 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { safeParseJson, safeJsonStringify } from "@/lib/utils";
 
 // Database types for documentation
 interface DocumentationCategory {
@@ -207,8 +208,8 @@ function transformMainApiToLegacyFormat(
           })) || [],
           examples: endpoint.requestExample && endpoint.responseExample ? [{
             title: "API Example",
-            request: endpoint.requestExample,
-            response: endpoint.responseExample,
+            request: safeParseJson(endpoint.requestExample),
+            response: safeParseJson(endpoint.responseExample),
             curl: `curl -X ${endpoint.method} "https://api.aubank.in${endpoint.path}" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json"`
@@ -2662,7 +2663,7 @@ export default function APIDocs() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => copyToClipboard(JSON.stringify(example.request, null, 2))}
+                                    onClick={() => copyToClipboard(safeJsonStringify(example.request))}
                                     className="hover:bg-neutrals-50"
                                   >
                                     <Copy className="w-4 h-4 mr-2" />
@@ -2670,7 +2671,7 @@ export default function APIDocs() {
                                   </Button>
                                 </div>
                                 <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300 whitespace-pre">
-                                  <code className="text-sm font-mono leading-relaxed">{JSON.stringify(example.request, null, 2)}</code>
+                                  <code className="text-sm font-mono leading-relaxed">{safeJsonStringify(example.request)}</code>
                                 </pre>
                               </div>
                             )}
@@ -2685,7 +2686,7 @@ export default function APIDocs() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => copyToClipboard(JSON.stringify(example.response, null, 2))}
+                                    onClick={() => copyToClipboard(safeJsonStringify(example.response))}
                                     className="hover:bg-neutrals-50"
                                   >
                                     <Copy className="w-4 h-4 mr-2" />
@@ -2693,7 +2694,7 @@ export default function APIDocs() {
                                   </Button>
                                 </div>
                                 <pre className="bg-neutrals-50 text-neutrals-900 p-4 rounded-lg overflow-x-auto border border-neutrals-300 whitespace-pre">
-                                  <code className="text-sm font-mono leading-relaxed">{JSON.stringify(example.response, null, 2)}</code>
+                                  <code className="text-sm font-mono leading-relaxed">{safeJsonStringify(example.response)}</code>
                                 </pre>
                               </div>
                             )}

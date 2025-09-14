@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { fetchValidationRules, validateFieldDynamic, validateObjectDynamic, getFieldConstraints } from "@/lib/dynamicValidation";
 import { useValidationRules } from "@/hooks/useConfigurations";
+import { safeJsonStringify } from "@/lib/utils";
 
 
 interface APIEndpoint {
@@ -982,7 +983,7 @@ export default function Sandbox() {
     
     // Update request body with sample data
     if (endpoint.sampleRequest) {
-      setRequestBody(JSON.stringify(endpoint.sampleRequest, null, 2));
+      setRequestBody(safeJsonStringify(endpoint.sampleRequest));
     } else {
       setRequestBody("");
     }
