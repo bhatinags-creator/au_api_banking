@@ -424,6 +424,7 @@ export default function AdminPanel() {
       queryParameters: [], // Backend stores all params in 'parameters' field
       pathParameters: [],
       bodyParameters: api.parameters || [],
+      parameters: api.parameters || [], // !! FIX: Preserve original parameters for edit dialog
       headers: api.headers || [],
       responses: api.responses || [],
       requestExample: api.requestExample || '',
