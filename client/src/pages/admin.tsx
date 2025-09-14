@@ -1024,6 +1024,9 @@ export default function AdminPanel() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        console.log('🔧 DEBUG: Edit button clicked for selectedApi:', selectedApi);
+                        console.log('🔧 DEBUG: selectedApi parameters:', selectedApi?.parameters);
+                        console.log('🔧 DEBUG: selectedApi full object:', JSON.stringify(selectedApi, null, 2));
                         setEditingApi(selectedApi);
                         setShowApiDialog(true);
                       }}
@@ -2062,6 +2065,8 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     }
     
     console.log('🔧 DEBUG: Initializing form data for API:', currentApiId);
+    console.log('🔧 DEBUG: API object in useEffect:', api);
+    console.log('🔧 DEBUG: API parameters before setting formData:', api?.parameters);
     
     if (api) {
       // Edit mode - populate form with existing API data
@@ -2159,8 +2164,10 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
   useEffect(() => {
     console.log('🔧 DEBUG: ApiEditDialog component initialized');
     console.log('🔧 DEBUG: - api prop:', api);
+    console.log('🔧 DEBUG: - api parameters:', api?.parameters);
     console.log('🔧 DEBUG: - categories prop:', categories);
     console.log('🔧 DEBUG: - config loading:', configLoading);
+    console.log('🔧 DEBUG: - formData.parameters:', formData.parameters);
     console.log('🔧 DEBUG: - addResponse function defined:', typeof addResponse);
     console.log('🔧 DEBUG: - removeResponse function defined:', typeof removeResponse);
     console.log('🔧 DEBUG: - updateResponse function defined:', typeof updateResponse);
