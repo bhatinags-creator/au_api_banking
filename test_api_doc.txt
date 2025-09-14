@@ -1,0 +1,47 @@
+AU Bank - API Banking Integration Document
+
+CBS Account Link & Dlink Service API
+
+Introduction: THIS SERVICE IS USED TO ACCOUNT LINK DLINK API.
+
+UAT URL: https://osbuat.aubankuat.in/CBSAccountLinkDlinkService/AccountLinkDlink
+
+Method: POST
+
+Parameters:
+
+Field Name       Data Type    Length    Mandatory    Description
+ReferenceNumber  String       20        Yes          Transaction reference number
+TransactionBranch String      10        Yes          Branch code for transaction
+RequestId        String       20        Yes          Unique request identifier
+OriginatingChannel String     3         Yes          Channel code (ATM, NET, MOB)
+OldCustomerId    String       8         Yes          Previous customer ID
+OldAccountNumber String       16        Yes          Previous account number
+NewCustomerID    String       8         Yes          New customer ID
+
+Request Example:
+{
+  "ReferenceNumber": "REF1234567890123456",
+  "TransactionBranch": "BR001",
+  "RequestId": "REQ1234567890123456",
+  "OriginatingChannel": "NET",
+  "OldCustomerId": "CUST1234",
+  "OldAccountNumber": "1234567890123456",
+  "NewCustomerID": "NEWC1234"
+}
+
+Response Example:
+{
+  "status": "SUCCESS",
+  "message": "Account link/dlink operation completed successfully",
+  "transactionId": "TXN1234567890"
+}
+
+Error Codes:
+200 - Success
+400 - Bad Request - Invalid parameters
+401 - Unauthorized - Authentication required
+404 - Not Found - Resource not found
+500 - Internal Server Error
+503 - Service Unavailable
+504 - Gateway Timeout
