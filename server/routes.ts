@@ -374,24 +374,14 @@ function generateExampleValue(name: string, type: string): string {
 function determineCategory(content: string): string {
   const contentLower = content.toLowerCase();
   
-  // Match actual database category names
-  if (contentLower.includes('auth') || contentLower.includes('login') || contentLower.includes('token')) return 'Authentication';
-  if (contentLower.includes('card') || contentLower.includes('debit') || contentLower.includes('credit card')) return 'Cards';
-  if (contentLower.includes('payment') || contentLower.includes('upi') || contentLower.includes('transfer')) return 'Digital Payments';
-  if (contentLower.includes('customer') || contentLower.includes('profile') || contentLower.includes('kyc') || contentLower.includes('verification')) return 'Customer';
-  if (contentLower.includes('loan') || contentLower.includes('credit') || contentLower.includes('lending')) return 'Loans';
+  if (contentLower.includes('payment') || contentLower.includes('upi')) return 'Payment Services';
+  if (contentLower.includes('account') || contentLower.includes('customer')) return 'Account Management';
+  if (contentLower.includes('kyc') || contentLower.includes('verification')) return 'Identity Verification';
+  if (contentLower.includes('loan') || contentLower.includes('credit')) return 'Lending Services';
+  if (contentLower.includes('bill') || contentLower.includes('bbps')) return 'Bill Payment';
+  if (contentLower.includes('auth') || contentLower.includes('login')) return 'Authentication';
   
-  // Liabilities category - account linking, deposits, savings, current accounts
-  if (contentLower.includes('account link') || contentLower.includes('dlink') || 
-      contentLower.includes('account activation') || contentLower.includes('deposit') ||
-      contentLower.includes('savings') || contentLower.includes('current account') ||
-      contentLower.includes('liability') || contentLower.includes('account management') ||
-      contentLower.includes('account service')) return 'Liabilities';
-  
-  if (contentLower.includes('trade') || contentLower.includes('import') || contentLower.includes('export')) return 'Trade Services';
-  if (contentLower.includes('corporate') || contentLower.includes('enterprise')) return 'Corporate API Suite';
-  
-  return 'Customer'; // Default fallback
+  return 'General';
 }
 
 function extractTags(content: string): string[] {
