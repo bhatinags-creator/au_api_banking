@@ -89,15 +89,6 @@ interface AdminUser {
 }
 
 export default function AdminPanel() {
-  console.log('🔧 AdminPanel component mounted - this should appear in console!'); // Mount verification
-  
-  // Add unmount detection
-  useEffect(() => {
-    console.log('🔧 AdminPanel mounted via useEffect');
-    return () => {
-      console.log('🔧 AdminPanel UNMOUNTED - this shows if component tears down');
-    };
-  }, []);
   
   const [activeTab, setActiveTab] = useState("dashboard");
   const [apis, setApis] = useState<APIEndpoint[]>([]);
@@ -140,7 +131,6 @@ export default function AdminPanel() {
       setShowCategoryDialog(false);
     },
     onError: (error: any) => {
-      console.error('Category creation error:', error);
       toast({ 
         title: "Category Creation Failed", 
         description: error.message || "Failed to create category",
@@ -166,7 +156,6 @@ export default function AdminPanel() {
       setShowCategoryDialog(false);
     },
     onError: (error: any) => {
-      console.error('Category update error:', error);
       toast({ 
         title: "Category Update Failed", 
         description: error.message || "Failed to update category",
@@ -190,7 +179,6 @@ export default function AdminPanel() {
       queryClientInstance.invalidateQueries({ queryKey: ['/api/endpoints'] });
     },
     onError: (error: any) => {
-      console.error('Category deletion error:', error);
       toast({ 
         title: "Category Deletion Failed", 
         description: error.message || "Failed to delete category",
@@ -202,37 +190,26 @@ export default function AdminPanel() {
   // React Query mutations for API management
   const createApiMutation = useMutation({
     mutationFn: async (apiData: Partial<APIEndpoint>) => {
-      console.log('🔧 DEBUG: createApiMutation.mutationFn called with:', apiData);
-      console.log('🔧 DEBUG: Current user authentication state:', isAuthenticated);
-      console.log('🔧 DEBUG: About to call apiRequest with POST /api/admin/apis');
-      
       // Check authentication before making request
       if (!isAuthenticated) {
-        console.error('🔧 DEBUG: User not authenticated, throwing error');
         throw new Error('User not authenticated');
       }
       
       try {
         const result = await apiRequest('POST', '/api/admin/apis', apiData);
-        console.log('🔧 DEBUG: apiRequest successful, result:', result);
         
         // Parse JSON response to ensure it's valid
         const jsonResult = await result.json();
-        console.log('🔧 DEBUG: API creation result JSON:', jsonResult);
         return jsonResult;
       } catch (error) {
-        console.error('🔧 DEBUG: apiRequest failed with error:', error);
-        
         // Handle specific authentication errors
         if (error instanceof Error && error.message.includes('401')) {
-          console.error('🔧 DEBUG: Authentication error - user needs to login as admin');
           toast({
             title: "Authentication Required",
             description: "Please log in as admin to create APIs",
             variant: "destructive"
           });
         } else if (error instanceof Error && error.message.includes('403')) {
-          console.error('🔧 DEBUG: Authorization error - user lacks admin privileges');
           toast({
             title: "Access Denied",
             description: "Admin privileges required to create APIs",
@@ -244,7 +221,6 @@ export default function AdminPanel() {
       }
     },
     onSuccess: (data) => {
-      console.log('🔧 DEBUG: createApiMutation onSuccess called with:', data);
       toast({ 
         title: "API Created", 
         description: "New API endpoint has been created and saved to database" 
@@ -257,8 +233,6 @@ export default function AdminPanel() {
       setShowApiDialog(false);
     },
     onError: (error: any) => {
-      console.error('🔧 DEBUG: createApiMutation onError called with:', error);
-      console.error('API creation error:', error);
       
       // More specific error handling
       let errorMessage = "Failed to create API endpoint";
@@ -297,7 +271,6 @@ export default function AdminPanel() {
       setShowApiDialog(false);
     },
     onError: (error: any) => {
-      console.error('API update error:', error);
       toast({ 
         title: "API Update Failed", 
         description: error.message || "Failed to update API endpoint",
@@ -321,7 +294,6 @@ export default function AdminPanel() {
       queryClientInstance.invalidateQueries({ queryKey: ['/api/categories'] });
     },
     onError: (error: any) => {
-      console.error('API deletion error:', error);
       toast({ 
         title: "API Deletion Failed", 
         description: error.message || "Failed to delete API endpoint",
@@ -396,8 +368,6 @@ export default function AdminPanel() {
   const loadAdminData = async () => {
     if (!backendCategories || !backendApis) return;
     
-    console.log('🔧 ADMIN - Loading data from backend APIs instead of hardcoded data');
-    
     // Transform backend categories for admin panel
     const adminCategories: APICategory[] = (backendCategories as any[]).map((cat: any) => ({
       id: cat.id,
@@ -442,35 +412,17 @@ export default function AdminPanel() {
     const totalApis = allApis.length;
     const totalCategories = adminCategories.length;
     
-    console.log(`🔧 ADMIN - Loaded ${totalCategories} categories with ${totalApis} APIs from backend database`);
-    
-    // Debug API category matching with backend data
-    console.log('🔍 ADMIN - Debug API Category Matching (Backend Data):');
-    adminCategories.forEach((cat) => {
-      const matchingApis = allApis.filter(api => api.category === cat.name);
-      console.log(`🔍 Category "${cat.name}" has ${matchingApis.length} APIs:`, 
-        matchingApis.map(api => api.name));
-    });
-    
     toast({
-      title: "Comprehensive Data Loaded",
-      description: `Loaded ${totalCategories} categories with ${totalApis} APIs from centralized store`
+      title: "Data Loaded",
+      description: `Loaded ${totalCategories} categories with ${totalApis} APIs`
     });
   };
 
   // API Management Functions
   const handleSaveApi = (apiData: Partial<APIEndpoint>) => {
-    console.log('🔧 DEBUG: handleSaveApi called with:', apiData);
-    console.log('🔧 DEBUG: editingApi:', editingApi);
-    console.log('🔧 DEBUG: isAuthenticated:', isAuthenticated);
-    
     if (editingApi && editingApi.id) {
       // Update existing API - verify ID exists
-      console.log('🔧 DEBUG: Updating existing API with ID:', editingApi.id);
-      console.log('🔧 DEBUG: API data to update:', apiData);
-      
       if (!editingApi.id || editingApi.id.trim() === '') {
-        console.error('🔧 DEBUG: ERROR - editingApi.id is empty or undefined!');
         toast({
           title: "Update Failed",
           description: "API ID is missing. Cannot update API.",
@@ -485,7 +437,6 @@ export default function AdminPanel() {
       });
     } else {
       // Create new API
-      console.log('🔧 DEBUG: Creating new API');
       const newApiData = {
         name: apiData.name,
         method: apiData.method,
@@ -507,10 +458,7 @@ export default function AdminPanel() {
         rateLimits: { sandbox: apiData.rateLimit || 100 },
         timeout: apiData.timeout || 30000
       };
-      console.log('🔧 DEBUG: Final newApiData for mutation:', newApiData);
-      console.log('🔧 DEBUG: Calling createApiMutation.mutate...');
       createApiMutation.mutate(newApiData);
-      console.log('🔧 DEBUG: createApiMutation.mutate called');
     }
   };
 
@@ -552,7 +500,6 @@ export default function AdminPanel() {
   const confirmDeleteCategory = () => {
     if (!categoryToDelete) return;
     
-    console.log(`🗑️ Admin: Deleting category "${categoryToDelete.name}"`);
     deleteCategoryMutation.mutate(categoryToDelete.id);
     setShowDeleteConfirmDialog(false);
     setCategoryToDelete(null);
@@ -567,15 +514,6 @@ export default function AdminPanel() {
     // Implementation for user deletion
   };
 
-  // Add debugging info to console on component render (MUST BE BEFORE CONDITIONAL RETURN)
-  useEffect(() => {
-    console.log('🔧 DEBUG: AdminPanel component rendered');
-    console.log('🔧 DEBUG: isAuthenticated:', isAuthenticated);
-    console.log('🔧 DEBUG: apis length:', apis.length);
-    console.log('🔧 DEBUG: categories length:', categories.length);
-    console.log('🔧 DEBUG: showApiDialog:', showApiDialog);
-    console.log('🔧 DEBUG: editingApi:', editingApi);
-  }, [isAuthenticated, apis.length, categories.length, showApiDialog, editingApi]);
 
   if (!isAuthenticated) {
     return (
@@ -647,15 +585,6 @@ export default function AdminPanel() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            {/* Add debug info */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                🔧 DEBUG: Admin Panel Active - APIs: {apis.length}, Categories: {categories.length}
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Authentication: {isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated'}
-              </p>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -736,55 +665,6 @@ export default function AdminPanel() {
                     <div className="flex-1">
                       <p className="text-sm font-medium">New category created: Payments</p>
                       <p className="text-xs text-muted-foreground">1 day ago</p>
-                    </div>
-                  </div>
-                  
-                  {/* DEBUG TEST SECTION */}
-                  <div className="mt-6 p-4 border-2 border-orange-300 bg-orange-50 rounded-lg">
-                    <h4 className="font-semibold text-orange-800 mb-2">🔧 DEBUG: Response Management Test</h4>
-                    <div className="space-y-2">
-                      <Button 
-                        onClick={() => {
-                          console.log('🔧 DEBUG: Direct test button clicked!');
-                          
-                          // Test state management directly
-                          const testResponses = [
-                            { statusCode: 200, description: "Success", schema: {}, example: "{}" },
-                            { statusCode: 400, description: "Bad Request", schema: {}, example: "{}" }
-                          ];
-                          console.log('🔧 DEBUG: Test responses array:', testResponses);
-                          
-                          // Test add operation
-                          const newResponse = { statusCode: 201, description: "Created", schema: {}, example: "{}" };
-                          const addedResponses = [...testResponses, newResponse];
-                          console.log('🔧 DEBUG: After add operation:', addedResponses);
-                          
-                          // Test remove operation  
-                          const removedResponses = addedResponses.filter((_, i) => i !== 1);
-                          console.log('🔧 DEBUG: After remove operation (index 1):', removedResponses);
-                          
-                          // Test update operation
-                          const updatedResponses = removedResponses.map((response, i) => 
-                            i === 0 ? { ...response, description: "Updated Success" } : response
-                          );
-                          console.log('🔧 DEBUG: After update operation (index 0):', updatedResponses);
-                          
-                          console.log('🔧 DEBUG: Response management functions test completed!');
-                          
-                          toast({
-                            title: "Response Management Test",
-                            description: "Check console for debug output"
-                          });
-                        }}
-                        size="sm"
-                        className="bg-orange-600 hover:bg-orange-700 text-white"
-                        data-testid="button-test-response-management"
-                      >
-                        Test Response Functions
-                      </Button>
-                      <p className="text-xs text-orange-700">
-                        Click to test response management functions in console
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -956,12 +836,8 @@ export default function AdminPanel() {
                   </div>
                   <Button 
                     onClick={() => {
-                      console.log('🔧 DEBUG: Add API button clicked');
-                      console.log('🔧 DEBUG: Current authentication state:', isAuthenticated);
-                      console.log('🔧 DEBUG: Setting editingApi to null and showing API dialog');
                       setEditingApi(null);
                       setShowApiDialog(true);
-                      console.log('🔧 DEBUG: showApiDialog set to true');
                     }}
                     className="bg-[var(--au-primary)] hover:bg-[var(--au-primary)]/90"
                     data-testid="button-add-api"
@@ -1025,9 +901,6 @@ export default function AdminPanel() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        console.log('🔧 DEBUG: Edit button clicked for selectedApi:', selectedApi);
-                        console.log('🔧 DEBUG: selectedApi parameters:', selectedApi?.parameters);
-                        console.log('🔧 DEBUG: selectedApi full object:', JSON.stringify(selectedApi, null, 2));
                         setEditingApi(selectedApi);
                         setShowApiDialog(true);
                       }}
@@ -1144,10 +1017,8 @@ export default function AdminPanel() {
               />
             </Dialog>
             <Dialog open={showApiDialog} onOpenChange={(open) => {
-              console.log('🔧 DEBUG: API Dialog open state changed to:', open);
               if (!open) {
-                // Dialog is closing - reset edit state and guard flags
-                console.log('🔧 DEBUG: Dialog closing - resetting editingApi and guard flags');
+                // Dialog is closing - reset edit state
                 setEditingApi(null);
               }
               setShowApiDialog(open);
@@ -1156,11 +1027,9 @@ export default function AdminPanel() {
                 api={editingApi}
                 categories={categories}
                 onSave={(data: Partial<APIEndpoint>) => {
-                  console.log('🔧 DEBUG: ApiEditDialog onSave called with data:', data);
                   handleSaveApi(data);
                 }}
                 onClose={() => {
-                  console.log('🔧 DEBUG: ApiEditDialog onClose called - closing dialog');
                   setShowApiDialog(false);
                   setEditingApi(null); // Reset editing state
                 }}
@@ -2054,20 +1923,14 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     // Check if API ID has changed - reset guard to allow re-initialization for different APIs
     const currentApiId = api?.id || null;
     if (currentApiId !== lastApiIdRef.current) {
-      console.log('🔧 DEBUG: API ID changed from', lastApiIdRef.current, 'to', currentApiId, '- resetting guard');
       lastApiIdRef.current = currentApiId;
       initializedRef.current = false; // Reset guard for new API
     }
     
     // Skip if already initialized for the same API (prevent continuous resets)
     if (initializedRef.current) {
-      console.log('🔧 DEBUG: Already initialized for current API, skipping');
       return;
     }
-    
-    console.log('🔧 DEBUG: Initializing form data for API:', currentApiId);
-    console.log('🔧 DEBUG: API object in useEffect:', api);
-    console.log('🔧 DEBUG: API parameters before setting formData:', api?.parameters);
     
     if (api) {
       // Edit mode - populate form with existing API data
@@ -2136,12 +1999,10 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
     }
     
     initializedRef.current = true; // Mark as initialized to prevent re-runs
-    console.log('🔧 DEBUG: Form data initialization completed for API:', currentApiId);
   }, [api?.id, configLoading]); // Only depend on api.id (not full api object) and config loading
 
   // Wrap onClose to reset initialization flag for next dialog opening
   const handleClose = () => {
-    console.log('🔧 DEBUG: Closing dialog - resetting guard flags');
     initializedRef.current = false; // Reset for next dialog session
     lastApiIdRef.current = null; // Reset API ID tracking
     onClose();
@@ -2149,46 +2010,6 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
 
   const [activeTab, setActiveTab] = useState("basic");
   
-  // Debug logging for formData.responses changes
-  useEffect(() => {
-    console.log('🔧 DEBUG: formData.responses changed:', formData.responses);
-    console.log('🔧 DEBUG: formData.responses length:', formData.responses?.length || 0);
-    if (formData.responses && formData.responses.length > 0) {
-      console.log('🔧 DEBUG: First response:', formData.responses[0]);
-      if (formData.responses.length > 1) {
-        console.log('🔧 DEBUG: Last response:', formData.responses[formData.responses.length - 1]);
-      }
-    }
-  }, [formData.responses]);
-  
-  // Debug logging for component initialization
-  useEffect(() => {
-    console.log('🔧 DEBUG: ApiEditDialog component initialized');
-    console.log('🔧 DEBUG: - api prop:', api);
-    console.log('🔧 DEBUG: - api parameters:', api?.parameters);
-    console.log('🔧 DEBUG: - categories prop:', categories);
-    console.log('🔧 DEBUG: - config loading:', configLoading);
-    console.log('🔧 DEBUG: - formData.parameters:', formData.parameters);
-    console.log('🔧 DEBUG: - addResponse function defined:', typeof addResponse);
-    console.log('🔧 DEBUG: - removeResponse function defined:', typeof removeResponse);
-    console.log('🔧 DEBUG: - updateResponse function defined:', typeof updateResponse);
-    console.log('🔧 DEBUG: - Initial formData.responses:', formData.responses);
-    
-    // Test the response management functions directly
-    console.log('🔧 DEBUG: Testing response management functions...');
-    
-    // Test addResponse function
-    console.log('🔧 DEBUG: Testing addResponse function...');
-    try {
-      const testFormData = {
-        responses: [{ statusCode: 200, description: "test", schema: {}, example: "" }]
-      };
-      console.log('🔧 DEBUG: Test successful - addResponse function is callable');
-    } catch (error) {
-      console.error('🔧 DEBUG: Error testing addResponse:', error);
-    }
-    
-  }, []);
 
   const addParameter = () => {
     setFormData({
@@ -2281,8 +2102,6 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔧 DEBUG: ApiEditDialog handleSubmit called');
-    console.log('🔧 DEBUG: Form data:', formData);
     
     try {
       const processedData = {
@@ -2297,12 +2116,8 @@ const ApiEditDialog = ({ api, categories, onSave, onClose }: any) => {
         }
       };
       
-      console.log('🔧 DEBUG: Processed data:', processedData);
-      console.log('🔧 DEBUG: Calling onSave with processed data');
       onSave(processedData);
-      console.log('🔧 DEBUG: onSave called successfully');
     } catch (error) {
-      console.error('🔧 DEBUG: JSON parsing error:', error);
       alert("Please check JSON formatting in schema and sandbox fields");
     }
   };
