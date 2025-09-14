@@ -2051,29 +2051,49 @@ export default function Sandbox() {
                       Selected API
                     </CardTitle>
                   </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="font-medium text-purple-900">{selectedEndpoint?.name || 'No API Selected'}</h3>
-                      <p className="text-sm text-purple-600">
-                        {selectedEndpoint?.description || 'No description available'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${
-                        selectedEndpoint?.method === 'GET' ? 'bg-blue-600 text-white' :
-                        selectedEndpoint?.method === 'POST' ? 'bg-green-600 text-white' :
-                        selectedEndpoint?.method === 'PUT' ? 'bg-orange-600 text-white' :
-                        'bg-red-600 text-white'
-                      }`}>
-                        {selectedEndpoint?.method || 'GET'}
-                      </Badge>
-                      <Badge variant="outline" className="border-purple-300 text-purple-700">{selectedEndpoint?.category || 'Unknown'}</Badge>
-                    </div>
-                    <div className="text-xs font-mono bg-purple-100 text-purple-800 p-2 rounded border border-purple-200">
-                      {selectedEndpoint?.path || 'No path specified'}
+                <CardContent className="space-y-4">
+                  {/* API Name Section */}
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg text-purple-900 leading-tight">
+                      {selectedEndpoint?.name || 'No API Selected'}
+                    </h3>
+                    <p className="text-sm text-purple-600 leading-relaxed">
+                      {selectedEndpoint?.description || 'No description available'}
+                    </p>
+                  </div>
+                  
+                  {/* Method and Category Badges */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={`text-sm font-medium ${
+                      selectedEndpoint?.method === 'GET' ? 'bg-blue-600 text-white' :
+                      selectedEndpoint?.method === 'POST' ? 'bg-green-600 text-white' :
+                      selectedEndpoint?.method === 'PUT' ? 'bg-orange-600 text-white' :
+                      'bg-red-600 text-white'
+                    }`}>
+                      {selectedEndpoint?.method || 'GET'}
+                    </Badge>
+                    <Badge variant="outline" className="border-purple-300 text-purple-700 text-sm">
+                      {selectedEndpoint?.category || 'Unknown'}
+                    </Badge>
+                  </div>
+                  
+                  {/* API Path Section */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-purple-800">API Endpoint</Label>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                      <code className="text-sm font-mono text-purple-900 break-all leading-relaxed">
+                        {selectedEndpoint?.path || 'No path specified'}
+                      </code>
                     </div>
                   </div>
+                  
+                  {/* Auth Requirements */}
+                  {selectedEndpoint?.requiresAuth && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-purple-200">
+                      <Shield className="w-4 h-4 text-amber-600" />
+                      <span className="text-sm text-amber-700 font-medium">Authentication Required</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
