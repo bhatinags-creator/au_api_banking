@@ -59,16 +59,25 @@ function Router() {
       <Route path="/api-docs" component={APIDocs} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/admin" component={AdminPanel} />
+      {/* API Explorer - canonical route */}
       <Route path="/explorer" component={ApiExplorer} />
-      <Route path="/api-explorer" component={ApiExplorer} />
+      
+      {/* Redirects for problematic paths */}
+      <Route path="/explorer/">
+        {() => { const [, setLocation] = useLocation(); setLocation('/explorer'); return null; }}
+      </Route>
+      <Route path="/api-explorer">
+        {() => { const [, setLocation] = useLocation(); setLocation('/explorer'); return null; }}
+      </Route>
+      <Route path="/apis">
+        {() => { const [, setLocation] = useLocation(); setLocation('/explorer'); return null; }}
+      </Route>
+      
       <Route path="/" component={Home} />
       
       {/* Protected routes - auth check only when accessed */}
       <Route path="/dashboard">
         {() => <ProtectedRoute component={Dashboard} />}
-      </Route>
-      <Route path="/apis">
-        {() => <ProtectedRoute component={ApiExplorer} />}
       </Route>
       <Route path="/analytics">
         {() => <ProtectedRoute component={Analytics} />}
