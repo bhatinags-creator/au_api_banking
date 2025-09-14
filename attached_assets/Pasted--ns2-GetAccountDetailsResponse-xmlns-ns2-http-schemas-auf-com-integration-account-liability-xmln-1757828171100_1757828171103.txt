@@ -1,0 +1,89 @@
+<ns2:GetAccountDetailsResponse xmlns:ns2="http://schemas.auf.com/integration/account/liability" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+<ns2:TransactionStatus>
+<com:ResponseCode xmlns:com="http://schemas.auf.com/integration/common">0</com:ResponseCode>
+<com:ResponseMessage xmlns:com="http://schemas.auf.com/integration/common">Success</com:ResponseMessage>
+<com:ExtendedErrorDetails xmlns:com="http://schemas.auf.com/integration/common">
+<com:messages>
+<com:code>0</com:code>
+</com:messages>
+</com:ExtendedErrorDetails>
+</ns2:TransactionStatus>
+<ns2:CustomerResponse>
+<ns2:CustomerBasicInquiry>
+<com:CustomerId xmlns:com="http://schemas.auf.com/integration/common">22214753</com:CustomerId>
+<com:NationalIdentificationCode xmlns:com="http://schemas.auf.com/integration/common">22214753</com:NationalIdentificationCode>
+<com:CustomerName xmlns:com="http://schemas.auf.com/integration/common">
+<com:Prefix>M/S.</com:Prefix>
+<com:ShortName>CHANDRAUDAI AUTOM PL</com:ShortName>
+</com:CustomerName>
+<com:CustomerFullName xmlns:com="http://schemas.auf.com/integration/common">CHANDRAUDAI AUTOMOBILES PRIVATE LIMITED</com:CustomerFullName>
+<com:OfficerID xmlns:com="http://schemas.auf.com/integration/common">Shivam Mehrotra</com:OfficerID>
+<com:CustomerAddress xmlns:com="http://schemas.auf.com/integration/common">
+<com:Line1>22214753</com:Line1>
+<com:Line2>22214753</com:Line2>
+<com:Line3>22214753</com:Line3>
+<com:City>JODHPUR</com:City>
+<com:State>RAJASTHAN</com:State>
+<com:Country>India</com:Country>
+<com:Zip>342005</com:Zip>
+</com:CustomerAddress>
+<com:BirthDateText xmlns:com="http://schemas.auf.com/integration/common">2004-07-15</com:BirthDateText>
+<com:CategoryType xmlns:com="http://schemas.auf.com/integration/common">PVT LTD</com:CategoryType>
+<com:IsImageAvailable xmlns:com="http://schemas.auf.com/integration/common">false</com:IsImageAvailable>
+<com:IsSignatureAvailable xmlns:com="http://schemas.auf.com/integration/common">false</com:IsSignatureAvailable>
+<com:CombWithdrawBal xmlns:com="http://schemas.auf.com/integration/common">0.0</com:CombWithdrawBal>
+<com:AgeOfCustRel xmlns:com="http://schemas.auf.com/integration/common">2017-05-29</com:AgeOfCustRel>
+<com:HomeBranch xmlns:com="http://schemas.auf.com/integration/common">2257</com:HomeBranch>
+<com:MobileNumber xmlns:com="http://schemas.auf.com/integration/common">1022214753</com:MobileNumber>
+<com:EmailAddress xmlns:com="http://schemas.auf.com/integration/common">22214753@axc.com</com:EmailAddress>
+<com:IcType xmlns:com="http://schemas.auf.com/integration/common">L</com:IcType>
+<com:IcTypeDesc xmlns:com="http://schemas.auf.com/integration/common">Lead Number</com:IcTypeDesc>
+<com:BankShortName xmlns:com="http://schemas.auf.com/integration/common">Nai Sadak Jodhpur</com:BankShortName>
+</ns2:CustomerBasicInquiry>
+</ns2:CustomerResponse>
+<ns2:AccountDetail>
+<com:ModuleCode xmlns:com="http://schemas.auf.com/integration/common">C</com:ModuleCode>
+<com:ProductName xmlns:com="http://schemas.auf.com/integration/common">20217-AU Current Account-Exclusive</com:ProductName>
+<com:AccountId xmlns:com="http://schemas.auf.com/integration/common">9999999999999999</com:AccountId>
+<com:CurrencyCode xmlns:com="http://schemas.auf.com/integration/common">1</com:CurrencyCode>
+<com:CurrencyShortName xmlns:com="http://schemas.auf.com/integration/common">INR</com:CurrencyShortName>
+<com:CustomerRelationship xmlns:com="http://schemas.auf.com/integration/common">SOW</com:CustomerRelationship>
+<com:BalanceBook xmlns:com="http://schemas.auf.com/integration/common">402630.60</com:BalanceBook>
+<com:UnclearFunds xmlns:com="http://schemas.auf.com/integration/common">0.00</com:UnclearFunds>
+<com:Classification xmlns:com="http://schemas.auf.com/integration/common">NORMAL</com:Classification>
+<com:Reason xmlns:com="http://schemas.auf.com/integration/common">UNBLOCKED </com:Reason>
+<com:BillAmount xmlns:com="http://schemas.auf.com/integration/common">0.00</com:BillAmount>
+<com:OriginalBalance xmlns:com="http://schemas.auf.com/integration/common">0.00</com:OriginalBalance>
+<com:CurrentStatus xmlns:com="http://schemas.auf.com/integration/common">3</com:CurrentStatus>
+<com:CurrentStatusDescription xmlns:com="http://schemas.auf.com/integration/common">ACCOUNT OPEN - NO DEBIT</com:CurrentStatusDescription>
+<com:AcyAmount xmlns:com="http://schemas.auf.com/integration/common">402630.60</com:AcyAmount>
+<com:AvailableBalance xmlns:com="http://schemas.auf.com/integration/common">402630.60</com:AvailableBalance>
+<com:LcyAmount xmlns:com="http://schemas.auf.com/integration/common">402630.60</com:LcyAmount>
+<com:TotalAcyAmount xmlns:com="http://schemas.auf.com/integration/common">402630.60</com:TotalAcyAmount>
+<com:TotalLcyAmount xmlns:com="http://schemas.auf.com/integration/common">402630.60</com:TotalLcyAmount>
+<com:BranchName xmlns:com="http://schemas.auf.com/integration/common">Nai Sadak Jodhpur</com:BranchName>
+<com:ExternalAccountId xmlns:com="http://schemas.auf.com/integration/common">0</com:ExternalAccountId>
+<com:FutureDatedAmount xmlns:com="http://schemas.auf.com/integration/common">0.00</com:FutureDatedAmount>
+<com:SafeDepositBoxId xmlns:com="http://schemas.auf.com/integration/common">0</com:SafeDepositBoxId>
+<com:DateAccountOpen xmlns:com="http://schemas.auf.com/integration/common">2017-05-29</com:DateAccountOpen>
+<com:DateRelation xmlns:com="http://schemas.auf.com/integration/common">2022-03-02</com:DateRelation>
+<com:MonthsSinceActive xmlns:com="http://schemas.auf.com/integration/common">99</com:MonthsSinceActive>
+<com:BalUncollectedPrinc xmlns:com="http://schemas.auf.com/integration/common">0.00</com:BalUncollectedPrinc>
+<com:BalUncollectedInt xmlns:com="http://schemas.auf.com/integration/common">0.00</com:BalUncollectedInt>
+<com:TotalBalUncollecPrinc xmlns:com="http://schemas.auf.com/integration/common">0.00</com:TotalBalUncollecPrinc>
+<com:TotalBalUncollecInt xmlns:com="http://schemas.auf.com/integration/common">0.00</com:TotalBalUncollecInt>
+<com:TotalBalBook xmlns:com="http://schemas.auf.com/integration/common">402630.60</com:TotalBalBook>
+<com:DateValue xmlns:com="http://schemas.auf.com/integration/common">2017-05-29</com:DateValue>
+<com:BalPrincipal xmlns:com="http://schemas.auf.com/integration/common">0</com:BalPrincipal>
+<com:IntRate xmlns:com="http://schemas.auf.com/integration/common">0</com:IntRate>
+<com:DepositNo xmlns:com="http://schemas.auf.com/integration/common">0</com:DepositNo>
+<com:LienAmount xmlns:com="http://schemas.auf.com/integration/common">0</com:LienAmount>
+<com:InstallmentAmount xmlns:com="http://schemas.auf.com/integration/common">0</com:InstallmentAmount>
+<com:OtherArrear xmlns:com="http://schemas.auf.com/integration/common">0</com:OtherArrear>
+<com:BalCombinedAcy xmlns:com="http://schemas.auf.com/integration/common">-3223415.4</com:BalCombinedAcy>
+<com:BalCombinedLcy xmlns:com="http://schemas.auf.com/integration/common">-3223415.4</com:BalCombinedLcy>
+<com:BranchCode xmlns:com="http://schemas.auf.com/integration/common">2257-Nai Sadak Jodhpur</com:BranchCode>
+<com:IsTDLinkage xmlns:com="http://schemas.auf.com/integration/common">N </com:IsTDLinkage>
+<com:MaturityAmount xmlns:com="http://schemas.auf.com/integration/common">0</com:MaturityAmount>
+</ns2:AccountDetail>
+</ns2:GetAccountDetailsResponse>
