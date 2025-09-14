@@ -13,14 +13,6 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchValidationRules, validateFieldDynamic, validateObjectDynamic, getFieldConstraints } from "@/lib/dynamicValidation";
 import { useValidationRules } from "@/hooks/useConfigurations";
 
-// Import category images
-import accountsImage from "@assets/generated_images/Banking_accounts_interface_illustration_1018d030.png";
-import paymentsImage from "@assets/generated_images/Digital_payment_processing_illustration_31b268b5.png";
-import authImage from "@assets/generated_images/Authentication_security_illustration_a4d4ed72.png";
-import kycImage from "@assets/generated_images/KYC_verification_illustration_dd95e58f.png";
-import billPaymentsImage from "@assets/generated_images/Bill_payments_illustration_5074064f.png";
-import cardsImage from "@assets/generated_images/Credit_cards_illustration_0309072a.png";
-import loansImage from "@assets/generated_images/Loan_services_illustration_f6b3efc8.png";
 
 interface APIEndpoint {
   id: string;
@@ -753,18 +745,10 @@ const categoryIcons = {
   KYC: Settings,
   "Bill Payments": CreditCard,
   Cards: CreditCard,
-  Loans: Database
+  Loans: Database,
+  Customer: Settings
 };
 
-const categoryImages = {
-  Authentication: authImage,
-  Payments: paymentsImage,
-  Accounts: accountsImage,
-  KYC: kycImage,
-  "Bill Payments": billPaymentsImage,
-  Cards: cardsImage,
-  Loans: loansImage
-};
 
 export default function Sandbox() {
   // Use dynamic validation rules hook inside the component
@@ -1855,7 +1839,6 @@ export default function Sandbox() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getApiGroups().map(group => {
                 const IconComponent = group.icon;
-                const groupImage = categoryImages[group.name as keyof typeof categoryImages];
                 return (
                   <Card 
                     key={group.name}
@@ -1863,21 +1846,14 @@ export default function Sandbox() {
                     onClick={() => handleGroupSelect(group.name)}
                     data-testid={`card-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
                   >
-                    {/* Category Image */}
-                    <div className="relative h-32 w-full overflow-hidden">
-                      <img 
-                        src={groupImage} 
-                        alt={`${group.name} illustration`}
-                        className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent"></div>
-                      <div className="absolute bottom-2 right-2 w-8 h-8 bg-white/90 rounded-lg flex items-center justify-center shadow-md">
-                        <IconComponent className="w-5 h-5 text-[var(--au-primary)]" />
-                      </div>
-                    </div>
                     
                     <CardHeader className="text-center">
-                      <CardTitle className="text-xl text-[var(--au-primary)] font-bold">{group.name}</CardTitle>
+                      <div className="flex items-center justify-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-[var(--au-primary)]/10 rounded-lg flex items-center justify-center">
+                          <IconComponent className="w-6 h-6 text-[var(--au-primary)]" />
+                        </div>
+                        <CardTitle className="text-xl text-[var(--au-primary)] font-bold">{group.name}</CardTitle>
+                      </div>
                       <CardDescription className="text-purple-600/70 font-medium">
                         {group.endpoints.length} API{group.endpoints.length !== 1 ? 's' : ''} available
                       </CardDescription>
