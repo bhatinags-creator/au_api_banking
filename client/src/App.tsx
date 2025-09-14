@@ -59,6 +59,8 @@ function Router() {
       <Route path="/api-docs" component={APIDocs} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/admin" component={AdminPanel} />
+      <Route path="/explorer" component={ApiExplorer} />
+      <Route path="/api-explorer" component={ApiExplorer} />
       <Route path="/" component={Home} />
       
       {/* Protected routes - auth check only when accessed */}
