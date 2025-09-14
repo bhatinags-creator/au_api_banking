@@ -49,15 +49,6 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
   return <Component {...rest} />;
 }
 
-// Redirect helper component
-function Redirect({ to }: { to: string }) {
-  const [, setLocation] = useLocation();
-  useEffect(() => {
-    setLocation(to);
-  }, [to, setLocation]);
-  return null;
-}
-
 function Router() {
   return (
     <Switch>
@@ -68,29 +59,14 @@ function Router() {
       <Route path="/api-docs" component={APIDocs} />
       <Route path="/sandbox" component={Sandbox} />
       <Route path="/admin" component={AdminPanel} />
-      
-      {/* API Explorer - canonical route */}
-      <Route path="/explorer" component={ApiExplorer} />
-      
-      {/* API Explorer redirects for legacy paths */}
-      <Route path="/explorer/:rest*">
-        {() => <Redirect to="/explorer" />}
-      </Route>
-      <Route path="/api-explorer">
-        {() => <Redirect to="/explorer" />}
-      </Route>
-      <Route path="/apis-explorer">
-        {() => <Redirect to="/explorer" />}
-      </Route>
-      <Route path="/apis">
-        {() => <Redirect to="/explorer" />}
-      </Route>
-      
       <Route path="/" component={Home} />
       
       {/* Protected routes - auth check only when accessed */}
       <Route path="/dashboard">
         {() => <ProtectedRoute component={Dashboard} />}
+      </Route>
+      <Route path="/apis">
+        {() => <ProtectedRoute component={ApiExplorer} />}
       </Route>
       <Route path="/analytics">
         {() => <ProtectedRoute component={Analytics} />}
