@@ -31,6 +31,7 @@ interface APIEndpoint {
   description: string;
   requiresAuth: boolean;
   sampleRequest?: any;
+  sampleResponse?: string; // Add sampleResponse field
 }
 
 interface APIResponse {
@@ -797,7 +798,8 @@ export default function Sandbox() {
         category: endpoint.category,
         description: endpoint.description,
         requiresAuth: endpoint.requiresAuth || false,
-        sampleRequest: endpoint.requestExample || {}
+        sampleRequest: endpoint.requestExample || {},
+        sampleResponse: endpoint.responseExample || null // Add response example mapping
       }));
   }, [dbEndpoints]);
   
@@ -1179,6 +1181,39 @@ export default function Sandbox() {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 700));
     
+    // First, check if endpoint has a configured response example from database
+    if (endpoint.sampleResponse) {
+      try {
+        // Check if it's XML content
+        if (endpoint.sampleResponse.trim().startsWith('<')) {
+          return {
+            status: 200,
+            statusText: "OK",
+            headers: { "Content-Type": "application/xml" },
+            data: endpoint.sampleResponse
+          };
+        } else {
+          // Try to parse as JSON
+          const parsedResponse = JSON.parse(endpoint.sampleResponse);
+          return {
+            status: 200,
+            statusText: "OK",
+            headers: { "Content-Type": "application/json" },
+            data: parsedResponse
+          };
+        }
+      } catch (error) {
+        // If parsing fails, return as plain text
+        return {
+          status: 200,
+          statusText: "OK",
+          headers: { "Content-Type": "text/plain" },
+          data: endpoint.sampleResponse
+        };
+      }
+    }
+    
+    // Fall back to hardcoded responses if no database response example
     switch (endpoint.id) {
       case "oauth-token":
         return {
