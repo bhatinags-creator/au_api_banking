@@ -244,93 +244,87 @@ function extractApiInformation(content: string): any {
 function extractParametersFromContent(content: string): any[] {
   const parameters = [];
   
-  // Look for parameter tables with different patterns
-  const patterns = [
-    // Pattern 1: Standard table format (Field Name | Data Type | Length | Mandatory | Description)
-    /(?:Field Name|Parameter|Input)[\s\S]*?(?=\n\n(?:[A-Z]|Success|Error|Response)|$)/gi,
-    // Pattern 2: Parameters section
-    /Parameters:?[\s\S]*?(?=\n\n(?:[A-Z]|Success|Error|Response)|$)/gi
-  ];
+  // Look for parameters section
+  const paramSection = content.match(/Parameters:?[\s\S]*?(?=Success Sample|Error code|Request packet|Response packet|$)/i);
   
-  for (const pattern of patterns) {
-    const matches = content.match(pattern);
+  if (paramSection) {
+    const lines = paramSection[0].split('\n').map(line => line.trim()).filter(line => line);
     
-    if (matches) {
-      for (const tableSection of matches) {
-        // Split into lines and process each line
-        const lines = tableSection.split('\n').filter(line => line.trim());
+    // Skip headers and find parameter entries
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      
+      // Skip header lines
+      if (line.match(/parameters|field name|data type|length|mandatory|description/i)) {
+        i++;
+        continue;
+      }
+      
+      // Look for parameter names (should be valid identifiers)
+      if (line.match(/^[A-Za-z][A-Za-z0-9_]*$/) && line.length > 1 && line.length < 50) {
+        const paramName = line;
+        let paramType = 'string';
+        let paramLength = '';
+        let paramMandatory = false;
+        let paramDescription = `${paramName} parameter`;
         
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim();
-          
-          // Skip header lines and empty lines
-          if (!line || line.match(/field name|parameter|data type|length|mandatory|description/i)) continue;
-          
-          // Try multiple parsing approaches
-          
-          // Approach 1: Tab-separated or multi-space separated values
-          const tabParts = line.split(/\t+|\s{2,}/).filter(part => part.trim());
-          if (tabParts.length >= 4) {
-            const [name, type, length, mandatory, ...descParts] = tabParts;
-            if (name && name.match(/^[A-Za-z][A-Za-z0-9_]*$/)) {
-              parameters.push({
-                name: name.trim(),
-                type: mapParameterType(type || 'string'),
-                required: mandatory ? mandatory.match(/mandatory|m|yes|required/i) !== null : false,
-                description: descParts.join(' ').trim() || `${name} parameter`,
-                example: generateExampleValue(name, type || 'string')
-              });
-              continue;
-            }
-          }
-          
-          // Approach 2: Single space separated (less reliable)
-          const spaceParts = line.split(/\s+/);
-          if (spaceParts.length >= 4) {
-            const [name, type, length, mandatory, ...descParts] = spaceParts;
-            if (name && name.match(/^[A-Za-z][A-Za-z0-9_]*$/) && type && type.match(/string|number|int|bool|object|array/i)) {
-              parameters.push({
-                name: name.trim(),
-                type: mapParameterType(type),
-                required: mandatory ? mandatory.match(/mandatory|m|yes|required/i) !== null : false,
-                description: descParts.join(' ').trim() || `${name} parameter`,
-                example: generateExampleValue(name, type)
-              });
-              continue;
-            }
-          }
-          
-          // Approach 3: Parameter name followed by description
-          const paramMatch = line.match(/^([A-Za-z][A-Za-z0-9_]*)\s*[:;\-]?\s*(.+)$/);
-          if (paramMatch) {
-            const [, name, description] = paramMatch;
-            // Only add if it looks like a parameter name
-            if (name.length > 1 && name.length < 50) {
-              parameters.push({
-                name: name.trim(),
-                type: 'string',
-                required: description.toLowerCase().includes('mandatory') || description.toLowerCase().includes('required'),
-                description: description.trim(),
-                example: generateExampleValue(name, 'string')
-              });
-            }
-          }
+        // Try to get the next few lines for type, length, mandatory, description
+        if (i + 1 < lines.length && lines[i + 1].match(/^(String|Number|Integer|Boolean|Object|Array)$/i)) {
+          paramType = lines[i + 1];
+          i++;
+        }
+        
+        if (i + 1 < lines.length && lines[i + 1].match(/^\d+$|^-$/)) {
+          paramLength = lines[i + 1];
+          i++;
+        }
+        
+        if (i + 1 < lines.length && lines[i + 1].match(/^(M|Mandatory|Y|Yes|Required|O|Optional|N|No)$/i)) {
+          paramMandatory = lines[i + 1].match(/^(M|Mandatory|Y|Yes|Required)$/i) !== null;
+          i++;
+        }
+        
+        if (i + 1 < lines.length && !lines[i + 1].match(/^[A-Za-z][A-Za-z0-9_]*$/) && lines[i + 1].length > 3) {
+          paramDescription = lines[i + 1];
+          i++;
+        }
+        
+        parameters.push({
+          name: paramName,
+          type: mapParameterType(paramType),
+          required: paramMandatory,
+          description: paramDescription,
+          example: generateExampleValue(paramName, paramType)
+        });
+      }
+      
+      i++;
+    }
+  }
+  
+  // Also try to extract from request examples
+  const requestExample = content.match(/\{[\s\S]*?\}/);
+  if (requestExample && parameters.length === 0) {
+    try {
+      const parsed = JSON.parse(requestExample[0]);
+      for (const [key, value] of Object.entries(parsed)) {
+        if (key && typeof key === 'string') {
+          parameters.push({
+            name: key,
+            type: typeof value === 'number' ? 'number' : 'string',
+            required: true,
+            description: `${key} parameter`,
+            example: generateExampleValue(key, typeof value === 'number' ? 'number' : 'string')
+          });
         }
       }
+    } catch (e) {
+      // Ignore JSON parse errors
     }
   }
 
-  // Deduplicate parameters by name
-  const uniqueParams = [];
-  const seen = new Set();
-  for (const param of parameters) {
-    if (!seen.has(param.name)) {
-      seen.add(param.name);
-      uniqueParams.push(param);
-    }
-  }
-
-  return uniqueParams;
+  return parameters;
 }
 
 // Extract JSON examples from content
