@@ -123,7 +123,7 @@ async function parseDocument(filePath: string, originalName: string): Promise<an
     }
 
     // Parse the content to extract API information
-    const parsedData = extractApiInformation(content);
+    const parsedData = await extractApiInformation(content);
     return parsedData;
 
   } finally {
@@ -139,7 +139,7 @@ async function parseDocument(filePath: string, originalName: string): Promise<an
 }
 
 // Extract API information from document content
-function extractApiInformation(content: string): any {
+async function extractApiInformation(content: string): Promise<any> {
   const result = {
     name: null as string | null,
     method: 'POST' as string,
@@ -221,7 +221,7 @@ function extractApiInformation(content: string): any {
   }
 
   // Extract parameters from tables
-  result.parameters = extractParametersFromContent(content);
+  result.parameters = await extractParametersFromContent(content);
 
   // Extract request/response examples
   const examples = extractExamples(content);
@@ -232,16 +232,16 @@ function extractApiInformation(content: string): any {
   result.responses = extractResponses(content);
 
   // Determine category based on content
-  result.category = determineCategory(content) || null;
+  result.category = await determineCategory(content) || null;
 
   // Extract tags
-  result.tags = extractTags(content);
+  result.tags = await extractTags(content);
 
   return result;
 }
 
 // Extract parameters from document content
-function extractParametersFromContent(content: string): any[] {
+async function extractParametersFromContent(content: string): Promise<any[]> {
   const parameters = [];
   
   // Look for parameters section
@@ -295,7 +295,7 @@ function extractParametersFromContent(content: string): any[] {
           type: mapParameterType(paramType),
           required: paramMandatory,
           description: paramDescription,
-          example: generateExampleValue(paramName, paramType)
+          example: await generateExampleValue(paramName, paramType)
         });
       }
       
@@ -315,7 +315,7 @@ function extractParametersFromContent(content: string): any[] {
             type: typeof value === 'number' ? 'number' : 'string',
             required: true,
             description: `${key} parameter`,
-            example: generateExampleValue(key, typeof value === 'number' ? 'number' : 'string')
+            example: await generateExampleValue(key, typeof value === 'number' ? 'number' : 'string')
           });
         }
       }
@@ -408,43 +408,110 @@ function mapParameterType(type: string): string {
   return 'string';
 }
 
-function generateExampleValue(name: string, type: string): string {
-  const lowerName = name.toLowerCase();
-  if (lowerName.includes('email')) return 'user@example.com';
-  if (lowerName.includes('phone')) return '9876543210';
-  if (lowerName.includes('amount')) return '1000';
-  if (lowerName.includes('id')) return '12345';
-  if (lowerName.includes('number')) return '123456789';
-  if (type === 'number') return '100';
-  if (type === 'boolean') return 'true';
-  return 'example_value';
+async function generateExampleValue(name: string, type: string): Promise<string> {
+  try {
+    // Fetch example value mappings from system configuration
+    const exampleConfigs = await storage.getConfigurationsByCategory('system');
+    const exampleConfig = exampleConfigs.find((config: any) => config.key === 'parameter_example_mappings');
+    const lowerName = name.toLowerCase();
+    
+    if (exampleConfig?.value) {
+      const exampleMappings = JSON.parse(exampleConfig.value);
+      
+      // Check for specific name patterns from database
+      for (const [pattern, example] of Object.entries(exampleMappings.namePatterns || {})) {
+        if (lowerName.includes(pattern.toLowerCase())) {
+          return example as string;
+        }
+      }
+      
+      // Check for type-specific examples
+      if (exampleMappings.typeDefaults && exampleMappings.typeDefaults[type]) {
+        return exampleMappings.typeDefaults[type];
+      }
+    }
+    
+    // Fallback to basic examples
+    if (lowerName.includes('email')) return 'user@example.com';
+    if (lowerName.includes('phone')) return '9876543210';
+    if (lowerName.includes('amount')) return '1000';
+    if (lowerName.includes('id')) return '12345';
+    if (lowerName.includes('number')) return '123456789';
+    if (type === 'number') return '100';
+    if (type === 'boolean') return 'true';
+    return 'example_value';
+  } catch (error) {
+    console.error('Error generating example value:', error);
+    return 'example_value';
+  }
 }
 
-function determineCategory(content: string): string {
-  const contentLower = content.toLowerCase();
-  
-  if (contentLower.includes('payment') || contentLower.includes('upi')) return 'Payment Services';
-  if (contentLower.includes('account') || contentLower.includes('customer')) return 'Account Management';
-  if (contentLower.includes('kyc') || contentLower.includes('verification')) return 'Identity Verification';
-  if (contentLower.includes('loan') || contentLower.includes('credit')) return 'Lending Services';
-  if (contentLower.includes('bill') || contentLower.includes('bbps')) return 'Bill Payment';
-  if (contentLower.includes('auth') || contentLower.includes('login')) return 'Authentication';
-  
-  return 'General';
+async function determineCategory(content: string): Promise<string> {
+  try {
+    // Fetch category mappings from database
+    const categories = await storage.getAllApiCategories();
+    const contentLower = content.toLowerCase();
+    
+    // Use database categories for mapping
+    for (const category of categories) {
+      const categoryName = category.name.toLowerCase();
+      const keywords = category.description ? category.description.split(',').map((k: string) => k.trim().toLowerCase()) : [];
+      
+      // Check if content matches category keywords
+      if (keywords.some((keyword: string) => contentLower.includes(keyword))) {
+        return category.name;
+      }
+    }
+    
+    // Fallback to first active category or default
+    const defaultCategory = categories.find((c: any) => c.isDefault) || categories.find((c: any) => c.isActive);
+    return defaultCategory?.name || 'General';
+  } catch (error) {
+    console.error('Error determining category:', error);
+    return 'General';
+  }
 }
 
-function extractTags(content: string): string[] {
-  const tags = [];
-  const contentLower = content.toLowerCase();
-  
-  if (contentLower.includes('cbs')) tags.push('CBS');
-  if (contentLower.includes('account')) tags.push('account');
-  if (contentLower.includes('customer')) tags.push('customer');
-  if (contentLower.includes('payment')) tags.push('payment');
-  if (contentLower.includes('api')) tags.push('api');
-  if (contentLower.includes('service')) tags.push('service');
-  
-  return tags;
+async function extractTags(content: string): Promise<string[]> {
+  try {
+    // Fetch tag mappings from system configuration
+    const tagConfigs = await storage.getConfigurationsByCategory('system');
+    const tagConfig = tagConfigs.find((config: any) => config.key === 'tag_extraction_keywords');
+    const contentLower = content.toLowerCase();
+    const tags: string[] = [];
+    
+    if (tagConfig?.value) {
+      const keywordMappings = JSON.parse(tagConfig.value);
+      
+      // Check each keyword mapping from database
+      for (const [keyword, tag] of Object.entries(keywordMappings)) {
+        if (contentLower.includes((keyword as string).toLowerCase())) {
+          tags.push(tag as string);
+        }
+      }
+    } else {
+      // Fallback to basic tag extraction if no config exists
+      const basicMappings = {
+        'cbs': 'CBS',
+        'account': 'account',
+        'customer': 'customer', 
+        'payment': 'payment',
+        'api': 'api',
+        'service': 'service'
+      };
+      
+      for (const [keyword, tag] of Object.entries(basicMappings)) {
+        if (contentLower.includes(keyword)) {
+          tags.push(tag);
+        }
+      }
+    }
+    
+    return Array.from(new Set(tags)); // Remove duplicates
+  } catch (error) {
+    console.error('Error extracting tags:', error);
+    return ['api', 'service']; // Basic fallback
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2741,17 +2808,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const apiExplorerConfig = await storage.getApiExplorerConfigurationByEnvironment(environment as string);
       
       if (!apiExplorerConfig) {
-        // Return default configuration if none exists
-        const defaultConfig = {
-          environment: environment as string,
-          testApiKeys: { default: "lEbnG39cJwC4lKUe5fliVA9HFcyR" },
-          defaultApiKey: "lEbnG39cJwC4lKUe5fliVA9HFcyR",
-          sampleRequestTemplates: {},
-          endpointSettings: {},
-          uiSettings: { showTestData: true, autoLoadApiKey: true },
-          isActive: true
-        };
-        return res.json({ success: true, data: defaultConfig });
+        // Fetch default configuration from system settings
+        try {
+          const systemConfigs = await storage.getConfigurationsByCategory('api_explorer');
+          const apiKeyConfig = systemConfigs.find((config: any) => config.key === 'default_api_key');
+          const uiConfig = systemConfigs.find((config: any) => config.key === 'default_ui_settings');
+          
+          const defaultConfig = {
+            environment: environment as string,
+            testApiKeys: { default: apiKeyConfig?.value || "demo_key_placeholder" },
+            defaultApiKey: apiKeyConfig?.value || "demo_key_placeholder",
+            sampleRequestTemplates: {},
+            endpointSettings: {},
+            uiSettings: uiConfig?.value ? JSON.parse(uiConfig.value) : { showTestData: true, autoLoadApiKey: true },
+            isActive: true
+          };
+          return res.json({ success: true, data: defaultConfig });
+        } catch (error) {
+          console.error('Error fetching default API Explorer config:', error);
+          // Fallback to minimal default if database fetch fails
+          const fallbackConfig = {
+            environment: environment as string,
+            testApiKeys: { default: "demo_key_placeholder" },
+            defaultApiKey: "demo_key_placeholder",
+            sampleRequestTemplates: {},
+            endpointSettings: {},
+            uiSettings: { showTestData: true, autoLoadApiKey: true },
+            isActive: true
+          };
+          return res.json({ success: true, data: fallbackConfig });
+        }
       }
       
       res.json({ success: true, data: apiExplorerConfig });
@@ -2850,52 +2936,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const categoryStyles = await storage.getAllCategoryStyleConfigurations(environment as string);
       
       if (categoryStyles.length === 0) {
-        // Return default styling configurations if none exist
-        const defaultStyles = [
-          {
-            categoryName: "Authentication",
-            iconName: "Shield",
+        // Generate default styling from existing categories
+        try {
+          const categories = await storage.getAllApiCategories();
+          const systemStyleConfig = await storage.getConfigurationsByCategory('ui_styling');
+          const defaultThemeConfig = systemStyleConfig.find((config: any) => config.key === 'default_category_theme');
+          
+          const defaultTheme = defaultThemeConfig?.value ? JSON.parse(defaultThemeConfig.value) : {
             iconColor: "#603078",
             backgroundColor: "bg-gray-100",
             textColor: "text-gray-700",
             hoverBackgroundColor: "bg-gray-50",
             selectedBackgroundColor: "bg-blue-100",
             selectedTextColor: "text-blue-700",
-            selectedBorderColor: "border-blue-200",
-            displayOrder: 1,
+            selectedBorderColor: "border-blue-200"
+          };
+          
+          const iconMappings: { [key: string]: string } = {
+            'authentication': 'Shield',
+            'customer': 'Users', 
+            'payment': 'CreditCard',
+            'account': 'Building',
+            'verification': 'UserCheck',
+            'lending': 'Calculator',
+            'bill': 'Receipt',
+            'general': 'Code'
+          };
+          
+          const defaultStyles = categories.map((category: any, index: number) => ({
+            categoryName: category.name,
+            iconName: iconMappings[category.name.toLowerCase()] || 'Code',
+            iconColor: defaultTheme.iconColor,
+            backgroundColor: defaultTheme.backgroundColor,
+            textColor: defaultTheme.textColor,
+            hoverBackgroundColor: defaultTheme.hoverBackgroundColor,
+            selectedBackgroundColor: defaultTheme.selectedBackgroundColor,
+            selectedTextColor: defaultTheme.selectedTextColor,
+            selectedBorderColor: defaultTheme.selectedBorderColor,
+            displayOrder: index + 1,
             environment: environment as string,
             isActive: true
-          },
-          {
-            categoryName: "Customer",
-            iconName: "Users",
-            iconColor: "#603078",
-            backgroundColor: "bg-gray-100",
-            textColor: "text-gray-700",
-            hoverBackgroundColor: "bg-gray-50",
-            selectedBackgroundColor: "bg-blue-100",
-            selectedTextColor: "text-blue-700",
-            selectedBorderColor: "border-blue-200",
-            displayOrder: 2,
-            environment: environment as string,
-            isActive: true
-          },
-          {
-            categoryName: "Payments",
-            iconName: "CreditCard",
-            iconColor: "#603078",
-            backgroundColor: "bg-gray-100",
-            textColor: "text-gray-700",
-            hoverBackgroundColor: "bg-gray-50",
-            selectedBackgroundColor: "bg-blue-100",
-            selectedTextColor: "text-blue-700",
-            selectedBorderColor: "border-blue-200",
-            displayOrder: 3,
-            environment: environment as string,
-            isActive: true
-          }
-        ];
-        return res.json({ success: true, data: defaultStyles });
+          }));
+          
+          return res.json({ success: true, data: defaultStyles });
+        } catch (error) {
+          console.error('Error generating default category styles:', error);
+          // Return minimal fallback if database operations fail
+          return res.json({ success: true, data: [] });
+        }
       }
       
       res.json({ success: true, data: categoryStyles });
