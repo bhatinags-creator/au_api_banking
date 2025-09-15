@@ -2030,7 +2030,8 @@ const DocumentUploadSection = ({ uploadState, setUploadState, formData, setFormD
   const applyParsedData = () => {
     if (!uploadState.parsedData) return;
 
-    const parsed = uploadState.parsedData;
+    // Extract the actual parsed data from the API response
+    const parsed = uploadState.parsedData.data || uploadState.parsedData;
     
     // Apply parsed data to form
     setFormData((prev: FormData) => ({
