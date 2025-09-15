@@ -244,38 +244,93 @@ function extractApiInformation(content: string): any {
 function extractParametersFromContent(content: string): any[] {
   const parameters = [];
   
-  // Look for parameter tables
-  const tablePattern = /(?:Parameter|Field|Input)[\s\S]*?(?=\n\n|\n[A-Z]|$)/gi;
-  const matches = content.match(tablePattern);
+  // Look for parameter tables with different patterns
+  const patterns = [
+    // Pattern 1: Standard table format (Field Name | Data Type | Length | Mandatory | Description)
+    /(?:Field Name|Parameter|Input)[\s\S]*?(?=\n\n(?:[A-Z]|Success|Error|Response)|$)/gi,
+    // Pattern 2: Parameters section
+    /Parameters:?[\s\S]*?(?=\n\n(?:[A-Z]|Success|Error|Response)|$)/gi
+  ];
   
-  if (matches) {
-    for (const tableSection of matches) {
-      // Extract individual parameter entries
-      const paramLines = tableSection.split('\n').filter(line => line.trim());
-      
-      for (const line of paramLines) {
-        // Skip header lines
-        if (line.match(/parameter|field|name|type|mandatory|description/i)) continue;
+  for (const pattern of patterns) {
+    const matches = content.match(pattern);
+    
+    if (matches) {
+      for (const tableSection of matches) {
+        // Split into lines and process each line
+        const lines = tableSection.split('\n').filter(line => line.trim());
         
-        // Try to parse parameter information
-        const paramMatch = line.match(/^([A-Za-z][A-Za-z0-9_]*)\s+([A-Za-z]+)?\s*(\d+)?\s*(Mandatory|Optional|Yes|No)?\s*(.*)/i);
-        
-        if (paramMatch) {
-          const [, name, type = 'string', length, mandatory, description] = paramMatch;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
           
-          parameters.push({
-            name: name.trim(),
-            type: mapParameterType(type),
-            required: mandatory ? mandatory.match(/mandatory|yes/i) !== null : false,
-            description: description ? description.trim() : `${name} parameter`,
-            example: generateExampleValue(name, type)
-          });
+          // Skip header lines and empty lines
+          if (!line || line.match(/field name|parameter|data type|length|mandatory|description/i)) continue;
+          
+          // Try multiple parsing approaches
+          
+          // Approach 1: Tab-separated or multi-space separated values
+          const tabParts = line.split(/\t+|\s{2,}/).filter(part => part.trim());
+          if (tabParts.length >= 4) {
+            const [name, type, length, mandatory, ...descParts] = tabParts;
+            if (name && name.match(/^[A-Za-z][A-Za-z0-9_]*$/)) {
+              parameters.push({
+                name: name.trim(),
+                type: mapParameterType(type || 'string'),
+                required: mandatory ? mandatory.match(/mandatory|m|yes|required/i) !== null : false,
+                description: descParts.join(' ').trim() || `${name} parameter`,
+                example: generateExampleValue(name, type || 'string')
+              });
+              continue;
+            }
+          }
+          
+          // Approach 2: Single space separated (less reliable)
+          const spaceParts = line.split(/\s+/);
+          if (spaceParts.length >= 4) {
+            const [name, type, length, mandatory, ...descParts] = spaceParts;
+            if (name && name.match(/^[A-Za-z][A-Za-z0-9_]*$/) && type && type.match(/string|number|int|bool|object|array/i)) {
+              parameters.push({
+                name: name.trim(),
+                type: mapParameterType(type),
+                required: mandatory ? mandatory.match(/mandatory|m|yes|required/i) !== null : false,
+                description: descParts.join(' ').trim() || `${name} parameter`,
+                example: generateExampleValue(name, type)
+              });
+              continue;
+            }
+          }
+          
+          // Approach 3: Parameter name followed by description
+          const paramMatch = line.match(/^([A-Za-z][A-Za-z0-9_]*)\s*[:;\-]?\s*(.+)$/);
+          if (paramMatch) {
+            const [, name, description] = paramMatch;
+            // Only add if it looks like a parameter name
+            if (name.length > 1 && name.length < 50) {
+              parameters.push({
+                name: name.trim(),
+                type: 'string',
+                required: description.toLowerCase().includes('mandatory') || description.toLowerCase().includes('required'),
+                description: description.trim(),
+                example: generateExampleValue(name, 'string')
+              });
+            }
+          }
         }
       }
     }
   }
 
-  return parameters;
+  // Deduplicate parameters by name
+  const uniqueParams = [];
+  const seen = new Set();
+  for (const param of parameters) {
+    if (!seen.has(param.name)) {
+      seen.add(param.name);
+      uniqueParams.push(param);
+    }
+  }
+
+  return uniqueParams;
 }
 
 // Extract JSON examples from content
