@@ -244,19 +244,25 @@ function extractApiInformation(content: string): any {
 function extractParametersFromContent(content: string): any[] {
   const parameters = [];
   
+  console.log('🔍 Starting parameter extraction...');
+  
   // Look for parameters section
   const paramSection = content.match(/Parameters:?[\s\S]*?(?=Success Sample|Error code|Request packet|Response packet|$)/i);
   
   if (paramSection) {
+    console.log('✅ Found parameters section');
     const lines = paramSection[0].split('\n').map(line => line.trim()).filter(line => line);
+    console.log(`📝 Processing ${lines.length} lines from parameters section`);
     
     // Skip headers and find parameter entries
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
+      console.log(`Line ${i}: "${line}"`);
       
       // Skip header lines
       if (line.match(/parameters|field name|data type|length|mandatory|description/i)) {
+        console.log(`⏭️ Skipping header line: ${line}`);
         i++;
         continue;
       }
@@ -264,6 +270,7 @@ function extractParametersFromContent(content: string): any[] {
       // Look for parameter names (should be valid identifiers)
       if (line.match(/^[A-Za-z][A-Za-z0-9_]*$/) && line.length > 1 && line.length < 50) {
         const paramName = line;
+        console.log(`🎯 Found parameter name: ${paramName}`);
         let paramType = 'string';
         let paramLength = '';
         let paramMandatory = false;
@@ -272,58 +279,71 @@ function extractParametersFromContent(content: string): any[] {
         // Try to get the next few lines for type, length, mandatory, description
         if (i + 1 < lines.length && lines[i + 1].match(/^(String|Number|Integer|Boolean|Object|Array)$/i)) {
           paramType = lines[i + 1];
+          console.log(`📋 Type: ${paramType}`);
           i++;
         }
         
         if (i + 1 < lines.length && lines[i + 1].match(/^\d+$|^-$/)) {
           paramLength = lines[i + 1];
+          console.log(`📏 Length: ${paramLength}`);
           i++;
         }
         
         if (i + 1 < lines.length && lines[i + 1].match(/^(M|Mandatory|Y|Yes|Required|O|Optional|N|No)$/i)) {
           paramMandatory = lines[i + 1].match(/^(M|Mandatory|Y|Yes|Required)$/i) !== null;
+          console.log(`❗ Mandatory: ${paramMandatory} (${lines[i + 1]})`);
           i++;
         }
         
         if (i + 1 < lines.length && !lines[i + 1].match(/^[A-Za-z][A-Za-z0-9_]*$/) && lines[i + 1].length > 3) {
           paramDescription = lines[i + 1];
+          console.log(`📝 Description: ${paramDescription}`);
           i++;
         }
         
-        parameters.push({
+        const param = {
           name: paramName,
           type: mapParameterType(paramType),
           required: paramMandatory,
           description: paramDescription,
           example: generateExampleValue(paramName, paramType)
-        });
+        };
+        
+        console.log(`➕ Added parameter:`, param);
+        parameters.push(param);
       }
       
       i++;
     }
+  } else {
+    console.log('❌ No parameters section found');
   }
   
   // Also try to extract from request examples
   const requestExample = content.match(/\{[\s\S]*?\}/);
   if (requestExample && parameters.length === 0) {
+    console.log('🔄 Trying to extract from request example...');
     try {
       const parsed = JSON.parse(requestExample[0]);
       for (const [key, value] of Object.entries(parsed)) {
         if (key && typeof key === 'string') {
-          parameters.push({
+          const param = {
             name: key,
             type: typeof value === 'number' ? 'number' : 'string',
             required: true,
             description: `${key} parameter`,
             example: generateExampleValue(key, typeof value === 'number' ? 'number' : 'string')
-          });
+          };
+          console.log(`➕ Added parameter from JSON:`, param);
+          parameters.push(param);
         }
       }
     } catch (e) {
-      // Ignore JSON parse errors
+      console.log('❌ Failed to parse JSON example');
     }
   }
 
+  console.log(`🏁 Parameter extraction complete. Found ${parameters.length} parameters`);
   return parameters;
 }
 
