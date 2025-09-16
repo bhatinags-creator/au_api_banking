@@ -1074,33 +1074,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // OPTIMIZED: Combined portal data endpoint - serves everything in one call
   app.get("/api/portal-data", async (req, res) => {
+    const startTime = Date.now();
     try {
       const cacheKey = 'portal_data_combined';
       
-      // Check cache first (1 minute TTL)
+      // Check cache first (1 minute TTL) with performance logging
       const cached = getCachedResponse(cacheKey);
       if (cached) {
-        console.log(`🚀 Backend serving complete portal data from cache`);
+        const cacheTime = Date.now() - startTime;
+        console.log(`🚀 Backend serving complete portal data from cache (${cacheTime}ms)`);
+        // Set cache headers for client-side optimization
+        res.set({
+          'Cache-Control': 'public, max-age=60',
+          'ETag': `"portal-${Date.now() - (Date.now() % 60000)}"` // ETag changes every minute
+        });
         return res.json(cached);
       }
 
       // Use single optimized database call
+      const dbStartTime = Date.now();
       const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
+      const dbTime = Date.now() - dbStartTime;
       
       if (categoriesWithApis.length === 0) {
         console.log('⚠️ No data in database. Use /api/migrate-data endpoint to populate.');
         return res.json({ categories: [], apis: [] });
       }
 
-      // Extract all unique APIs and prepare categories
-      const allApis = new Map();
-      const categories = categoriesWithApis.map(category => {
-        // Collect all APIs for the combined response
-        category.apis.forEach(api => {
-          allApis.set(api.id, api);
-        });
+      // Optimize data transformation with pre-allocated arrays
+      const transformStartTime = Date.now();
+      const allApis = [];
+      const apiIds = new Set(); // Track unique APIs efficiently
+      const categories = [];
 
-        return {
+      // Single pass through data with minimal allocations
+      for (const category of categoriesWithApis) {
+        // Collect unique APIs
+        const categoryApiIds = [];
+        for (const api of category.apis) {
+          if (!apiIds.has(api.id)) {
+            apiIds.add(api.id);
+            allApis.push(api);
+          }
+          categoryApiIds.push(api.id);
+        }
+
+        // Transform category (minimal object creation)
+        categories.push({
           id: category.id,
           name: category.name,
           description: category.description,
@@ -1108,22 +1128,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           color: category.color,
           displayOrder: category.displayOrder,
           isActive: category.isActive,
-          endpoints: category.apis.map(api => api.id)
-        };
-      });
+          endpoints: categoryApiIds
+        });
+      }
 
+      const transformTime = Date.now() - transformStartTime;
+      
       const portalData = {
         categories,
-        apis: Array.from(allApis.values())
+        apis: allApis
       };
 
-      // Cache for 1 minute
+      // Cache the optimized data structure
       setCachedResponse(cacheKey, portalData, 60000);
       
-      console.log(`🚀 Backend serving ${categories.length} categories and ${portalData.apis.length} APIs in single call`);
+      const totalTime = Date.now() - startTime;
+      console.log(`🚀 Backend serving ${categories.length} categories and ${allApis.length} APIs in single call (DB: ${dbTime}ms, Transform: ${transformTime}ms, Total: ${totalTime}ms)`);
+      
+      // Set cache headers
+      res.set({
+        'Cache-Control': 'public, max-age=60',
+        'ETag': `"portal-${Date.now() - (Date.now() % 60000)}"`
+      });
       res.json(portalData);
     } catch (error) {
-      console.error("Error fetching combined portal data:", error);
+      const errorTime = Date.now() - startTime;
+      console.error(`Error fetching combined portal data (${errorTime}ms):`, error);
       res.status(500).json({ error: "Failed to fetch portal data" });
     }
   });

@@ -257,85 +257,63 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  // Load comprehensive data from centralized store
+  // Load comprehensive data from optimized single endpoint
   useEffect(() => {
     const loadDynamicData = async () => {
       setLoading(true);
+      const startTime = Date.now();
+      
       try {
-        // Load categories and APIs from backend (using public endpoints)
-        const [categoriesResponse, apisResponse] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/apis')
-        ]);
+        // Use single optimized portal-data endpoint
+        const response = await fetch('/api/portal-data');
         
-        if (categoriesResponse.ok && apisResponse.ok) {
-          const backendCategories = await categoriesResponse.json();
-          const backendApis = await apisResponse.json();
+        if (response.ok) {
+          const portalData = await response.json();
+          const loadTime = Date.now() - startTime;
           
-          console.log('Backend categories loaded:', backendCategories.length);
-          console.log('Backend APIs loaded:', backendApis.length);
+          console.log(`🚀 Portal data loaded in ${loadTime}ms (${portalData.categories.length} categories, ${portalData.apis.length} APIs)`);
           
-          // If we have hierarchical data from backend, use it completely
-          if (backendCategories.length > 0) {
-            // Transform backend hierarchical data to home page format
-            const transformedCategories = backendCategories.map((backendCategory: any) => ({
-              icon: getIconComponent(backendCategory.icon),
-              title: backendCategory.name,
-              description: backendCategory.description,
-              color: mapColorToTailwind(backendCategory.color),
-              apiCount: backendCategory.apis ? backendCategory.apis.length : 0,
-              apis: backendCategory.apis ? backendCategory.apis.map((api: any) => ({
-                name: api.name,
-                method: api.method,
-                endpoint: api.path,
-                description: api.description,
-                documentation: api.documentation,
-                sandbox: api.sandbox
-              })) : []
-            }));
+          if (portalData.categories.length > 0) {
+            // Create API lookup for efficiency
+            const apiLookup = new Map();
+            portalData.apis.forEach((api: any) => {
+              apiLookup.set(api.id, api);
+            });
+            
+            // Transform portal data to home page format efficiently
+            const transformedCategories = portalData.categories.map((category: any) => {
+              // Get APIs for this category
+              const categoryApis = category.endpoints?.map((apiId: string) => {
+                const api = apiLookup.get(apiId);
+                return api ? {
+                  name: api.name,
+                  method: api.method,
+                  endpoint: api.path,
+                  description: api.description,
+                  documentation: api.documentation,
+                  sandbox: api.sandbox
+                } : null;
+              }).filter(Boolean) || [];
+              
+              return {
+                icon: getIconComponent(category.icon),
+                title: category.name,
+                description: category.description,
+                color: mapColorToTailwind(category.color),
+                apiCount: categoryApis.length,
+                apis: categoryApis.slice(0, 9) // Show max 9 APIs per category
+              };
+            }).filter((category: any) => category.apiCount > 0); // Only show categories with APIs
             
             setDynamicApiCategories(transformedCategories);
           } else {
-            // Fallback: try to map individual arrays
-            const categoryApiCounts = new Map();
-            backendApis.forEach((api: any) => {
-              const count = categoryApiCounts.get(api.category) || 0;
-              categoryApiCounts.set(api.category, count + 1);
-            });
-            
-            const updatedCategories = apiCategories.map(category => {
-              const backendCategory = backendCategories.find((bc: any) => bc.name === category.title);
-              const apiCount = categoryApiCounts.get(category.title) || category.apiCount;
-              
-              if (backendCategory) {
-                return {
-                  ...category,
-                  description: backendCategory.description || category.description,
-                  apiCount: apiCount,
-                  apis: backendApis
-                    .filter((api: any) => api.category === category.title)
-                    .map((api: any) => ({
-                      name: api.name,
-                      method: api.method,
-                      endpoint: api.path
-                    }))
-                    .slice(0, 9)
-                };
-              }
-              
-              return {
-                ...category,
-                apiCount: apiCount
-              };
-            });
-            
-            setDynamicApiCategories(updatedCategories);
+            console.warn('No portal data available, using fallback static data');
           }
         } else {
-          console.warn('Failed to load backend data, using fallback static data');
+          console.warn(`Failed to load portal data (${response.status}), using fallback static data`);
         }
       } catch (error) {
-        console.error('Error loading dynamic API data:', error);
+        console.error('Error loading portal data:', error);
         // Keep using static data as fallback
       } finally {
         setLoading(false);
