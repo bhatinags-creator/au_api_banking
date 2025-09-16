@@ -533,6 +533,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Database connectivity test endpoint (temporary for AWS deployment verification)
+  app.get('/api/test-db', async (req, res) => {
+    try {
+      const categories = await storage.getAllApiCategories();
+      const apis = await storage.getAllApiEndpoints();
+      
+      res.json({
+        success: true,
+        database: 'connected',
+        environment: process.env.NODE_ENV || 'development',
+        databaseUrl: process.env.DATABASE_URL ? 'configured' : 'missing',
+        data: {
+          categoriesCount: categories.length,
+          apisCount: apis.length,
+          categories: categories.map(c => c.name),
+          sampleApi: apis.length > 0 ? apis[0].name : 'none'
+        }
+      });
+    } catch (error) {
+      console.error('Database test failed:', error);
+      res.status(500).json({
+        success: false,
+        database: 'disconnected',
+        environment: process.env.NODE_ENV || 'development',
+        databaseUrl: process.env.DATABASE_URL ? 'configured' : 'missing',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/login", authRateLimit, async (req, res) => {
     try {
