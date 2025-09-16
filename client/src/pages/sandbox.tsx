@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Play, Copy, Settings, Database, CreditCard, Shield, Clock, CheckCircle, XCircle, AlertCircle, Eye, EyeOff, Search, Filter, Star, History } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -751,26 +752,84 @@ const categoryIcons = {
 };
 
 
+// Loading skeleton component for sandbox page
+const SandboxLoadingSkeleton = () => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-25 dark:from-neutrals-900 dark:via-purple-950/20 dark:to-neutrals-800">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-8">
+          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-6 w-40" />
+        </div>
+        
+        {/* Title skeleton */}
+        <div className="text-center mb-8">
+          <Skeleton className="h-10 w-80 mx-auto mb-4" />
+          <Skeleton className="h-6 w-96 mx-auto" />
+        </div>
+        
+        {/* API groups grid skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader className="text-center">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <Skeleton className="w-10 h-10 rounded-lg" />
+                  <Skeleton className="h-6 w-32" />
+                </div>
+                <Skeleton className="h-4 w-24 mx-auto" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-12" />
+                      <Skeleton className="h-4 flex-1" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Sandbox() {
   // Use dynamic validation rules hook inside the component
-  const { data: validationRulesData, isLoading: validationLoading } = useValidationRules(undefined, 'sandbox');
+  const validationQuery = useValidationRules(undefined, 'sandbox');
   
   // Fetch categories from database
-  const { data: dbCategories = [], isLoading: categoriesLoading } = useQuery<any[]>({
+  const categoriesQuery = useQuery<any[]>({
     queryKey: ['/api/categories'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch endpoints from database (replacing hardcoded array)
-  const { data: dbEndpoints = [], isLoading: endpointsLoading } = useQuery<any[]>({
+  const endpointsQuery = useQuery<any[]>({
     queryKey: ['/api/endpoints'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+  
+  // Extract data with safe defaults
+  const validationRulesData = validationQuery.data;
+  const dbCategories = categoriesQuery.data || [];
+  const dbEndpoints = endpointsQuery.data || [];
+  const categoriesLoading = categoriesQuery.isLoading;
+  const endpointsLoading = endpointsQuery.isLoading;
+  const validationLoading = validationQuery.isLoading;
+  
+  // Combined loading state for initial load
+  const isInitialLoading = validationQuery.isLoading || categoriesQuery.isLoading || endpointsQuery.isLoading;
 
   // Transform database endpoints to APIEndpoint format
   const apiEndpoints = useMemo(() => {
+    // Only use fallback if we have no database data AND we're not loading
     if (!dbEndpoints || dbEndpoints.length === 0) {
-      return []; // Return empty array if no database endpoints
+      return endpointsQuery.isError ? fallbackApiEndpoints : [];
     }
 
     return dbEndpoints
@@ -793,14 +852,15 @@ export default function Sandbox() {
         })() : {},
         sampleResponse: endpoint.responseExample || null // Add response example mapping
       }));
-  }, [dbEndpoints]);
+  }, [dbEndpoints, endpointsQuery.isError]);
   
   // Transform dynamic rules to legacy format for backwards compatibility
   const validationSchemas = useMemo(() => {
     const transformedSchemas: EndpointValidation = {};
     
+    // Only use fallback if we have no validation data AND we're not loading
     if (!validationRulesData) {
-      return fallbackValidationSchemas; // Return fallback if no dynamic data
+      return validationQuery.isError ? fallbackValidationSchemas : {};
     }
     
     // Transform dynamic validation rules to legacy format
@@ -836,8 +896,8 @@ export default function Sandbox() {
       });
     });
     
-    return Object.keys(transformedSchemas).length > 0 ? transformedSchemas : fallbackValidationSchemas;
-  }, [validationRulesData]);
+    return Object.keys(transformedSchemas).length > 0 ? transformedSchemas : (validationQuery.isError ? fallbackValidationSchemas : {});
+  }, [validationRulesData, validationQuery.isError]);
 
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint | null>(null);
   const [requestBody, setRequestBody] = useState("");
@@ -894,9 +954,14 @@ export default function Sandbox() {
     validateAsync();
   }, [requestBody, selectedEndpoint]);
 
+  // Show loading skeleton during initial load - after ALL hooks are declared
+  if (isInitialLoading) {
+    return <SandboxLoadingSkeleton />;
+  }
+
   // Navigation helpers
   const getApiGroups = () => {
-    // Use database categories if available, fallback to hardcoded endpoints
+    // Use database categories if available, otherwise derive from endpoints
     if (dbCategories && dbCategories.length > 0) {
       return dbCategories
         .filter(category => category.isActive) // Only show active categories
@@ -908,7 +973,7 @@ export default function Sandbox() {
         }));
     }
     
-    // Fallback to original logic if no database categories
+    // Derive categories from available endpoints
     const groups = Array.from(new Set(apiEndpoints.map(endpoint => endpoint.category)));
     return groups.sort().map(category => ({
       name: category,
@@ -1823,74 +1888,57 @@ export default function Sandbox() {
                 Choose API Category
               </h2>
               <p className="text-lg text-neutrals-600 dark:text-neutrals-400">
-                {endpointsLoading || categoriesLoading ? 
-                  "Loading API endpoints..." : 
-                  `Select a category to explore ${apiEndpoints.length} available API endpoints`
-                }
+                Select a category to explore {apiEndpoints.length} available API endpoints
               </p>
             </div>
 
-            {/* Loading State */}
-            {(endpointsLoading || categoriesLoading) && (
-              <div className="flex justify-center items-center py-12">
-                <div className="flex flex-col items-center gap-4">
-                  <Clock className="w-8 h-8 animate-spin text-[var(--au-primary)]" />
-                  <p className="text-lg text-neutrals-600 dark:text-neutrals-400">
-                    Loading API categories and endpoints...
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* API Groups Grid */}
-            {!endpointsLoading && !categoriesLoading && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {getApiGroups().map(group => {
-                const IconComponent = group.icon;
-                return (
-                  <Card 
-                    key={group.name}
-                    className="cursor-pointer hover:shadow-xl hover:shadow-[var(--au-primary)]/20 transition-all duration-300 hover:scale-105 border-2 hover:border-[var(--au-primary)]/30 bg-gradient-to-br from-white to-purple-50/30 dark:from-neutrals-800 dark:to-purple-950/10 overflow-hidden"
-                    onClick={() => handleGroupSelect(group.name)}
-                    data-testid={`card-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    
-                    <CardHeader className="text-center">
-                      <div className="flex items-center justify-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-[var(--au-primary)]/10 rounded-lg flex items-center justify-center">
-                          <IconComponent className="w-6 h-6 text-[var(--au-primary)]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {getApiGroups().map(group => {
+              const IconComponent = group.icon;
+              return (
+                <Card 
+                  key={group.name}
+                  className="cursor-pointer hover:shadow-xl hover:shadow-[var(--au-primary)]/20 transition-all duration-300 hover:scale-105 border-2 hover:border-[var(--au-primary)]/30 bg-gradient-to-br from-white to-purple-50/30 dark:from-neutrals-800 dark:to-purple-950/10 overflow-hidden"
+                  onClick={() => handleGroupSelect(group.name)}
+                  data-testid={`card-group-${group.name.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  
+                  <CardHeader className="text-center">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-[var(--au-primary)]/10 rounded-lg flex items-center justify-center">
+                        <IconComponent className="w-6 h-6 text-[var(--au-primary)]" />
+                      </div>
+                      <CardTitle className="text-xl text-[var(--au-primary)] font-bold">{group.name}</CardTitle>
+                    </div>
+                    <CardDescription className="text-purple-600/70 font-medium">
+                      {group.endpoints.length} API{group.endpoints.length !== 1 ? 's' : ''} available
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {group.endpoints.slice(0, 3).map(endpoint => (
+                        <div key={endpoint.id} className="flex items-center gap-2 text-sm">
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs px-1 border-[var(--au-primary)]/30 text-[var(--au-primary)]"
+                          >
+                            {endpoint.method}
+                          </Badge>
+                          <span className="truncate text-purple-700 dark:text-purple-300">{endpoint.name}</span>
                         </div>
-                        <CardTitle className="text-xl text-[var(--au-primary)] font-bold">{group.name}</CardTitle>
-                      </div>
-                      <CardDescription className="text-purple-600/70 font-medium">
-                        {group.endpoints.length} API{group.endpoints.length !== 1 ? 's' : ''} available
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {group.endpoints.slice(0, 3).map(endpoint => (
-                          <div key={endpoint.id} className="flex items-center gap-2 text-sm">
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs px-1 border-[var(--au-primary)]/30 text-[var(--au-primary)]"
-                            >
-                              {endpoint.method}
-                            </Badge>
-                            <span className="truncate text-purple-700 dark:text-purple-300">{endpoint.name}</span>
-                          </div>
-                        ))}
-                        {group.endpoints.length > 3 && (
-                          <div className="text-xs text-purple-500 font-medium">
-                            +{group.endpoints.length - 3} more...
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-              </div>
-            )}
+                      ))}
+                      {group.endpoints.length > 3 && (
+                        <div className="text-xs text-purple-500 font-medium">
+                          +{group.endpoints.length - 3} more...
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            </div>
           </div>
         )}
 
