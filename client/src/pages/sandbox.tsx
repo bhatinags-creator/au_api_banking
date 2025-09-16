@@ -925,6 +925,14 @@ export default function Sandbox() {
   
   const { toast } = useToast();
 
+  // Helper functions - must be declared before handleEndpointChange
+  const addToRecentlyUsed = (endpointId: string) => {
+    setRecentlyUsed(prev => {
+      const filtered = prev.filter(id => id !== endpointId);
+      return [endpointId, ...filtered].slice(0, 5);
+    });
+  };
+
   // Handle endpoint change function - must be declared before useEffect
   const handleEndpointChange = (endpointId: string) => {
     const endpoint = apiEndpoints.find(e => e.id === endpointId);
@@ -994,7 +1002,7 @@ export default function Sandbox() {
     if (selectedEndpoint?.id) {
       handleEndpointChange(selectedEndpoint.id);
     }
-  }, [selectedEndpoint, handleEndpointChange]);
+  }, [selectedEndpoint]);
   
   // Real-time validation effect (now async)
   useEffect(() => {
@@ -1060,12 +1068,7 @@ export default function Sandbox() {
     return filtered;
   };
 
-  const addToRecentlyUsed = (endpointId: string) => {
-    setRecentlyUsed(prev => {
-      const filtered = prev.filter(id => id !== endpointId);
-      return [endpointId, ...filtered].slice(0, 5);
-    });
-  };
+
 
   const toggleFavorite = (endpointId: string) => {
     setFavorites(prev => 
