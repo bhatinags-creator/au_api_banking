@@ -925,6 +925,64 @@ export default function Sandbox() {
   
   const { toast } = useToast();
 
+  // Handle endpoint change function - must be declared before useEffect
+  const handleEndpointChange = (endpointId: string) => {
+    const endpoint = apiEndpoints.find(e => e.id === endpointId);
+    if (!endpoint) return;
+    
+    setSelectedEndpoint(endpoint);
+    
+    // Update request body with sample data
+    if (endpoint.sampleRequest) {
+      setRequestBody(safeJsonStringify(endpoint.sampleRequest));
+    } else {
+      setRequestBody("");
+    }
+
+    // Update headers based on endpoint requirements
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+    
+    if (endpoint.requiresAuth) {
+      headers["Authorization"] = `Bearer ${apiToken || "your_token_here"}`;
+    }
+    
+    // Add specific headers for AU Bank APIs
+    if (endpoint.category === "Payments") {
+      headers["X-Request-ID"] = `req_${Date.now()}`;
+    }
+    
+    setRequestHeaders(JSON.stringify(headers, null, 2));
+    
+    // Reset path parameters for endpoints that need them
+    const pathParamsObj: Record<string, string> = {};
+    if (endpoint.path.includes('{payment_id}')) {
+      pathParamsObj.payment_id = "pay_12345example";
+    }
+    if (endpoint.path.includes('{account_id}')) {
+      pathParamsObj.account_id = "acc_67890example";
+    }
+    if (endpoint.path.includes('{card_id}')) {
+      pathParamsObj.card_id = "card_abcdefexample";
+    }
+    if (endpoint.path.includes('{transaction_id}')) {
+      pathParamsObj.transaction_id = "txn_uvwxyzexample";
+    }
+    if (endpoint.path.includes('{id}')) {
+      pathParamsObj.id = "example_id_123";
+    }
+    
+    setPathParams(JSON.stringify(pathParamsObj, null, 2));
+    
+    // Reset query parameters
+    setQueryParams("");
+    setResponse(null);
+    
+    // Add to recently used
+    addToRecentlyUsed(endpointId);
+  };
+
   // Effect to set initial endpoint when APIs load
   useEffect(() => {
     if (apiEndpoints.length > 0 && !selectedEndpoint) {
@@ -936,7 +994,7 @@ export default function Sandbox() {
     if (selectedEndpoint?.id) {
       handleEndpointChange(selectedEndpoint.id);
     }
-  }, [selectedEndpoint]);
+  }, [selectedEndpoint, handleEndpointChange]);
   
   // Real-time validation effect (now async)
   useEffect(() => {
@@ -1040,63 +1098,6 @@ export default function Sandbox() {
     setCurrentView("apis");
   };
 
-  const handleEndpointChange = (endpointId: string) => {
-    const endpoint = apiEndpoints.find(e => e.id === endpointId);
-    if (!endpoint) return;
-    
-    setSelectedEndpoint(endpoint);
-    
-    // Update request body with sample data
-    if (endpoint.sampleRequest) {
-      setRequestBody(safeJsonStringify(endpoint.sampleRequest));
-    } else {
-      setRequestBody("");
-    }
-
-    // Update headers based on endpoint requirements
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json"
-    };
-    
-    if (endpoint.requiresAuth) {
-      headers["Authorization"] = `Bearer ${apiToken || "your_token_here"}`;
-    }
-    
-    // Add specific headers for AU Bank APIs
-    if (endpoint.category === "Payments") {
-      headers["X-Request-ID"] = `req_${Date.now()}`;
-    }
-    
-    setRequestHeaders(JSON.stringify(headers, null, 2));
-    
-    // Reset path parameters for endpoints that need them
-    const pathParamsObj: Record<string, string> = {};
-    if (endpoint.path.includes('{payment_id}')) {
-      pathParamsObj.payment_id = "pay_1a2b3c4d5e6f";
-    }
-    if (endpoint.path.includes('{account_id}')) {
-      pathParamsObj.account_id = "acc_123456789";
-    }
-    if (endpoint.path.includes('{transaction_id}')) {
-      pathParamsObj.transaction_id = "TXN123456789";
-    }
-    if (endpoint.path.includes('{payout_id}')) {
-      pathParamsObj.payout_id = "PAYOUT987654321";
-    }
-    setPathParams(JSON.stringify(pathParamsObj, null, 2));
-    
-    // Set query parameters for GET endpoints with sample data
-    if (endpoint.method === "GET" && endpoint.sampleRequest) {
-      const queryParamsString = Object.entries(endpoint.sampleRequest)
-        .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
-        .join('&');
-      setQueryParams(queryParamsString);
-    } else {
-      setQueryParams("");
-    }
-    
-    setResponse(null);
-  };
 
   const handleTestRequest = async () => {
     if (!selectedEndpoint) {
