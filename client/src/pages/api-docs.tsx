@@ -264,27 +264,41 @@ function transformEndpoint(endpoint: DocumentationEndpoint): APIEndpoint {
 
 // Hook to fetch API structure using the main API system (same as api-explorer.tsx)
 function useApiStructure() {
-  const { data: categories = [] } = useQuery<any[]>({
+  const categoriesQuery = useQuery<any[]>({
     queryKey: ['/api/categories'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const { data: endpoints = [] } = useQuery<any[]>({
+  const endpointsQuery = useQuery<any[]>({
     queryKey: ['/api/endpoints'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  return useQuery({
-    queryKey: ['api-structure', categories, endpoints],
+  const derivedQuery = useQuery({
+    queryKey: ['api-structure', categoriesQuery.data, endpointsQuery.data],
     queryFn: () => {
       // Ensure proper type safety by casting to expected types
-      const typedCategories = categories as any[];
-      const typedEndpoints = endpoints as any[];
+      const typedCategories = (categoriesQuery.data || []) as any[];
+      const typedEndpoints = (endpointsQuery.data || []) as any[];
       return transformMainApiToLegacyFormat(typedCategories, typedEndpoints);
     },
-    enabled: Array.isArray(categories) && Array.isArray(endpoints) && categories.length > 0 && endpoints.length > 0,
+    enabled: Array.isArray(categoriesQuery.data) && Array.isArray(endpointsQuery.data) && 
+             categoriesQuery.data.length > 0 && endpointsQuery.data.length > 0,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Combine loading states from all queries for proper initial loading
+  const isLoading = categoriesQuery.isLoading || endpointsQuery.isLoading || 
+                   (derivedQuery.isLoading && derivedQuery.fetchStatus !== 'idle');
+  
+  // Combine error states
+  const error = categoriesQuery.error || endpointsQuery.error || derivedQuery.error;
+
+  return {
+    data: derivedQuery.data,
+    isLoading,
+    error
+  };
 }
 
 // Fallback categories for loading state or errors
