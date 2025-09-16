@@ -65,6 +65,34 @@ function validateFileSignature(buffer: Buffer, originalName: string): boolean {
   }
 }
 
+// Response caching for expensive queries
+const responseCache = new Map<string, { data: any, timestamp: number, ttl: number }>();
+
+function getCachedResponse(key: string): any | null {
+  const cached = responseCache.get(key);
+  if (cached && Date.now() - cached.timestamp < cached.ttl) {
+    return cached.data;
+  }
+  if (cached) {
+    responseCache.delete(key); // Clean expired entries
+  }
+  return null;
+}
+
+function setCachedResponse(key: string, data: any, ttlMs: number = 60000): void {
+  responseCache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl: ttlMs
+  });
+  
+  // Simple cleanup: remove oldest entries if cache gets too large
+  if (responseCache.size > 100) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey) responseCache.delete(oldestKey);
+  }
+}
+
 // Configure multer for file uploads
 const upload = multer({
   dest: 'temp/uploads/',
@@ -943,19 +971,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public Categories endpoint for main portal with hierarchical structure
   app.get("/api/categories", async (req, res) => {
     try {
-      // Load categories from database instead of hardcoded data
-      const dbCategories = await storage.getAllApiCategories();
+      const cacheKey = 'categories_hierarchical';
       
-      // If no data in database, return empty array - use migration endpoint to populate
-      if (dbCategories.length === 0) {
+      // Check cache first (1 minute TTL)
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        console.log(`📊 Backend serving ${cached.length} categories from cache`);
+        return res.json(cached);
+      }
+
+      // Use optimized hierarchical method instead of separate queries
+      const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
+      
+      // If no data in database, return empty array
+      if (categoriesWithApis.length === 0) {
         console.log('⚠️ No categories in database. Use /api/migrate-data endpoint to populate.');
         return res.json([]);
       }
       
-      // Get all APIs to map category endpoints
-      const allApis = await storage.getAllApiEndpoints();
-      
-      const categoriesWithApis = dbCategories.map(category => ({
+      // Transform to match expected frontend format
+      const transformedCategories = categoriesWithApis.map(category => ({
         id: category.id,
         name: category.name,
         description: category.description,
@@ -963,34 +998,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: category.color,
         displayOrder: category.displayOrder,
         isActive: category.isActive,
-        endpoints: allApis.filter(api => api.category === category.name).map(api => api.id)
+        endpoints: category.apis.map(api => api.id) // Extract just the API IDs
       }));
+
+      // Cache the result for 1 minute
+      setCachedResponse(cacheKey, transformedCategories, 60000);
       
-      console.log(`📊 Backend serving ${categoriesWithApis.length} categories from database`);
-      res.json(categoriesWithApis);
+      console.log(`📊 Backend serving ${transformedCategories.length} categories from database`);
+      res.json(transformedCategories);
     } catch (error) {
       console.error("Error fetching hierarchical categories:", error);
       res.status(500).json({ error: "Failed to fetch categories" });
     }
   });
 
-  // Public APIs endpoint for main portal (read-only)
+  // Public APIs endpoint for main portal (read-only) - OPTIMIZED
   app.get("/api/apis", async (req, res) => {
     try {
-      // Load APIs from database instead of hardcoded data
-      const allApis = await storage.getAllApiEndpoints();
+      const { category } = req.query;
+      const cacheKey = category ? `apis_by_category_${category}` : 'apis_all';
       
-      // If no data in database, return empty array - use migration endpoint to populate  
-      if (allApis.length === 0) {
+      // Check cache first (2 minute TTL for APIs as they change less frequently)
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        console.log(`🔧 Backend serving ${cached.length} APIs from cache`);
+        return res.json(cached);
+      }
+
+      let apis;
+      if (category) {
+        // Use optimized single query for category-specific APIs
+        apis = await storage.getApiEndpointsByCategory(category as string);
+      } else {
+        // Load all APIs
+        apis = await storage.getAllApiEndpoints();
+      }
+      
+      // If no data in database, return empty array
+      if (apis.length === 0) {
         console.log('⚠️ No APIs in database. Use /api/migrate-data endpoint to populate.');
         return res.json([]);
       }
+
+      // Cache the result for 2 minutes
+      setCachedResponse(cacheKey, apis, 120000);
       
-      console.log(`🔧 Backend serving ${allApis.length} APIs from database`);
-      res.json(allApis);
+      console.log(`🔧 Backend serving ${apis.length} APIs from database`);
+      res.json(apis);
     } catch (error) {
       console.error("Error fetching APIs:", error);
       res.status(500).json({ error: "Failed to fetch APIs" });
+    }
+  });
+
+  // OPTIMIZED: Combined portal data endpoint - serves everything in one call
+  app.get("/api/portal-data", async (req, res) => {
+    try {
+      const cacheKey = 'portal_data_combined';
+      
+      // Check cache first (1 minute TTL)
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        console.log(`🚀 Backend serving complete portal data from cache`);
+        return res.json(cached);
+      }
+
+      // Use single optimized database call
+      const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
+      
+      if (categoriesWithApis.length === 0) {
+        console.log('⚠️ No data in database. Use /api/migrate-data endpoint to populate.');
+        return res.json({ categories: [], apis: [] });
+      }
+
+      // Extract all unique APIs and prepare categories
+      const allApis = new Map();
+      const categories = categoriesWithApis.map(category => {
+        // Collect all APIs for the combined response
+        category.apis.forEach(api => {
+          allApis.set(api.id, api);
+        });
+
+        return {
+          id: category.id,
+          name: category.name,
+          description: category.description,
+          icon: category.icon,
+          color: category.color,
+          displayOrder: category.displayOrder,
+          isActive: category.isActive,
+          endpoints: category.apis.map(api => api.id)
+        };
+      });
+
+      const portalData = {
+        categories,
+        apis: Array.from(allApis.values())
+      };
+
+      // Cache for 1 minute
+      setCachedResponse(cacheKey, portalData, 60000);
+      
+      console.log(`🚀 Backend serving ${categories.length} categories and ${portalData.apis.length} APIs in single call`);
+      res.json(portalData);
+    } catch (error) {
+      console.error("Error fetching combined portal data:", error);
+      res.status(500).json({ error: "Failed to fetch portal data" });
+    }
+  });
+
+  // OPTIMIZED: Categories with full API details (for admin/documentation views)
+  app.get("/api/categories-with-apis", async (req, res) => {
+    try {
+      const cacheKey = 'categories_with_full_apis';
+      
+      // Check cache first (2 minute TTL)
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        console.log(`📚 Backend serving categories with full API details from cache`);
+        return res.json(cached);
+      }
+
+      const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
+      
+      if (categoriesWithApis.length === 0) {
+        console.log('⚠️ No categories in database.');
+        return res.json([]);
+      }
+
+      // Cache for 2 minutes (admin data changes less frequently)
+      setCachedResponse(cacheKey, categoriesWithApis, 120000);
+      
+      console.log(`📚 Backend serving ${categoriesWithApis.length} categories with full API details`);
+      res.json(categoriesWithApis);
+    } catch (error) {
+      console.error("Error fetching categories with APIs:", error);
+      res.status(500).json({ error: "Failed to fetch categories with APIs" });
+    }
+  });
+
+  // Cache management endpoint (admin only)
+  app.post("/api/clear-cache", authenticate, requireRole('admin'), async (req, res) => {
+    try {
+      const { cacheKey } = req.body;
+      
+      if (cacheKey && typeof cacheKey === 'string') {
+        // Clear specific cache entry
+        responseCache.delete(cacheKey);
+        console.log(`🗑️ Cleared cache entry: ${cacheKey}`);
+        res.json({ message: `Cache entry '${cacheKey}' cleared successfully` });
+      } else {
+        // Clear all cache
+        responseCache.clear();
+        console.log('🗑️ All cache cleared');
+        res.json({ message: "All cache cleared successfully" });
+      }
+      
+      // Log admin action
+      await storage.createAuditLog({
+        id: randomUUID(),
+        userId: (req as any).session.user.id,
+        action: cacheKey ? 'cache_clear_specific' : 'cache_clear_all',
+        entityType: 'cache',
+        entityId: cacheKey || 'all',
+        metadata: {
+          cacheKey: cacheKey || 'all',
+          timestamp: new Date().toISOString()
+        },
+        ipAddress: req.ip || '',
+        userAgent: req.get('User-Agent')
+      });
+      
+    } catch (error) {
+      console.error('Cache clear error:', error);
+      res.status(500).json({ error: "Failed to clear cache" });
     }
   });
 
