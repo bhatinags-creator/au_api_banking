@@ -1,5 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { registerRoutes, prewarmPortalDataCache } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
 import helmet from "helmet";
@@ -73,6 +73,9 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Prewarm portal data cache to eliminate first-load delay
+  await prewarmPortalDataCache();
 
   // Global error handler
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {

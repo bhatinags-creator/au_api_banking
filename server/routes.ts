@@ -3791,3 +3791,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
+// Export cache functions for use in server startup
+export { getCachedResponse, setCachedResponse };
+
+// Cache prewarming function to eliminate first-load delay
+export async function prewarmPortalDataCache(): Promise<void> {
+  const startTime = Date.now();
+  console.log('🚀 Starting cache prewarming...');
+  
+  try {
+    const cacheKey = 'portal_data_combined';
+    
+    // Check if already cached (shouldn't be on startup, but good practice)
+    const cached = getCachedResponse(cacheKey);
+    if (cached) {
+      console.log('✅ Portal data cache already populated');
+      return;
+    }
+
+    // Use single optimized database call (same as portal-data endpoint)
+    const dbStartTime = Date.now();
+    const categoriesWithApis = await storage.getCategoriesWithApisHierarchical();
+    const dbTime = Date.now() - dbStartTime;
+    
+    if (categoriesWithApis.length === 0) {
+      console.log('⚠️ No data in database for cache prewarming. Use /api/migrate-data endpoint to populate.');
+      return;
+    }
+
+    // Optimize data transformation with pre-allocated arrays (same logic as endpoint)
+    const transformStartTime = Date.now();
+    const allApis = [];
+    const apiIds = new Set(); // Track unique APIs efficiently
+    const categories = [];
+
+    // Single pass through data with minimal allocations
+    for (const category of categoriesWithApis) {
+      // Collect unique APIs
+      const categoryApiIds = [];
+      for (const api of category.apis) {
+        if (!apiIds.has(api.id)) {
+          apiIds.add(api.id);
+          allApis.push(api);
+        }
+        categoryApiIds.push(api.id);
+      }
+
+      // Transform category (minimal object creation)
+      categories.push({
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        icon: category.icon,
+        color: category.color,
+        displayOrder: category.displayOrder,
+        isActive: category.isActive,
+        endpoints: categoryApiIds
+      });
+    }
+
+    const transformTime = Date.now() - transformStartTime;
+    
+    const portalData = {
+      categories,
+      apis: allApis
+    };
+
+    // Cache the optimized data structure (1 minute TTL, same as endpoint)
+    setCachedResponse(cacheKey, portalData, 60000);
+    
+    const totalTime = Date.now() - startTime;
+    console.log(`✅ Cache prewarming completed: ${categories.length} categories and ${allApis.length} APIs (DB: ${dbTime}ms, Transform: ${transformTime}ms, Total: ${totalTime}ms)`);
+  } catch (error) {
+    const errorTime = Date.now() - startTime;
+    console.error(`❌ Cache prewarming failed (${errorTime}ms):`, error);
+    // Don't throw - server should still start even if prewarming fails
+  }
+}
