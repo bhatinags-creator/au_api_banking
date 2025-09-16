@@ -954,11 +954,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/endpoints", apiRateLimit, async (req, res) => {
     try {
       const { category } = req.query;
-      if (category) {
-        const endpoints = await storage.getApiEndpointsByCategory(category as string);
-        return res.json(endpoints);
+      const cacheKey = category ? `endpoints_by_category_${category}` : 'endpoints_all';
+      
+      // Check cache first (1 minute TTL)
+      const cached = getCachedResponse(cacheKey);
+      if (cached) {
+        console.log(`🔧 Backend serving ${cached.length} endpoints from cache`);
+        return res.json(cached);
       }
-      const endpoints = await storage.getAllApiEndpoints();
+
+      let endpoints;
+      if (category) {
+        endpoints = await storage.getApiEndpointsByCategory(category as string);
+      } else {
+        endpoints = await storage.getAllApiEndpoints();
+      }
+      
+      // If no data in database, return empty array
+      if (endpoints.length === 0) {
+        console.log('⚠️ No endpoints in database. Use /api/migrate-data endpoint to populate.');
+        return res.json([]);
+      }
+
+      // Cache the result for 1 minute
+      setCachedResponse(cacheKey, endpoints, 60000);
+      
+      console.log(`🔧 Backend serving ${endpoints.length} endpoints from database`);
       res.json(endpoints);
     } catch (error) {
       console.error('Get endpoints error:', error);

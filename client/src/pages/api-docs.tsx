@@ -230,6 +230,68 @@ function transformMainApiToLegacyFormat(
     });
 }
 
+// Transform portal data to legacy format for UI compatibility
+function transformPortalDataToLegacyFormat(
+  categories: any[],
+  apis: any[]
+): APICategory[] {
+  // Create a map of APIs by ID for quick lookup
+  const apiMap = new Map();
+  apis.forEach(api => {
+    apiMap.set(api.id, api);
+  });
+
+  return categories
+    .filter(category => category.isActive !== false)
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map(category => {
+      // Get APIs for this category using the endpoints array
+      const categoryEndpoints = (category.endpoints || [])
+        .map((apiId: string) => apiMap.get(apiId))
+        .filter(Boolean) // Remove undefined entries
+        .filter((api: any) => api.isActive !== false)
+        .map((api: any) => ({
+          id: api.name || api.id,
+          method: api.method,
+          path: api.path,
+          title: api.name || api.title,
+          description: api.description,
+          parameters: api.parameters?.map((p: any) => ({
+            name: p.name,
+            type: p.type,
+            required: p.required,
+            description: p.description,
+            example: p.example
+          })) || [],
+          responses: api.responses?.map((r: any) => ({
+            status: r.status,
+            description: r.description,
+            example: r.example
+          })) || [],
+          examples: api.requestExample && api.responseExample ? [{
+            title: "API Example",
+            request: safeParseJson(api.requestExample),
+            response: safeParseJson(api.responseExample),
+            curl: `curl -X ${api.method} "https://api.aubank.in${api.path}" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json"`
+          }] : [],
+          security: api.requiresAuth ? [{
+            type: api.authType || "Bearer Token",
+            description: "API authentication required"
+          }] : []
+        }));
+
+      return {
+        id: category.name,
+        title: category.name,
+        icon: iconMap[category.icon] || BookOpen,
+        description: category.description,
+        endpoints: categoryEndpoints
+      };
+    });
+}
+
 function transformEndpoint(endpoint: DocumentationEndpoint): APIEndpoint {
   return {
     id: endpoint.name,
@@ -262,40 +324,38 @@ function transformEndpoint(endpoint: DocumentationEndpoint): APIEndpoint {
   };
 }
 
-// Hook to fetch API structure using the main API system (same as api-explorer.tsx)
+// Hook to fetch API structure using optimized single portal-data endpoint
 function useApiStructure() {
-  const categoriesQuery = useQuery<any[]>({
-    queryKey: ['/api/categories'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const endpointsQuery = useQuery<any[]>({
-    queryKey: ['/api/endpoints'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+  const portalDataQuery = useQuery<{ categories: any[], apis: any[] }>({
+    queryKey: ['/api/portal-data'],
+    staleTime: 5 * 60 * 1000, // 5 minutes - keep cached data fresh
+    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache longer
+    refetchOnWindowFocus: false, // Don't refetch on focus to avoid loading states
+    refetchOnMount: false, // Don't refetch on mount if we have cached data
   });
 
   const derivedQuery = useQuery({
-    queryKey: ['api-structure', categoriesQuery.data, endpointsQuery.data],
+    queryKey: ['api-structure-transformed', portalDataQuery.data],
     queryFn: () => {
-      // Ensure proper type safety by casting to expected types
-      const typedCategories = (categoriesQuery.data || []) as any[];
-      const typedEndpoints = (endpointsQuery.data || []) as any[];
-      return transformMainApiToLegacyFormat(typedCategories, typedEndpoints);
+      if (!portalDataQuery.data?.categories || !portalDataQuery.data?.apis) {
+        return [];
+      }
+      // Transform portal data to legacy format for UI compatibility
+      return transformPortalDataToLegacyFormat(portalDataQuery.data.categories, portalDataQuery.data.apis);
     },
-    enabled: Array.isArray(categoriesQuery.data) && Array.isArray(endpointsQuery.data) && 
-             categoriesQuery.data.length > 0 && endpointsQuery.data.length > 0,
-    staleTime: 5 * 60 * 1000,
+    enabled: !!portalDataQuery.data?.categories && !!portalDataQuery.data?.apis,
+    staleTime: 5 * 60 * 1000, // Keep transformed data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000,
   });
 
-  // Combine loading states from all queries for proper initial loading
-  const isLoading = categoriesQuery.isLoading || endpointsQuery.isLoading || 
-                   (derivedQuery.isLoading && derivedQuery.fetchStatus !== 'idle');
+  // Optimized loading logic - only show loading on first visit without cached data
+  const isLoading = portalDataQuery.isLoading && !portalDataQuery.data;
   
-  // Combine error states
-  const error = categoriesQuery.error || endpointsQuery.error || derivedQuery.error;
+  // Only show error if we have no data and there's an actual error
+  const error = (!portalDataQuery.data && portalDataQuery.error) || derivedQuery.error;
 
   return {
-    data: derivedQuery.data,
+    data: derivedQuery.data || [],
     isLoading,
     error
   };
