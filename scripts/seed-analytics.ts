@@ -40,13 +40,17 @@ async function seedAnalyticsData() {
         totalErrorRequests: Math.floor(baseRequests * (0.02 + Math.random() * 0.06)), // 2-8% failure rate
         averageResponseTime: 150 + Math.floor(Math.random() * 100), // 150-250ms
         uniqueDevelopers: Math.min(existingDevelopers.length, 5 + Math.floor(Math.random() * 10)),
-        // Add the missing JSONB field with proper JSON structure
+        // Add the missing JSONB field with proper JSON structure matching actual API categories
         topCategoryRequests: {
-          "Accounts": accounts,
-          "Payments": payments,
-          "KYC": kyc,
-          "Security": Math.floor(baseRequests * 0.05),
-          "Cards": Math.floor(baseRequests * 0.08)
+          "Authentication": Math.floor(baseRequests * 0.15),
+          "Digital Payments": payments,
+          "Customer": kyc,
+          "Loans": Math.floor(baseRequests * 0.12),
+          "Liabilities": Math.floor(baseRequests * 0.08),
+          "Cards": Math.floor(baseRequests * 0.08),
+          "Payments": Math.floor(baseRequests * 0.10),
+          "Trade Services": Math.floor(baseRequests * 0.05),
+          "Corporate API Suite": Math.floor(baseRequests * 0.07)
         }
       });
     }
@@ -96,7 +100,7 @@ async function seedAnalyticsData() {
         statusCode,
         responseTime: 100 + Math.floor(Math.random() * 300), // 100-400ms
         developerId,
-        apiId: existingApiEndpoints.length > 0 ? 
+        endpointId: existingApiEndpoints.length > 0 ? 
           existingApiEndpoints[Math.floor(Math.random() * existingApiEndpoints.length)].id : 
           null,
         userAgent: 'AU-Bank-SDK/1.0.0',
