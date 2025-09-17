@@ -473,7 +473,6 @@ export default function Home() {
               <Link href="/sandbox" className="text-neutrals-700 hover:text-primary transition-colors">
                 <span data-testid="link-sandbox">Sandbox</span>
               </Link>
-              <a href="#" className="text-neutrals-700 hover:text-primary transition-colors">Strategic Partners</a>
               <a href="#" className="text-neutrals-700 hover:text-primary transition-colors">FAQ</a>
             </nav>
 
@@ -510,7 +509,6 @@ export default function Home() {
               <a href="#" className="block text-neutrals-700 hover:text-primary">Home</a>
               <Link href="/docs" className="block text-neutrals-700 hover:text-primary">Explore APIs</Link>
               <Link href="/sandbox" className="block text-neutrals-700 hover:text-primary">Sandbox</Link>
-              <a href="#" className="block text-neutrals-700 hover:text-primary">Strategic Partners</a>
               <a href="#" className="block text-neutrals-700 hover:text-primary">FAQ</a>
               <div className="flex space-x-4 pt-4">
                 <Link href="/signup" className="flex-1">
