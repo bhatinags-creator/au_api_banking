@@ -2,7 +2,7 @@
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { dailyAnalytics, apiActivity, developers, apiEndpoints } from "../shared/schema";
+import { dailyAnalytics, apiActivity, developers, apiEndpoints, type InsertDailyAnalytics } from "../shared/schema";
 
 const sql = postgres(process.env.DATABASE_URL!);
 const db = drizzle(sql);
@@ -19,7 +19,7 @@ async function seedAnalyticsData() {
 
     // Generate daily analytics for the last 30 days
     console.log("📊 Creating daily analytics data...");
-    const dailyAnalyticsData = [];
+    const dailyAnalyticsData: InsertDailyAnalytics[] = [];
     const today = new Date();
     
     for (let i = 29; i >= 0; i--) {
@@ -36,17 +36,22 @@ async function seedAnalyticsData() {
         date: date.toISOString().split('T')[0],
         environment: 'sandbox',
         totalRequests: baseRequests,
-        successfulRequests: Math.floor(baseRequests * (0.92 + Math.random() * 0.06)), // 92-98% success rate
-        failedRequests: Math.floor(baseRequests * (0.02 + Math.random() * 0.06)), // 2-8% failure rate
+        totalSuccessfulRequests: Math.floor(baseRequests * (0.92 + Math.random() * 0.06)), // 92-98% success rate
+        totalErrorRequests: Math.floor(baseRequests * (0.02 + Math.random() * 0.06)), // 2-8% failure rate
         averageResponseTime: 150 + Math.floor(Math.random() * 100), // 150-250ms
         uniqueDevelopers: Math.min(existingDevelopers.length, 5 + Math.floor(Math.random() * 10)),
-        accountsApiRequests: accounts,
-        paymentsApiRequests: payments,
-        kycApiRequests: kyc,
-        topApiCategory: Math.random() > 0.5 ? 'Accounts' : 'Payments'
+        // Add the missing JSONB field with proper JSON structure
+        topCategoryRequests: {
+          "Accounts": accounts,
+          "Payments": payments,
+          "KYC": kyc,
+          "Security": Math.floor(baseRequests * 0.05),
+          "Cards": Math.floor(baseRequests * 0.08)
+        }
       });
     }
 
+    // Insert with proper error handling
     await db.insert(dailyAnalytics).values(dailyAnalyticsData);
     console.log(`✅ Inserted ${dailyAnalyticsData.length} daily analytics records`);
 
