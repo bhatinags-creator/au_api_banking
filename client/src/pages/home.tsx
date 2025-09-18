@@ -655,10 +655,10 @@ export default function Home() {
               Join thousands of developers building innovative financial solutions with AU Bank's comprehensive API ecosystem. From payments to account management, we provide the tools you need to succeed.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="au-btn au-btn-primary text-lg px-8 py-4">
+              <a href="/docs" className="au-btn au-btn-primary text-lg px-8 py-4" data-testid="button-browse-all-apis-hero">
                 BROWSE ALL APIs
                 <ArrowRight className="w-5 h-5" />
-              </button>
+              </a>
               <Link href="/sandbox" className="au-btn au-btn-outline text-lg px-8 py-4">
                 Try Sandbox
                 <Play className="w-5 h-5" />
