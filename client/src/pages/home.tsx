@@ -324,6 +324,12 @@ export default function Home() {
     loadDynamicData();
   }, []);
 
+  // Ensure sections always show by default
+  useEffect(() => {
+    console.log('Search query state:', searchQuery);
+    console.log('Dynamic categories:', dynamicApiCategories.length);
+  }, [searchQuery, dynamicApiCategories]);
+
   // Generate search suggestions - using dynamic data
   const generateSuggestions = (query: string) => {
     if (!query || query.length < 2) return [];
@@ -924,7 +930,7 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {apiCategories.map((category, index) => {
+              {dynamicApiCategories.map((category, index) => {
                 const IconComponent = category.icon;
                 return (
                   <Card key={index} className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:-translate-y-2">
