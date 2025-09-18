@@ -965,15 +965,13 @@ export default function Home() {
             </div>
             
             <div className="text-center mt-12">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-primary text-primary hover:bg-primary hover:text-white"
-                  onClick={() => setLocation('/docs')}
-                  data-testid="button-browse-all-apis"
-                >
-                  BROWSE ALL APIs
-                </Button>
+              <a 
+                href="/docs" 
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 border-primary text-primary hover:bg-primary hover:text-white text-lg"
+                data-testid="button-browse-all-apis"
+              >
+                BROWSE ALL APIs
+              </a>
             </div>
           </div>
         </section>
