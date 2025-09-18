@@ -29,7 +29,7 @@ import {
   Palette,
   Settings
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
 // Helper functions for transforming backend data
@@ -256,6 +256,7 @@ export default function Home() {
   const [dynamicApiCategories, setDynamicApiCategories] = useState(apiCategories);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Load comprehensive data from optimized single endpoint
   useEffect(() => {
@@ -964,11 +965,15 @@ export default function Home() {
             </div>
             
             <div className="text-center mt-12">
-              <Link href="/docs">
-                <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
+                  onClick={() => setLocation('/docs')}
+                  data-testid="button-browse-all-apis"
+                >
                   BROWSE ALL APIs
                 </Button>
-              </Link>
             </div>
           </div>
         </section>
