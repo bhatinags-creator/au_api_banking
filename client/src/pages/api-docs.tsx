@@ -333,16 +333,16 @@ function useApiStructure() {
         console.log('📡 Loading API structure from /api/portal-data');
         const response = await fetch('/api/portal-data');
         if (!response.ok) {
-          console.warn('Failed to load portal data, using fallback');
-          return fallbackApiCategories;
+          console.warn('Failed to load portal data');
+          return [];
         }
         
         const data = await response.json();
         console.log('📊 Received portal data:', data.categories?.length, 'categories,', data.apis?.length, 'APIs');
         
         if (!data.categories || !data.apis) {
-          console.warn('Invalid portal data structure, using fallback');
-          return fallbackApiCategories;
+          console.warn('Invalid portal data structure');
+          return [];
         }
         
         // Transform immediately to avoid double query
@@ -351,7 +351,7 @@ function useApiStructure() {
         return transformed;
       } catch (error) {
         console.error('Error loading API structure:', error);
-        return fallbackApiCategories;
+        return [];
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - keep cached
@@ -361,15 +361,7 @@ function useApiStructure() {
   });
 }
 
-// Fallback categories for loading state or errors
-const fallbackApiCategories: APICategory[] = [
-  {
-    id: "introduction",
-    title: "Introduction",
-    icon: BookOpen,
-    description: "Getting started with AU Bank APIs",
-    endpoints: []
-  },
+export default function APIDocs() {
   {
     id: "security",
     title: "Security",
@@ -1734,10 +1726,6 @@ const fallbackApiCategories: APICategory[] = [
         }]
       }
     ]
-  }
-];
-
-export default function APIDocs() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<string[]>([]);
@@ -1761,7 +1749,7 @@ export default function APIDocs() {
   const shouldReduceMotion = useReducedMotion();
 
   // Fetch API structure dynamically using the main API system
-  const { data: apiCategories = fallbackApiCategories, isLoading, error } = useApiStructure();
+  const { data: apiCategories = [], isLoading, error } = useApiStructure();
 
   // Animation variants
   const sidebarItemVariants = {

@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import Home from "@/pages/home";
-import ApiExplorer from "@/pages/api-explorer";
 import APIDocs from "@/pages/api-docs";
 import Sandbox from "@/pages/sandbox";
 import Dashboard from "@/pages/dashboard";
@@ -64,9 +63,6 @@ function Router() {
       {/* Protected routes - auth check only when accessed */}
       <Route path="/dashboard">
         {() => <ProtectedRoute component={Dashboard} />}
-      </Route>
-      <Route path="/apis">
-        {() => <ProtectedRoute component={ApiExplorer} />}
       </Route>
       <Route path="/analytics">
         {() => <ProtectedRoute component={Analytics} />}
