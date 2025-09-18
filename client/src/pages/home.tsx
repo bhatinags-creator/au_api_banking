@@ -474,8 +474,8 @@ export default function Home() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#" className="text-neutrals-700 hover:text-primary transition-colors">Home</a>
-              <Link href="/docs" className="text-neutrals-700 hover:text-primary transition-colors">
-                <span data-testid="link-docs">Explore APIs</span>
+              <Link href="/apis" className="text-neutrals-700 hover:text-primary transition-colors">
+                <span data-testid="link-apis">Explore APIs</span>
               </Link>
               <Link href="/sandbox" className="text-neutrals-700 hover:text-primary transition-colors">
                 <span data-testid="link-sandbox">Sandbox</span>
@@ -514,7 +514,7 @@ export default function Home() {
           <div className="md:hidden bg-white border-t" data-testid="mobile-menu">
             <div className="px-4 py-4 space-y-4">
               <a href="#" className="block text-neutrals-700 hover:text-primary">Home</a>
-              <Link href="/docs" className="block text-neutrals-700 hover:text-primary">Explore APIs</Link>
+              <Link href="/apis" className="block text-neutrals-700 hover:text-primary">Explore APIs</Link>
               <Link href="/sandbox" className="block text-neutrals-700 hover:text-primary">Sandbox</Link>
               <a href="#" className="block text-neutrals-700 hover:text-primary">FAQ</a>
               <div className="flex space-x-4 pt-4">
@@ -655,7 +655,7 @@ export default function Home() {
               Join thousands of developers building innovative financial solutions with AU Bank's comprehensive API ecosystem. From payments to account management, we provide the tools you need to succeed.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <a href="/docs" className="au-btn au-btn-primary text-lg px-8 py-4" data-testid="button-browse-all-apis-hero">
+              <a href="/apis" className="au-btn au-btn-primary text-lg px-8 py-4" data-testid="button-browse-all-apis-hero">
                 BROWSE ALL APIs
                 <ArrowRight className="w-5 h-5" />
               </a>
@@ -906,7 +906,7 @@ export default function Home() {
                 >
                   Clear Search
                 </Button>
-                <Link href="/docs">
+                <Link href="/apis">
                   <Button 
                     size="lg" 
                     className="bg-primary hover:bg-primary/90"
@@ -972,7 +972,7 @@ export default function Home() {
             
             <div className="text-center mt-12">
               <a 
-                href="/docs" 
+                href="/apis" 
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 border-primary text-primary hover:bg-primary hover:text-white text-lg"
                 data-testid="button-browse-all-apis"
               >
