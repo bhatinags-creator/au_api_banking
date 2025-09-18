@@ -655,10 +655,10 @@ export default function Home() {
               Join thousands of developers building innovative financial solutions with AU Bank's comprehensive API ecosystem. From payments to account management, we provide the tools you need to succeed.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <a href="/docs" className="au-btn au-btn-primary text-lg px-8 py-4" data-testid="button-browse-all-apis-hero">
+              <Link href="/docs" className="au-btn au-btn-primary text-lg px-8 py-4" data-testid="button-browse-all-apis-hero">
                 BROWSE ALL APIs
                 <ArrowRight className="w-5 h-5" />
-              </a>
+              </Link>
               <Link href="/sandbox" className="au-btn au-btn-outline text-lg px-8 py-4">
                 Try Sandbox
                 <Play className="w-5 h-5" />
@@ -971,13 +971,13 @@ export default function Home() {
             </div>
             
             <div className="text-center mt-12">
-              <a 
+              <Link 
                 href="/docs" 
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 border-primary text-primary hover:bg-primary hover:text-white text-lg"
                 data-testid="button-browse-all-apis"
               >
                 BROWSE ALL APIs
-              </a>
+              </Link>
             </div>
           </div>
         </section>
