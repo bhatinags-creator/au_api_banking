@@ -330,6 +330,7 @@ function useApiStructure() {
     queryKey: ['api-structure-docs'],
     queryFn: async () => {
       try {
+        console.log('📡 Loading API structure from /api/portal-data');
         const response = await fetch('/api/portal-data');
         if (!response.ok) {
           console.warn('Failed to load portal data, using fallback');
@@ -337,24 +338,26 @@ function useApiStructure() {
         }
         
         const data = await response.json();
+        console.log('📊 Received portal data:', data.categories?.length, 'categories,', data.apis?.length, 'APIs');
+        
         if (!data.categories || !data.apis) {
           console.warn('Invalid portal data structure, using fallback');
           return fallbackApiCategories;
         }
         
         // Transform immediately to avoid double query
-        return transformPortalDataToLegacyFormat(data.categories, data.apis);
+        const transformed = transformPortalDataToLegacyFormat(data.categories, data.apis);
+        console.log('🔄 Transformed to', transformed.length, 'categories for docs');
+        return transformed;
       } catch (error) {
         console.error('Error loading API structure:', error);
         return fallbackApiCategories;
       }
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes - keep cached longer
-    gcTime: 30 * 60 * 1000, // 30 minutes - longer cache
+    staleTime: 5 * 60 * 1000, // 5 minutes - keep cached
+    gcTime: 10 * 60 * 1000, // 10 minutes - cache time
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    // Return fallback data immediately while loading in background
-    initialData: fallbackApiCategories,
+    // Remove initialData and refetchOnMount:false to ensure real data loads
   });
 }
 
