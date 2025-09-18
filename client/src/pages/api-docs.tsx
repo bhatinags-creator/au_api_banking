@@ -326,39 +326,36 @@ function transformEndpoint(endpoint: DocumentationEndpoint): APIEndpoint {
 
 // Hook to fetch API structure using optimized single portal-data endpoint
 function useApiStructure() {
-  const portalDataQuery = useQuery<{ categories: any[], apis: any[] }>({
-    queryKey: ['/api/portal-data'],
-    staleTime: 5 * 60 * 1000, // 5 minutes - keep cached data fresh
-    gcTime: 10 * 60 * 1000, // 10 minutes - keep in cache longer
-    refetchOnWindowFocus: false, // Don't refetch on focus to avoid loading states
-    refetchOnMount: false, // Don't refetch on mount if we have cached data
-  });
-
-  const derivedQuery = useQuery({
-    queryKey: ['api-structure-transformed', portalDataQuery.data],
-    queryFn: () => {
-      if (!portalDataQuery.data?.categories || !portalDataQuery.data?.apis) {
-        return [];
+  return useQuery<APICategory[]>({
+    queryKey: ['api-structure-docs'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/portal-data');
+        if (!response.ok) {
+          console.warn('Failed to load portal data, using fallback');
+          return fallbackApiCategories;
+        }
+        
+        const data = await response.json();
+        if (!data.categories || !data.apis) {
+          console.warn('Invalid portal data structure, using fallback');
+          return fallbackApiCategories;
+        }
+        
+        // Transform immediately to avoid double query
+        return transformPortalDataToLegacyFormat(data.categories, data.apis);
+      } catch (error) {
+        console.error('Error loading API structure:', error);
+        return fallbackApiCategories;
       }
-      // Transform portal data to legacy format for UI compatibility
-      return transformPortalDataToLegacyFormat(portalDataQuery.data.categories, portalDataQuery.data.apis);
     },
-    enabled: !!portalDataQuery.data?.categories && !!portalDataQuery.data?.apis,
-    staleTime: 5 * 60 * 1000, // Keep transformed data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - keep cached longer
+    gcTime: 30 * 60 * 1000, // 30 minutes - longer cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    // Return fallback data immediately while loading in background
+    initialData: fallbackApiCategories,
   });
-
-  // Optimized loading logic - only show loading on first visit without cached data
-  const isLoading = portalDataQuery.isLoading && !portalDataQuery.data;
-  
-  // Only show error if we have no data and there's an actual error
-  const error = (!portalDataQuery.data && portalDataQuery.error) || derivedQuery.error;
-
-  return {
-    data: derivedQuery.data || [],
-    isLoading,
-    error
-  };
 }
 
 // Fallback categories for loading state or errors
