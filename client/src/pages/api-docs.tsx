@@ -362,8 +362,9 @@ function useApiStructure() {
 }
 
 export default function APIDocs() {
-  {
-    id: "security",
+  const categories = [
+    {
+      id: "security",
     title: "Security",
     icon: Shield,
     description: "Authentication and security protocols",
@@ -1726,6 +1727,9 @@ export default function APIDocs() {
         }]
       }
     ]
+  }
+  ];
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [openCategories, setOpenCategories] = useState<string[]>([]);
