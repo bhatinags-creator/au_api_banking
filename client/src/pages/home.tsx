@@ -948,11 +948,8 @@ export default function Home() {
                         <p className="text-sm font-medium text-[var(--au-primary-700)]">Key APIs:</p>
                         <div className="grid gap-1">
                           {category.apis.slice(0, 3).map((api, apiIndex) => (
-                            <div key={apiIndex} className="flex items-center justify-between text-xs">
-                              <span className="font-mono text-neutrals-700 truncate">{api.name}</span>
-                              <Badge variant="outline" className="text-xs h-5 ml-2 flex-shrink-0">
-                                {api.method}
-                              </Badge>
+                            <div key={apiIndex} className="flex items-center text-sm">
+                              <span className="font-mono text-neutrals-700">{api.name}</span>
                             </div>
                           ))}
                           {category.apis.length > 3 && (
@@ -997,13 +994,10 @@ export default function Home() {
                           <IconComponent className={`w-8 h-8 ${api.color}`} />
                         </div>
                         <div className="flex-1">
-                          <CardTitle className="text-xl font-bold mb-3 text-neutrals-800">{api.title}</CardTitle>
+                          <CardTitle className="text-2xl font-bold mb-3 text-neutrals-800">{api.title}</CardTitle>
                           <div className="flex items-center gap-2 mb-2">
                             <Badge variant="secondary" className="text-sm px-3 py-1 bg-[var(--au-primary)]/10 text-[var(--au-primary-700)] border-0">
                               {api.category}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {api.method}
                             </Badge>
                           </div>
                           <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 font-mono">
