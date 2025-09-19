@@ -1,0 +1,86 @@
+-- RD Details Service API
+INSERT INTO api_endpoints (
+    category_id,
+    category,
+    name,
+    path,
+    method,
+    description,
+    summary,
+    parameters,
+    headers,
+    responses,
+    request_example,
+    response_example,
+    documentation,
+    tags,
+    timeout,
+    requires_auth,
+    auth_type,
+    status,
+    is_active,
+    version,
+    is_internal,
+    required_permissions,
+    rate_limits
+) VALUES (
+    '7f74500f-d4f2-45c4-ab6b-bc4e1df129ad',
+    'Liabilities',
+    'RD Details Service',
+    '/CBSRDDetailsRestService/RDDetails',
+    'GET',
+    'Fetch comprehensive Recurring Deposit (RD) account details including balance, maturity information, installment details, and account status based on account number and deposit number.',
+    'Retrieve detailed RD account information and status',
+    '[
+        {"name": "RequestId", "type": "string", "maxLength": 32, "required": true, "description": "Unique reference number for the request", "example": "5432578880545"},
+        {"name": "OriginatingChannel", "type": "string", "maxLength": 5, "required": true, "description": "Application name or channel identifier", "example": "TGT"},
+        {"name": "AccountNo", "type": "string", "maxLength": 16, "required": true, "description": "RD account number to fetch details", "example": "10895340459"}
+    ]'::jsonb,
+    '[
+        {"name": "Content-Type", "value": "application/json"},
+        {"name": "Authorization", "value": "Bearer {access_token}"}
+    ]'::jsonb,
+    '[
+        {
+            "status": "200",
+            "description": "RD details retrieved successfully",
+            "example": {
+                "ErrorCode": "0",
+                "ErrorDescription": "Success",
+                "RDAccountNo": "10895340459",
+                "MaturityAccountNo": "1821201119736140",
+                "AccountTitle": "Account Holder Name",
+                "InstallmentAmount": "5000.00",
+                "AvailableBalance": "125000.00",
+                "AmtMaturityValue": "127500.00",
+                "Years": "2",
+                "Months": "1",
+                "Days": "15",
+                "TotalTermDay": "440",
+                "DatAcctOpen": "2023-01-15",
+                "MaturityDate": "2025-02-28",
+                "ProdCod": "30301",
+                "AccountStatusCode": "2",
+                "AccountStatus": "Active",
+                "ROI": "7.5"
+            }
+        },
+        {"status": "400", "description": "Bad request - Invalid input parameters"},
+        {"status": "401", "description": "Unauthorized - Invalid authentication credentials"},
+        {"status": "404", "description": "Not Found - RD account not found"},
+        {"status": "500", "description": "Internal Server Error - Something went wrong"}
+    ]'::jsonb,
+    '{"RequestId":"5432578880545","OriginatingChannel":"TGT","AccountNo":"10895340459"}',
+    '{"ErrorCode":"0","ErrorDescription":"Success","RDAccountNo":"10895340459","MaturityAccountNo":"1821201119736140","AccountTitle":"Account Holder Name","InstallmentAmount":"5000.00","AvailableBalance":"125000.00","AmtMaturityValue":"127500.00","Years":"2","Months":"1","Days":"15","TotalTermDay":"440","DatAcctOpen":"2023-01-15","MaturityDate":"2025-02-28","ProdCod":"30301","AccountStatusCode":"2","AccountStatus":"Active","ROI":"7.5"}',
+    'Comprehensive API for retrieving Recurring Deposit (RD) account details. Provides complete information including account balance, maturity value, installment amounts, tenure details, interest rates, and account status.',
+    '["liabilities", "rd", "recurring-deposit", "account-details", "balance-inquiry"]'::jsonb,
+    30000,
+    true,
+    'bearer',
+    'active',
+    true,
+    'v1',
+    true,
+    '["sandbox", "uat"]'::jsonb,
+    '{"sandbox": 50, "uat": 200, "production": 500}'::jsonb
+);
