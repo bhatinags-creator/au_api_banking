@@ -53,10 +53,9 @@ async function seedDisbursementServices() {
           {"name": "Authorization", "value": "Bearer <access_token>", "required": true}
         ],
         responses: [
-          {"status": 200, "description": "Success - EMI calculated successfully"},
-          {"status": 400, "description": "Bad Request - Invalid calculation parameters"},
-          {"status": 401, "description": "Unauthorized - Invalid authentication credentials"},
-          {"status": 500, "description": "Internal Server Error - EMI calculation failed"}
+          {"status": 200, "description": "Success - EMI calculated successfully", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"0\",\"ResponseMessage\":\"Success\"},\"EMIDetails\":{\"EMIAmount\":\"18534.37\",\"TotalInterest\":\"112062.20\",\"TotalAmount\":\"1112062.20\"}}"},
+          {"status": 400, "description": "Bad Request - Invalid calculation parameters", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"400\",\"ResponseMessage\":\"Bad Request\"}}"},
+          {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"401\",\"ResponseMessage\":\"Unauthorized\"}}"}
         ],
         requestExample: JSON.stringify({
           "ReferenceNumber": "REF123456789012345678901234567890",

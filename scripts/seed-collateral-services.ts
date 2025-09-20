@@ -38,11 +38,9 @@ async function seedCollateralServices() {
           {"name": "Authorization", "value": "Bearer <access_token>", "required": true}
         ],
         responses: [
-          {"status": 200, "description": "Success - Collateral dedupe check completed successfully"},
-          {"status": 400, "description": "Bad Request - Invalid collateral parameters"},
-          {"status": 401, "description": "Unauthorized - Invalid authentication credentials"},
-          {"status": 404, "description": "Not Found - Collateral records not found"},
-          {"status": 500, "description": "Internal Server Error - Something went wrong"}
+          {"status": 200, "description": "Success - Collateral dedupe check completed successfully", "example": "{\"CollateralDetails\":[{\"Status\":\"0\",\"RepoDate\":\"2022-10-21\",\"Narration\":\"REPO WITHOUT RO\"}],\"TransactionStatus\":{\"ResponseCode\":\"99\",\"ValidationErrors\":[null],\"ResponseMessage\":\"Failure\"}}"},
+          {"status": 400, "description": "Bad Request - Invalid collateral parameters", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"400\",\"ResponseMessage\":\"Bad Request\"}}"},
+          {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"401\",\"ResponseMessage\":\"Unauthorized\"}}"}
         ],
         requestExample: JSON.stringify({
           "ReferenceNumber": "REF123456789012345678901234567890",
@@ -155,11 +153,9 @@ async function seedCollateralServices() {
           {"name": "Authorization", "value": "Bearer <access_token>", "required": true}
         ],
         responses: [
-          {"status": 200, "description": "Success - Collateral details retrieved successfully"},
-          {"status": 400, "description": "Bad Request - Invalid customer ID or parameters"},
-          {"status": 401, "description": "Unauthorized - Invalid authentication credentials"},
-          {"status": 404, "description": "Not Found - No collateral found for customer"},
-          {"status": 500, "description": "Internal Server Error - Something went wrong"}
+          {"status": 200, "description": "Success - Collateral details retrieved successfully", "example": "{\"CollateralDetails\":[{\"Status\":\"0\",\"RepoDate\":\"2022-10-21\",\"Narration\":\"REPO WITHOUT RO\"}],\"TransactionStatus\":{\"ResponseCode\":\"99\",\"ValidationErrors\":[null],\"ResponseMessage\":\"Failure\"}}"},
+          {"status": 400, "description": "Bad Request - Invalid customer ID or parameters", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"400\",\"ResponseMessage\":\"Bad Request\"}}"},
+          {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"401\",\"ResponseMessage\":\"Unauthorized\"}}"}
         ],
         requestExample: JSON.stringify({
           "RequestId": "98767890",
@@ -276,11 +272,9 @@ async function seedCollateralServices() {
           {"name": "Authorization", "value": "Bearer <access_token>", "required": true}
         ],
         responses: [
-          {"status": 200, "description": "Success - Collateral linkage modified successfully"},
-          {"status": 400, "description": "Bad Request - Invalid linkage parameters"},
-          {"status": 401, "description": "Unauthorized - Invalid authentication credentials"},
-          {"status": 404, "description": "Not Found - Collateral or account not found"},
-          {"status": 500, "description": "Internal Server Error - Something went wrong"}
+          {"status": 200, "description": "Success - Collateral linkage modified successfully", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"0\",\"ResponseMessage\":\"Success\",\"ExtendedErrorDetails\":{\"messages\":[{\"code\":0}]}}}"},
+          {"status": 400, "description": "Bad Request - Invalid linkage parameters", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"400\",\"ResponseMessage\":\"Bad Request\"}}"},
+          {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"401\",\"ResponseMessage\":\"Unauthorized\"}}"}
         ],
         requestExample: JSON.stringify({
           "ReferenceNumber": "REF123456789012345678901234567890",
