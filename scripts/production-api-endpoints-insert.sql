@@ -3,10 +3,11 @@
 -- =====================================================================
 -- 
 -- GENERATED: December 2024
--- TOTAL APIs: 26 comprehensive API services
+-- TOTAL APIs: 36 comprehensive API services
 -- CATEGORIES: 
 --   - Payments (4657e5d5-b563-4f88-a81f-b653f52a59db)
 --   - Loans (faf2c6c8-4b0e-4fa7-94c8-f92527965e3e)
+--   - Common Services (8a2b3c4d-5e6f-7890-ab12-cd34ef567890)
 --
 -- SERVICES INCLUDED:
 -- 1. Additional BBPS Services (6 APIs)
@@ -15,12 +16,13 @@
 -- 4. Collateral Management Services (4 APIs)
 -- 5. Disbursement Services (3 APIs)
 -- 6. Loan Management Services (5 APIs)
+-- 7. Common Services (10 APIs)
 --
 -- ⚠️  PRODUCTION WARNING:
 -- - This script modifies the production database
 -- - Ensure you have proper backups before execution
 -- - Test in UAT environment first if possible
--- - Verify both Payment and Loans category IDs exist in target database
+-- - Verify all category IDs exist in target database
 -- 
 -- EXECUTION:
 -- Run this script as a single transaction on production PostgreSQL
@@ -29,7 +31,7 @@
 
 BEGIN;
 
--- Verify both Payments and Loans categories exist
+-- Verify all required categories exist
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM api_categories WHERE id = '4657e5d5-b563-4f88-a81f-b653f52a59db') THEN
@@ -38,6 +40,10 @@ BEGIN
     
     IF NOT EXISTS (SELECT 1 FROM api_categories WHERE id = 'faf2c6c8-4b0e-4fa7-94c8-f92527965e3e') THEN
         RAISE EXCEPTION 'Loans category not found. Please verify loans category_id before proceeding.';
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM api_categories WHERE id = '8a2b3c4d-5e6f-7890-ab12-cd34ef567890') THEN
+        RAISE EXCEPTION 'Common Services category not found. Please verify common services category_id before proceeding.';
     END IF;
 END $$;
 
@@ -1367,6 +1373,173 @@ INSERT INTO api_endpoints (
 );
 
 -- =====================================================================
+-- SECTION 4: COMMON SERVICES (10 APIs)
+-- =====================================================================
+
+INSERT INTO api_endpoints (
+    id, category_id, category, name, path, method, description, summary, 
+    parameters, headers, responses, request_example, response_example, 
+    documentation, tags, response_schema, rate_limits, timeout, 
+    requires_auth, auth_type, required_permissions, is_active, is_internal, 
+    status, version, created_at, updated_at
+) VALUES
+
+-- 1. SMS Communication Service
+(
+    'common-communications-sms-send-001',
+    '8a2b3c4d-5e6f-7890-ab12-cd34ef567890',
+    'Common Services',
+    'SMS Communication Service',
+    '/CommunicationRestService/sendSMS',
+    'POST',
+    'Send SMS communications to customers for debit, credit, and spend alerts with whitelisted templates and OTP/Non-OTP message types.',
+    'Send SMS notifications to customers',
+    '[{"name": "RequestId", "type": "string", "required": true, "description": "Unique Reference number (32 characters max)", "example": "12343566"}, {"name": "Channel", "type": "string", "required": true, "description": "Channel name to identify from which application request received (10 characters max)", "example": "DEC"}, {"name": "GroupID", "type": "string", "required": true, "description": "Static identifier (6 characters max)", "example": "AUBANK"}, {"name": "ContentType", "type": "string", "required": true, "description": "Static content type indicator", "example": "1"}, {"name": "NationalorInternational", "type": "string", "required": true, "description": "National/International indicator (1 for National, 2 for International)", "example": "1"}, {"name": "MessageType", "type": "string", "required": true, "description": "Static message type", "example": "S"}, {"name": "IsOTPMessage", "type": "string", "required": true, "description": "OTP/NON-OTP indicator (0 for non-OTP, 1 for OTP)", "example": "1"}, {"name": "LanguageId", "type": "string", "required": true, "description": "Language identifier", "example": "en"}, {"name": "Message.MobileNumber", "type": "string", "required": true, "description": "Customer mobile number (12 characters max)", "example": "7358506535"}, {"name": "Message.MessageText", "type": "string", "required": true, "description": "Message text with whitelisted template (100 characters max)", "example": "213054 is your OTP to verify your Mobile no. 9636329727 for your Savings Account"}]'::jsonb,
+    '[{"name": "Content-Type", "value": "application/json", "required": true}, {"name": "Authorization", "value": "Bearer <access_token>", "required": true}]'::jsonb,
+    '[{"status": 200, "description": "Success - SMS sent successfully", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"0\",\"ResponseMessage\":\"Success\",\"ExtendedErrorDetails\":{\"messages\":{\"code\":\"0\",\"message\":\"7358506535 : APP-DECIMAL-1757395359743-386-DC0101: Success\"}}}}"}, {"status": 400, "description": "Bad Request - Invalid SMS parameters", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"400\",\"ResponseMessage\":\"Bad Request\"}}"}, {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"401\",\"ResponseMessage\":\"Unauthorized\"}}"}]'::jsonb,
+    '{"Message": {"MobileNumber": "7358506535", "MessageText": "213054 is your OTP to verify your Mobile no. 9636329727 for your Savings Account"}, "RequestId": "12343566", "Channel": "DEC", "GroupID": "AUBANK", "ContentType": "1", "NationalorInternational": "1", "MessageType": "S", "IsOTPMessage": "1", "LanguageId": "en"}',
+    '{"TransactionStatus": {"ResponseCode": "0", "ResponseMessage": "Success", "ExtendedErrorDetails": {"messages": {"code": "0", "message": "7358506535 : APP-DECIMAL-1757395359743-386-DC0101: Success"}}}}',
+    'SMS communication service for customer notifications and alerts',
+    '["Common", "Communications", "SMS"]'::jsonb,
+    '{"type": "object", "properties": {"TransactionStatus": {"type": "object", "properties": {"ResponseCode": {"type": "string"}, "ResponseMessage": {"type": "string"}, "ExtendedErrorDetails": {"type": "object"}}}}}'::jsonb,
+    '{"sandbox": 100, "production": 1000}'::jsonb,
+    30000,
+    true,
+    'bearer',
+    '["common:communications", "common:read"]'::jsonb,
+    true,
+    true,
+    'active',
+    'v1',
+    NOW(),
+    NOW()
+),
+
+-- 2. Email Communication Service
+(
+    'common-communications-email-send-002',
+    '8a2b3c4d-5e6f-7890-ab12-cd34ef567890',
+    'Common Services',
+    'Email Communication Service',
+    '/CommunicationRestService/mail',
+    'POST',
+    'Send email communications to customers with support for TO, CC, BCC recipients and customizable subject and body content.',
+    'Send email notifications to customers',
+    '[{"name": "RequestId", "type": "string", "required": true, "description": "Unique Reference number (32 characters max)", "example": "123456"}, {"name": "Channel", "type": "string", "required": true, "description": "Channel name to identify from which application request received (10 characters max)", "example": "DEC"}, {"name": "TO", "type": "string", "required": true, "description": "Primary email address (20 characters max)", "example": "customer@example.com"}, {"name": "CC", "type": "string", "required": false, "description": "CC email address (20 characters max)", "example": "cc@example.com"}, {"name": "BCC", "type": "string", "required": false, "description": "BCC email address (20 characters max)", "example": "bcc@example.com"}, {"name": "Subject", "type": "string", "required": true, "description": "Email subject line (30 characters max)", "example": "Account Alert Notification"}, {"name": "Text", "type": "string", "required": true, "description": "Email body text (100 characters max)", "example": "Your account has been updated successfully."}]'::jsonb,
+    '[{"name": "Content-Type", "value": "application/json", "required": true}, {"name": "Authorization", "value": "Bearer <access_token>", "required": true}]'::jsonb,
+    '[{"status": 200, "description": "Success - Email sent successfully", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"0\",\"ResponseMessage\":\"Success\",\"ExtendedErrorDetails\":{\"messages\":{\"code\":\"0\",\"message\":\"Email Request has been Acknowledged\"}}}}"}, {"status": 400, "description": "Bad Request - Invalid email parameters", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"400\",\"ResponseMessage\":\"Bad Request\"}}"}, {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"TransactionStatus\":{\"ResponseCode\":\"401\",\"ResponseMessage\":\"Unauthorized\"}}"}]'::jsonb,
+    '{"RequestId": "123456", "Channel": "DEC", "TO": "customer@example.com", "CC": "cc@example.com", "BCC": "bcc@example.com", "Subject": "Account Alert Notification", "Text": "Your account has been updated successfully."}',
+    '{"TransactionStatus": {"ResponseCode": "0", "ResponseMessage": "Success", "ExtendedErrorDetails": {"messages": {"code": "0", "message": "Email Request has been Acknowledged"}}}}',
+    'Email communication service for customer notifications and alerts',
+    '["Common", "Communications", "Email"]'::jsonb,
+    '{"type": "object", "properties": {"TransactionStatus": {"type": "object", "properties": {"ResponseCode": {"type": "string"}, "ResponseMessage": {"type": "string"}, "ExtendedErrorDetails": {"type": "object"}}}}}'::jsonb,
+    '{"sandbox": 100, "production": 1000}'::jsonb,
+    30000,
+    true,
+    'bearer',
+    '["common:communications", "common:read"]'::jsonb,
+    true,
+    true,
+    'active',
+    'v1',
+    NOW(),
+    NOW()
+),
+
+-- 3. Generate OTP
+(
+    'common-otp-generate-005',
+    '8a2b3c4d-5e6f-7890-ab12-cd34ef567890',
+    'Common Services',
+    'Generate OTP',
+    '/OTPEngineRestService/generateOTP',
+    'POST',
+    'Generate one-time password (OTP) for customer verification with configurable length, timeout, and delivery via SMS and email.',
+    'Generate OTP for customer verification',
+    '[{"name": "requestId", "type": "string", "required": true, "description": "Unique Reference number (32 characters max)", "example": "4543656546"}, {"name": "channel", "type": "string", "required": true, "description": "Channel name (10 characters max)", "example": "FABL"}, {"name": "otptype", "type": "string", "required": true, "description": "OTP type indicator", "example": "1"}, {"name": "msgContent", "type": "string", "required": true, "description": "SMS message content with OTP placeholder (100 characters max)", "example": "The Otp is {0} generated sucessfully - AU Bank"}, {"name": "emailContent", "type": "string", "required": true, "description": "Email content with OTP placeholder (100 characters max)", "example": "The Otp is {0} generated sucessfully - AU Bank"}, {"name": "mobile", "type": "string", "required": true, "description": "Customer mobile number (32 characters max)", "example": "7989443652"}, {"name": "custRef", "type": "string", "required": true, "description": "Customer reference number (20 characters max)", "example": "3012011"}, {"name": "emailId", "type": "string", "required": true, "description": "Customer email ID (20 characters max)", "example": "customer@example.com"}, {"name": "otptimeout", "type": "string", "required": true, "description": "OTP timeout in seconds (10 characters max)", "example": "180"}, {"name": "otplength", "type": "string", "required": true, "description": "OTP length (6 characters max)", "example": "6"}]'::jsonb,
+    '[{"name": "Content-Type", "value": "application/json", "required": true}, {"name": "Authorization", "value": "Bearer <access_token>", "required": true}]'::jsonb,
+    '[{"status": 200, "description": "Success - OTP generated successfully", "example": "{\"StatusDesc\":\"The Otp is generated successfully\",\"CustRef\":\"3012011\",\"StatusCode\":100,\"RequestStatus\":\"Success\"}"}, {"status": 400, "description": "Bad Request - Invalid OTP parameters", "example": "{\"StatusDesc\":\"Invalid parameters\",\"StatusCode\":400,\"RequestStatus\":\"Failed\"}"}, {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"StatusDesc\":\"Unauthorized\",\"StatusCode\":401,\"RequestStatus\":\"Failed\"}"}]'::jsonb,
+    '{"otptype": "1", "msgContent": "The Otp is {0} generated sucessfully - AU Bank", "requestId": "4543656546", "channel": "FABL", "emailContent": "The Otp is {0} generated sucessfully - AU Bank", "mobile": "7989443652", "custRef": "3012011", "emailId": "customer@example.com", "otptimeout": "180", "otplength": "6"}',
+    '{"StatusDesc": "The Otp is generated successfully", "CustRef": "3012011", "StatusCode": 100, "RequestStatus": "Success"}',
+    'OTP generation service for secure customer verification',
+    '["Common", "OTP", "Security", "Authentication"]'::jsonb,
+    '{"type": "object", "properties": {"StatusDesc": {"type": "string"}, "CustRef": {"type": "string"}, "StatusCode": {"type": "number"}, "RequestStatus": {"type": "string"}}}'::jsonb,
+    '{"sandbox": 20, "production": 200}'::jsonb,
+    30000,
+    true,
+    'bearer',
+    '["common:otp", "common:read"]'::jsonb,
+    true,
+    true,
+    'active',
+    'v1',
+    NOW(),
+    NOW()
+),
+
+-- 4. Validate OTP
+(
+    'common-otp-validate-006',
+    '8a2b3c4d-5e6f-7890-ab12-cd34ef567890',
+    'Common Services',
+    'Validate OTP',
+    '/OTPEngineRestService/validateOTP',
+    'POST',
+    'Validate customer-provided OTP against previously generated OTP for secure transaction verification.',
+    'Validate customer OTP',
+    '[{"name": "requestId", "type": "string", "required": true, "description": "Unique Reference number (32 characters max)", "example": "65465656"}, {"name": "channel", "type": "string", "required": true, "description": "Channel name (10 characters max)", "example": "FABL"}, {"name": "mobile", "type": "string", "required": true, "description": "Customer mobile number (12 characters max)", "example": "7989443652"}, {"name": "custRef", "type": "string", "required": true, "description": "Customer reference from generate OTP (20 characters max)", "example": "8606661204"}, {"name": "emailId", "type": "string", "required": true, "description": "Customer email ID (20 characters max)", "example": "customer@example.com"}, {"name": "otp", "type": "string", "required": true, "description": "OTP in encrypted format (30 characters max)", "example": "kf4kgcTRxSAQd4J+u62RVw=="}]'::jsonb,
+    '[{"name": "Content-Type", "value": "application/json", "required": true}, {"name": "Authorization", "value": "Bearer <access_token>", "required": true}]'::jsonb,
+    '[{"status": 200, "description": "Success - OTP validated successfully", "example": "{\"StatusDesc\":\"OTP Verified successfully\",\"CustRef\":\"8606661204\",\"StatusCode\":100,\"RequestStatus\":\"Success\"}"}, {"status": 400, "description": "Bad Request - Invalid OTP or parameters", "example": "{\"StatusDesc\":\"Invalid OTP\",\"StatusCode\":400,\"RequestStatus\":\"Failed\"}"}, {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"StatusDesc\":\"Unauthorized\",\"StatusCode\":401,\"RequestStatus\":\"Failed\"}"}]'::jsonb,
+    '{"channel": "FABL", "requestId": "65465656", "mobile": "7989443652", "emailId": "customer@example.com", "otp": "kf4kgcTRxSAQd4J+u62RVw==", "custRef": "8606661204"}',
+    '{"StatusDesc": "OTP Verified successfully", "CustRef": "8606661204", "StatusCode": 100, "RequestStatus": "Success"}',
+    'OTP validation service for secure customer verification',
+    '["Common", "OTP", "Security", "Validation"]'::jsonb,
+    '{"type": "object", "properties": {"StatusDesc": {"type": "string"}, "CustRef": {"type": "string"}, "StatusCode": {"type": "number"}, "RequestStatus": {"type": "string"}}}'::jsonb,
+    '{"sandbox": 50, "production": 500}'::jsonb,
+    15000,
+    true,
+    'bearer',
+    '["common:otp", "common:read"]'::jsonb,
+    true,
+    true,
+    'active',
+    'v1',
+    NOW(),
+    NOW()
+),
+
+-- 5. WhatsApp Send Message
+(
+    'common-whatsapp-send-message-010',
+    '8a2b3c4d-5e6f-7890-ab12-cd34ef567890',
+    'Common Services',
+    'WhatsApp Send Message',
+    '/ValueFirstWhatsappIntegration/Message',
+    'POST',
+    'Send WhatsApp messages to customers with support for various message types including text, images, and templates.',
+    'Send WhatsApp messages to customers',
+    '[{"name": "DLR.URL", "type": "string", "required": false, "description": "Delivery receipt URL", "example": ""}, {"name": "SMS[0].TYPE", "type": "string", "required": true, "description": "Message type (text/image)", "example": "image"}, {"name": "SMS[0].TEMPLATENAME", "type": "string", "required": true, "description": "WhatsApp template name", "example": "raf_amazon~Customer"}, {"name": "SMS[0].LANGUAGE", "type": "string", "required": true, "description": "Message language", "example": "english"}, {"name": "SMS[0].CONTENTTYPE", "type": "string", "required": true, "description": "Content MIME type", "example": "image/jpeg"}, {"name": "SMS[0].MSGTYPE", "type": "string", "required": true, "description": "Message type code", "example": "3"}, {"name": "SMS[0].MEDIADATA", "type": "string", "required": false, "description": "Media URL for images/files", "example": "https://example.com/image.jpg"}, {"name": "SMS[0].ADDRESS[0].FROM", "type": "string", "required": true, "description": "Sender WhatsApp number", "example": "919116002622"}, {"name": "SMS[0].ADDRESS[0].TO", "type": "string", "required": true, "description": "Recipient WhatsApp number", "example": "911552741000"}, {"name": "SMS[0].ADDRESS[0].SEQ", "type": "string", "required": true, "description": "Sequence number", "example": "1"}, {"name": "SMS[0].ADDRESS[0].TAG", "type": "string", "required": true, "description": "Message tag identifier", "example": "65099088~1447482036"}]'::jsonb,
+    '[{"name": "Content-Type", "value": "application/json", "required": true}, {"name": "Authorization", "value": "Bearer <access_token>", "required": true}]'::jsonb,
+    '[{"status": 200, "description": "Success - WhatsApp message sent successfully", "example": "{\"MESSAGEACK\":{\"GUID\":[{\"GUID\":\"kp99l0153580k4f440e00sa726AUBANKWAXM\",\"SUBMITDATE\":\"2025-09-09 21:01:53\",\"ID\":\"1\",\"ERROR\":{\"SEQ\":\"1\",\"CODE\":\"28673\"}}]}}"}, {"status": 400, "description": "Bad Request - Invalid message parameters", "example": "{\"error\":\"Bad Request\",\"code\":400}"}, {"status": 401, "description": "Unauthorized - Invalid authentication credentials", "example": "{\"error\":\"Unauthorized\",\"code\":401}"}]'::jsonb,
+    '{"DLR": {"URL": ""}, "SMS": [{"TYPE": "image", "TEMPLATENAME": "raf_amazon~Customer", "LANGUAGE": "english", "CONTENTTYPE": "image/jpeg", "BTN_PAYLOADS": [], "MSGTYPE": "3", "MEDIADATA": "https://example.com/image.jpg", "ADDRESS": [{"FROM": "919116002622", "TO": "911552741000", "SEQ": "1", "TAG": "65099088~1447482036"}]}]}',
+    '{"MESSAGEACK": {"GUID": [{"GUID": "kp99l0153580k4f440e00sa726AUBANKWAXM", "SUBMITDATE": "2025-09-09 21:01:53", "ID": "1", "ERROR": {"SEQ": "1", "CODE": "28673"}}]}}',
+    'WhatsApp integration service for customer messaging',
+    '["Common", "WhatsApp", "Messaging", "Communication"]'::jsonb,
+    '{"type": "object", "properties": {"MESSAGEACK": {"type": "object", "properties": {"GUID": {"type": "array", "items": {"type": "object"}}}}}}'::jsonb,
+    '{"sandbox": 50, "production": 1000}'::jsonb,
+    30000,
+    true,
+    'bearer',
+    '["common:messaging", "common:read"]'::jsonb,
+    true,
+    true,
+    'active',
+    'v1',
+    NOW(),
+    NOW()
+);
+
+-- =====================================================================
 -- SCRIPT COMPLETION
 -- =====================================================================
 
@@ -1378,13 +1551,14 @@ BEGIN
     RAISE NOTICE '========================================';
     RAISE NOTICE 'AU BANK API ENDPOINTS INSERTION COMPLETE';
     RAISE NOTICE '========================================';
-    RAISE NOTICE 'Total APIs inserted: 26';
+    RAISE NOTICE 'Total APIs inserted: 36';
     RAISE NOTICE 'Additional BBPS Services: 6 APIs';
     RAISE NOTICE 'E-NACH Services: 5 APIs';
     RAISE NOTICE 'UPI Payout Services: 3 APIs';
     RAISE NOTICE 'Collateral Management Services: 4 APIs';
     RAISE NOTICE 'Disbursement Services: 3 APIs';
     RAISE NOTICE 'Loan Management Services: 5 APIs';
+    RAISE NOTICE 'Common Services: 10 APIs';
     RAISE NOTICE '========================================';
     RAISE NOTICE 'All services are now active and available';
     RAISE NOTICE 'in the AU Bank Developer Portal';

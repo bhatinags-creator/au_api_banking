@@ -1,8 +1,10 @@
-import { db } from '../server/storage';
+import { sql } from 'drizzle-orm';
+import { db } from '../server/db.js';
+import { apiEndpoints } from '../shared/schema.js';
 
 const COMMON_SERVICES_CATEGORY_ID = '8a2b3c4d-5e6f-7890-ab12-cd34ef567890';
 
-export const commonServicesApis = [
+const commonServicesApis = [
   // Communication Service APIs
   {
     id: 'common-communications-sms-send-001',
@@ -653,63 +655,56 @@ export const commonServicesApis = [
 
 async function seedCommonServices() {
   try {
-    console.log('Starting Common Services API seeding...');
+    console.log('🔄 Starting Common Services API seeding...');
     
     let insertedCount = 0;
     
     for (const api of commonServicesApis) {
-      const existing = await db.get(
-        'SELECT id FROM api_endpoints WHERE id = ?',
-        [api.id]
-      );
+      console.log(`📝 Inserting ${api.name}...`);
       
-      if (!existing) {
-        await db.run(`
-          INSERT INTO api_endpoints (
-            id, category_id, category, name, path, method, description, summary,
-            parameters, headers, responses, request_example, response_example,
-            tags, requires_auth, auth_type, is_active, is_internal, status, version,
-            rate_limits, timeout, documentation
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [
-          api.id,
-          api.categoryId,
-          api.category,
-          api.name,
-          api.path,
-          api.method,
-          api.description,
-          api.summary,
-          JSON.stringify(api.parameters),
-          JSON.stringify(api.headers),
-          JSON.stringify(api.responses),
-          api.requestExample,
-          api.responseExample,
-          JSON.stringify(api.tags),
-          api.requiresAuth,
-          api.authType,
-          api.isActive,
-          api.isInternal,
-          api.status,
-          api.version,
-          JSON.stringify(api.rateLimits),
-          api.timeout,
-          api.documentation
-        ]);
+      try {
+        await db.insert(apiEndpoints).values({
+          id: api.id,
+          categoryId: api.categoryId,
+          category: api.category,
+          name: api.name,
+          path: api.path,
+          method: api.method,
+          description: api.description,
+          summary: api.summary,
+          parameters: api.parameters,
+          headers: api.headers,
+          responses: api.responses,
+          requestExample: api.requestExample,
+          responseExample: api.responseExample,
+          documentation: api.documentation,
+          tags: api.tags,
+          rateLimits: api.rateLimits,
+          timeout: api.timeout,
+          requiresAuth: api.requiresAuth,
+          authType: api.authType,
+          isActive: api.isActive,
+          isInternal: api.isInternal,
+          status: api.status,
+          version: api.version,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
         insertedCount++;
-        console.log(`✓ Inserted: ${api.name}`);
-      } else {
-        console.log(`- Skipped (exists): ${api.name}`);
+        console.log(`✅ Successfully inserted ${api.name}`);
+      } catch (insertError) {
+        if (insertError.message && insertError.message.includes('duplicate key')) {
+          console.log(`⚠️  Skipped (exists): ${api.name}`);
+        } else {
+          console.error(`❌ Error inserting ${api.name}:`, insertError);
+          throw insertError;
+        }
       }
     }
     
-    console.log(`\n✅ Common Services seeding completed!`);
+    console.log(`\n🎉 Common Services seeding completed!`);
     console.log(`📊 Summary: ${insertedCount} new APIs inserted`);
     console.log(`📋 Total Common Services APIs: ${commonServicesApis.length}`);
-    
-    // Get final count
-    const result = await db.get('SELECT COUNT(*) as count FROM api_endpoints WHERE category = ?', ['Common Services']);
-    console.log(`🎯 Common Services APIs in database: ${result.count}`);
     
   } catch (error) {
     console.error('❌ Error seeding Common Services APIs:', error);
@@ -717,18 +712,15 @@ async function seedCommonServices() {
   }
 }
 
-// Export for use in other scripts
-export { seedCommonServices };
-
-// Run if called directly
-if (require.main === module) {
-  seedCommonServices()
-    .then(() => {
-      console.log('🎉 Common Services seeding completed successfully!');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('💥 Common Services seeding failed:', error);
-      process.exit(1);
-    });
+// Run if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  seedCommonServices().then(() => {
+    console.log('🏁 Script completed successfully');
+    process.exit(0);
+  }).catch((error) => {
+    console.error('💥 Script failed:', error);
+    process.exit(1);
+  });
 }
+
+export { seedCommonServices, commonServicesApis };
