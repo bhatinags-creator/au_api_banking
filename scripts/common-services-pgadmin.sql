@@ -4,18 +4,40 @@
 -- 
 -- SIMPLIFIED VERSION FOR PGADMIN EXECUTION
 -- This script uses simplified JSON structures compatible with pgAdmin
---
--- PREREQUISITE: Common Services category must exist
--- Category ID: 8a2b3c4d-5e6f-7890-ab12-cd34ef567890
+-- Creates Common Services category and all 10 APIs automatically
+-- Safe to run multiple times (idempotent operations)
 -- =====================================================================
 
 BEGIN;
 
--- Verify Common Services category exists
+-- Create Common Services category (idempotent - safe to run multiple times)
+INSERT INTO api_categories (
+    id, 
+    name, 
+    description, 
+    icon, 
+    color, 
+    display_order, 
+    is_active,
+    created_at,
+    updated_at
+) VALUES (
+    '8a2b3c4d-5e6f-7890-ab12-cd34ef567890',
+    'Common Services',
+    'Cross-cutting integration utilities including communications, mandates, OTP services, policy management, and WhatsApp messaging',
+    'PlugZap',
+    '#0E7490',
+    10,
+    true,
+    NOW(),
+    NOW()
+) ON CONFLICT (id) DO NOTHING;
+
+-- Verify Common Services category now exists
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM api_categories WHERE id = '8a2b3c4d-5e6f-7890-ab12-cd34ef567890') THEN
-        RAISE EXCEPTION 'Common Services category not found. Please create it first: INSERT INTO api_categories (id, name, description, icon, color, display_order, is_active) VALUES (''8a2b3c4d-5e6f-7890-ab12-cd34ef567890'', ''Common Services'', ''Cross-cutting integration utilities including communications, mandates, OTP services, policy management, and WhatsApp messaging'', ''PlugZap'', ''#0E7490'', 10, true);';
+        RAISE EXCEPTION 'Failed to create Common Services category. Please check database permissions and constraints.';
     END IF;
 END $$;
 

@@ -31,6 +31,29 @@
 
 BEGIN;
 
+-- Create Common Services category if it doesn't exist (idempotent)
+INSERT INTO api_categories (
+    id, 
+    name, 
+    description, 
+    icon, 
+    color, 
+    display_order, 
+    is_active,
+    created_at,
+    updated_at
+) VALUES (
+    '8a2b3c4d-5e6f-7890-ab12-cd34ef567890',
+    'Common Services',
+    'Cross-cutting integration utilities including communications, mandates, OTP services, policy management, and WhatsApp messaging',
+    'PlugZap',
+    '#0E7490',
+    10,
+    true,
+    NOW(),
+    NOW()
+) ON CONFLICT (id) DO NOTHING;
+
 -- Verify all required categories exist
 DO $$
 BEGIN
@@ -43,7 +66,7 @@ BEGIN
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM api_categories WHERE id = '8a2b3c4d-5e6f-7890-ab12-cd34ef567890') THEN
-        RAISE EXCEPTION 'Common Services category not found. Please verify common services category_id before proceeding.';
+        RAISE EXCEPTION 'Common Services category creation failed. Please check database permissions and constraints.';
     END IF;
 END $$;
 
